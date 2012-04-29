@@ -1,0 +1,5 @@
+CREATE TABLE session_parms (sid TEXT, key TEXT, value TEXT, mtime NUMERIC, UNIQUE (sid, key) ON CONFLICT REPLACE);
+CREATE TABLE objects (id INTEGER PRIMARY KEY, parent NUMERIC, type TEXT, read NUMERIC, write NUMERIC, priority NUMERIC, mtime NUMERIC);
+CREATE TABLE users (object_id NUMERIC REFERENCES objects(id) ON UPDATE CASCADE ON DELETE CASCADE, nick TEXT UNIQUE, email TEXT, fullname TEXT, password TEXT);
+CREATE TABLE text (object_id NUMERIC REFERENCES objects(id) ON UPDATE CASCADE ON DELETE CASCADE, data TEXT);
+

@@ -32,9 +32,12 @@ def application( environ, start_response ):
 	except Exception as e:
 		start_response( "500 Internal Server Error", [] )
 		trace = traceback.format_exception( Exception, e, e.__traceback__ )
+		byte_trace = []
+		for value in trace:
+			byte_trace.append( value.encode("utf-8") )
 		#return [str( {	"succeeded":False, 
 		#				"error":{	"message":str(e), 
 		#							"class":e.__class__.__name__, 
 		#							"trace":trace}} )]
-		return trace # FIXME: DEBUG
+		return byte_trace # FIXME: DEBUG
 

@@ -1,4 +1,6 @@
-import sqlite3
+import sqlite3, imp
+from lib import user
+user = imp.reload( user )
 
 def process( app ):
 	query = app.query
@@ -19,14 +21,9 @@ def process( app ):
 				"nick" : row[1],
 				"email" : row[2],
 				"fullname" : row[3] }
-		c.execute( """select distinct o.id, o.type from objects o 
-						left join objects g on o.read=g.id
-						left join objects u on g.id=u.parent
-						where g.id=? or u.id=?""",
-						[user_id,user_id] )
 		visible_objects = []
-		for row in c:
-			visible_objects.append( {"id" : row[0], "type" : row[1]} )
+		for row in user.can_read( app, user_id ):
+			visible_objects.append( row[0] )
 		result["visible_objects"] = visible_objects
 
 	response.output = str( result )

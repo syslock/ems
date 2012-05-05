@@ -33,9 +33,8 @@ def create( app, nick, plain_password, email, fullname ):
 	check( app, nick, plain_password, email, fullname )
 	con = sqlite3.connect( app.db_path )
 	c = con.cursor()
-	parent_id=0
-	c.execute( """insert into objects (parent,type,mtime) values (?,?,?)""",
-				(parent_id, "application/x-obj.user", time.time()) )
+	c.execute( """insert into objects (type,mtime) values (?,?,?)""",
+				("application/x-obj.user", time.time()) )
 	object_id = c.lastrowid
 	encrypted_password = password.encrypt( plain_password )
 	try:
@@ -50,27 +49,69 @@ def create( app, nick, plain_password, email, fullname ):
 	c.close()
 	return object_id
 
-def can_read( app, user_id, object_id ):
+def can_read( app, user_id, object_id=None ):
 	return can_access( app, user_id, object_id, "read" )
-def can_write( app, user_id, object_id ):
+def can_write( app, user_id, object_id=None ):
 	return can_access( app, user_id, object_id, "write" )
 def can_access( app, user_id, object_id, access_type ):
 	if access_type not in ("read", "write"):
 		raise NotImplementedError( "Unsupported access_type" )
 	con = sqlite3.connect( app.db_path )
 	c = con.cursor()
-	c.execute( """select o.%(access_type)s, o.parent from objects o
-					left join objects g on o.%(access_type)s=g.id
-					left join objects u on g.id=u.parent
-					where o.id=? and (o.%(access_type)s is null or g.id=? or u.id=?)""" \
-					% locals(),
-				[object_id, user_id, user_id] )
+	# mehrstufiger join zur gleichzeitigen Auflösung von bis zu 10
+	# Verschachtelungsstufen der jeweiligen Zugriffsgruppe:
+	object_constraint = "1=1"
+	null_access = "1=0"
+	if object_id!=None:
+		object_constraint = "o.id=%(object_id)d" % locals()
+		null_access = "o.%(access_type)s is null" % locals()
+	c.execute( """select o.id, o.%(access_type)s from objects o
+					left join membership m0 on o.%(access_type)s=m0.parent_id
+					left join membership m1 on m0.child_id=m1.parent_id
+					left join membership m2 on m1.child_id=m2.parent_id
+					left join membership m3 on m2.child_id=m3.parent_id
+					left join membership m4 on m3.child_id=m4.parent_id
+					left join membership m5 on m4.child_id=m5.parent_id
+					left join membership m6 on m5.child_id=m6.parent_id
+					left join membership m7 on m6.child_id=m7.parent_id
+					left join membership m8 on m7.child_id=m8.parent_id
+					left join membership m9 on m8.child_id=m9.parent_id
+					where %(object_constraint)s
+						and (%(null_access)s
+							or o.%(access_type)s=%(user_id)d
+							or m0.child_id=%(user_id)d
+							or m1.child_id=%(user_id)d
+							or m2.child_id=%(user_id)d
+							or m3.child_id=%(user_id)d
+							or m4.child_id=%(user_id)d
+							or m5.child_id=%(user_id)d
+							or m6.child_id=%(user_id)d
+							or m7.child_id=%(user_id)d
+							or m8.child_id=%(user_id)d
+							or m9.child_id=%(user_id)d
+							)""" \
+				% locals() )
+	if object_id==None:
+		# Falls keine object_id übergeben wurde, geben wir die direkt
+		# entsprechend zugreifbaren Object-IDs, zusammen mit den dafür
+		# verantwortlichen Zugriffs-IDs zurück 
+		return c.fetchall()
 	result = c.fetchone()
 	if not result:
 		return False
-	access_id, parent_id = result
-	if not access_id:
-		return can_access( app, user_id, parent_id, access_type )
+	access_id = result[1]
+	if access_id == None:
+		parent_id = None
+		c.execute( """select m.parent_id from objects o
+						left join membership m on on o.id=m.child_id
+						where o.id=?""", [object_id] )
+		for row in c:
+			parent_id = row[0]
+			if parent_id == object_id \
+			or not can_access( app, user_id, parent_id, access_type ):
+				return False
+		if parent_id == None:
+			return False
 	return True
 
 def grant_read( app, user_id, object_id ):

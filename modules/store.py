@@ -2,11 +2,6 @@ import sqlite3, time, imp
 from lib import user
 user = imp.reload( user )
 
-# CREATE TABLE objects (id INTEGER PRIMARY KEY, parent NUMERIC, type TEXT, read NUMERIC, write NUMERIC, priority NUMERIC, mtime NUMERIC)
-# application/x-obj.user
-# application/x-obj.group
-# text/plain
-
 def process( app ):
 	"""Speichert neue Datenobjekte (Texte bzw. Textbestandteile, später evtl. 
 		Bilder, Videos etc. Objekte sind in einer Baumstruktur angeordet, können also 
@@ -28,7 +23,6 @@ def process( app ):
 	if "type" in query.parms:
 		media_type = query.parms["type"]
 		if media_type == "text/plain":
-			# CREATE TABLE text (object_id NUMERIC REFERENCES objects(id) ON UPDATE CASCADE ON DELETE CASCADE, data TEXT)
 			con = sqlite3.connect( app.db_path )
 			c = con.cursor()
 			object_id = None
@@ -48,18 +42,19 @@ def process( app ):
 			if "data" in query.parms:
 				data = query.parms["data"]
 				if not object_id:
-					c.execute( """insert into objects (parent,type,mtime) 
-									values(?,?,?)""",
-								[parent_id, media_type, time.time()] )
+					c.execute( """insert into objects (type,mtime) 
+									values(?,?)""",
+								[media_type, time.time()] )
 					object_id = c.lastrowid
+					c.execute( """insert into membership (parent_id, child_id)
+									values(?,?)""",
+								[parent_id, object_id] )
 					c.execute( """insert into text (object_id, data)
 									values(?,?)""",
 								[object_id, data] )
 				else:
 					if parent_id:
-						c.execute( """update objects set parent=?, mtime=?
-										where id=?""",
-									[parent_id, time.time(), object_id] )
+						raise NotImplementedError( "TODO: Objektreferenzen ändern" )
 					else:
 						c.execute( """update objects set mtime=?
 										where id=?""",

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<script src="js/jquery.js"></script>
+		<script>
+			$(document).ready( init )
+			function init()
+			{
+				query_string = $(document)[0].location.search
+				if( query_string )
+				{
+					$.get( 'ems.wsgi'+query_string, parse_result )
+				}
+				hide_register()
+				$.get('ems.wsgi?do=status', function(result)
+				{
+					result = parse_result( result )
+					if( result.login )
+					{
+						show_overview( result )
+					}
+					else
+					{
+						show_login()
+					}
+				})
+			}
+			
+			function parse_result( result )
+			{
+				try
+				{
+					var False = false;
+					var True = true;
+					var None = undefined;
+					result = eval( "("+result+")" )
+					$(".ems-error")[0].innerHTML = ""
+				}
+				catch( e )
+				{
+					$(".ems-error")[0].innerHTML = "Error parsing response: "+e;
+				}
+				if( result.error )
+				{
+					$(".ems-error")[0].innerHTML = result.error.trace.join("");
+				}
+				else $(".ems-error")[0].innerHTML;
+				return result;
+			}
+			
+			function show_login()
+			{
+				$("title")[0].innerHTML = "Anmeldung"
+				$(".ems-heading")[0].innerHTML = "Anmeldung"
+				$(".ems-login")[0].style.display = "block"
+				$(".menu-logout")[0].style.display = "none"
+			}
+			
+			function show_overview( result )
+			{
+				$("title")[0].innerHTML = "Übersicht"
+				$(".ems-heading")[0].innerHTML = "Übersicht"
+				$(".ems-login")[0].style.display = "none"
+				$(".menu-logout")[0].style.display = "block"
+			}
+			
+			function logout()
+			{
+				$.get( "ems.wsgi?do=logout", function(result)
+				{
+					result = parse_result( result )
+					if( result.succeeded ) { init() }
+				})
+			}
+			
+			function login()
+			{
+				$.get( "ems.wsgi?do=login&nick="+$("input.login-nick")[0].value
+						+"&password="+$("input.login-password")[0].value, 
+				function(result)
+				{
+					result = parse_result( result )
+					if( result.succeeded ) { init() }
+				})
+				$("input.login-password")[0].value = ""
+			}
+			
+			function register()
+			{
+				if( $("input.login-password")[0].value
+					!= $("input.register-password")[0].value )
+				{
+					$("ems-error")[0].innerHTML = "Passwörter müssen übereinstimmen"
+					$("input.login-password")[0].value = ""
+					$("input.register-password")[0].value = ""
+					return;
+				}
+				$.get( "ems.wsgi?do=register&nick="+$("input.login-nick")[0].value
+						+"&password="+$("input.login-password")[0].value
+						+"&email="+$("input.register-email")[0].value
+						+"&fullname="+$("input.register-fullname")[0].value,
+				function(result)
+				{
+					result = parse_result( result )
+					if( result.succeeded ) { init() }
+				})
+				$("input.login-password")[0].value = ""
+				$("input.register-password")[0].value = ""
+			}
+			
+			function hide_register()
+			{
+				$(".ems-register")[0].style.display="none"
+				$(".login-submit")[0].style.display="block"
+				$(".login-register")[0].style.display="block"
+			}
+			
+			function show_register()
+			{
+				$(".ems-register")[0].style.display="block"
+				$(".login-submit")[0].style.display="none"
+				$(".login-register")[0].style.display="none"
+			}
+		</script>
+	</head>
+	<body>
+		<div class="ems-menu">
+			<button class="menu-logout" onclick="logout()" style="display:none">
+				Abmelden
+			</button>
+		</div>
+		<h1 class="ems-heading"></h1>
+		<div class="ems-login" style="display:none">
+			<div class="login-nick">
+				<p class="login-nick">Benutzername:</p>
+				<input type="text" class="login-nick"/>
+			</div>
+			<div class="login-password">
+				<p class="login-password">Passwort:</p>
+				<input type="password" class="login-password"/>
+			</div>
+			<button class="login-submit" onclick="login()">Anmelden</button>
+			<button class="login-register" onclick="show_register()">
+				Noch nicht registriert?
+			</button>
+		</div>
+		<div class="ems-register" style="display:none">
+			<div class="register-password">
+				<p class="register-password">Passwort wiederholen:</p>
+				<input type="password" class="register-password"/>
+			</div>
+			<div class="register-fullname">
+				<p class="register-fullname">Vor- und Nachname:</p>
+				<input type="text" class="register-fullname"/>
+			</div>
+			<div class="register-email">
+				<p class="register-email">E-Mail-Adresse:</p>
+				<input type="text" class="register-email"/>
+			</div>
+			<button class="register-submit" onclick="register()">
+				Registrieren
+			</button>
+		</div>
+		<div class="ems-content">
+			<div id="ems-entry-template" class="ems-entry" style="display:none">
+				<h1 class="entry-heading"></h1>
+				<p class="entry-content"></p>
+				<button class="entry-edit">Bearbeiten</button>
+			</div>
+		</div>
+		<div class="ems-status">
+			<pre class="ems-error"></pre>
+		</div>
+	</body>
+</html>

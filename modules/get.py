@@ -17,22 +17,34 @@ def process( app ):
 			raise errors.PrivilegeError()
 		con = sqlite3.connect( app.db_path )
 		c = con.cursor()
-		c.execute( """select type from objects where id=?""", [object_id] )
+		c.execute( """select type, read, write, sequence, mtime 
+						from objects where id=?""", 
+					[object_id] )
 		result = c.fetchone()
 		if not result:
 			raise errors.ParameterError()
 		object_type = result[0]
+		obj = {
+			"id" : object_id,
+			"type" : object_type,
+			"read" : result[1],
+			"write" : result[2],
+			"sequence" : result[3],
+			"mtime" : result[4], 
+			}
 		if "view" in query.parms:
 			view = query.parms["view"]
 			if view=="meta":
-				c.execute( """select child_id from membership where parent_id=?""",
-					[object_id] )
+				c.execute( """select child_id from membership m
+								inner join objects o on o.id=m.child_id
+								where parent_id=?
+								order by o.sequence, o.id""",
+							[object_id] )
 				children = []
 				for row in c:
 					children.append( row[0] )
-				result = [{ "id" : object_id, "type" : object_type, 
-							"children" : children }]
-				response.output = str( result )
+				obj["children"] = children
+				response.output = str( obj )
 				return
 			elif view=="data":
 				pass

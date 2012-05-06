@@ -67,7 +67,7 @@ class Response:
 	def __init__( self, start_response ):
 		self.status = '200 OK'
 		self.output = ""
-		self.mime_type = "text/plain"
+		self.media_type = "text/plain"
 		self.encoding = "utf-8"
 		self.encoded_output = b""
 		self.start_response = start_response
@@ -78,9 +78,12 @@ class Response:
 		self.cookies.append( cookie )		
 	def finalize( self ):
 		"""Sendet Header und liefert korrekt kodierten Ausgabestrom zurück"""
-		self.encoded_output = self.output.encode( self.encoding )
-		self.response_headers.append(
-			('Content-type', '%s; charset=%s' % (self.mime_type,self.encoding.upper())) )
+		if self.encoding:
+			self.encoded_output = self.output.encode( self.encoding )
+			self.response_headers.append(
+				('Content-type', '%s; charset=%s' % (self.media_type,self.encoding.upper())) )
+		else:
+			self.response_headers.append( ('Content-type', self.media_type) )
 		self.response_headers.append(
 			('Content-Length', str(len(self.encoded_output))) )
 		for cookie in self.cookies:

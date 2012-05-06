@@ -1,6 +1,8 @@
 import sqlite3, time, imp
 from lib import user
 user = imp.reload( user )
+from lib import errors
+errors = imp.reload( errors )
 
 def process( app ):
 	"""Speichert neue Datenobjekte (Texte bzw. Textbestandteile, später evtl. 
@@ -18,7 +20,7 @@ def process( app ):
 	response = app.response
 	session = app.session
 	if not "user_id" in session.parms:
-		raise Exception( "You need to authenticate yourself" )
+		raise errors.AuthenticationNeeded()
 	user_id = int(session.parms["user_id"])
 	if "type" in query.parms:
 		media_type = query.parms["type"]
@@ -29,7 +31,7 @@ def process( app ):
 			if "id" in query.parms:
 				object_id = int( query.parms["id"] )
 				if not user.can_write( app, user_id, object_id ):
-					raise Exception( "Insufficient privileges" )
+					raise errors.PrivilegeError()
 			parent_id = None
 			if "parent_id" in query.parms:
 				parent_id = int( query.parms["parent_id"] )
@@ -38,7 +40,7 @@ def process( app ):
 					# Beiträge gehören standardmäßig zum Nutzer:
 					parent_id = user_id
 				if not user.can_write( app, user_id, parent_id ):
-					raise Exception( "Insufficient privileges" )
+					raise errors.PrivilegeError()
 			if "data" in query.parms:
 				data = query.parms["data"]
 				if not object_id:
@@ -67,7 +69,7 @@ def process( app ):
 				response.output = str( {"succeeded" : True, 
 										"object_id" : object_id} )
 			else:
-				raise Exception( "Missing parameters" )
+				raise errors.ParameterError()
 		elif media_type == "application/x-obj.user":
 			if "id" in query.parms:
 				raise NotImplementedError( "Missing feature" ) # TODO
@@ -79,7 +81,7 @@ def process( app ):
 							['create_user', user_id] )
 				if( c.fetchone()!=1 ):
 					c.close()
-					raise Exception( "Insufficient privileges" )
+					raise errors.PrivilegeError()
 				c.close()
 				if "nick" in query.parms and "password" in query.parms \
 				and "email" in query.parms and "fullname" in query.parms:
@@ -92,7 +94,7 @@ def process( app ):
 					response.output = str( {"succeeded" : True,
 											"object_id" : object_id} )
 				else:
-					raise Exception( "Missing parameters" )
+					raise errors.ParameterError()
 		else:
 			raise NotImplementedError( "Unsupported media type" )
 

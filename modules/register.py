@@ -62,6 +62,11 @@ def process( app ):
 		fullname = query.parms["fullname"]
 		object_id = user.create( app=app, nick=nick, plain_password=password,
 								 email=email, fullname=fullname )
+		# FIXME: Falls das Versenden der E-Mail hier sofort fehlschlägt,
+		# müssen wir user.create entweder zurückrollen oder den 
+		# fehlgeschlagenen Zustellungsversuch zwischenspeichern, sodass
+		# er vom Administrator oder einem Cronjob später nochmal ausgelöst
+		# werden kann:
 		send_confirmation_request( app=app, user_id=object_id )
 		response.output = str( {"succeeded" : True} )
 		return

@@ -33,7 +33,7 @@ def create( app, nick, plain_password, email, fullname ):
 	check( app, nick, plain_password, email, fullname )
 	con = sqlite3.connect( app.db_path )
 	c = con.cursor()
-	c.execute( """insert into objects (type,mtime) values (?,?,?)""",
+	c.execute( """insert into objects (type,mtime) values (?,?)""",
 				("application/x-obj.user", time.time()) )
 	object_id = c.lastrowid
 	encrypted_password = password.encrypt( plain_password )

@@ -10,3 +10,7 @@ class ParameterError( Exception ):
 	def __init__( self, msg="Missing or invalid request parameters" ):
 		super().__init__( msg )
 
+class ObjectError( Exception ):
+	def __init__( self, msg="Object inconistent" ):
+		super().__init__( msg )
+

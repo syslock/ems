@@ -22,9 +22,9 @@ def process( app ):
 	if not "user_id" in session.parms:
 		raise errors.AuthenticationNeeded()
 	user_id = int(session.parms["user_id"])
-	if not "type" in query.parms:
-		raise errors.ParameterError( "Missing media type" )
-	media_type = query.parms["type"]
+	media_type = None
+	if "type" in query.parms:
+		media_type = query.parms["type"]
 	if media_type == "application/x-obj.user":
 		if "id" in query.parms:
 			raise NotImplementedError( "Missing feature" ) # TODO
@@ -74,6 +74,8 @@ def process( app ):
 		if "sequence" in query.parms:
 			sequence = int( query.parms["sequence"] )
 		if not object_id:
+			if not media_type:
+				raise errors.ParameterError( "Missing media type" )
 			c.execute( """insert into objects (type,sequence,mtime) 
 							values(?,?,?)""",
 						[media_type, sequence, time.time()] )
@@ -91,14 +93,21 @@ def process( app ):
 		else:
 			if parent_id:
 				raise NotImplementedError( "TODO: Objektreferenzen ändern" )
-			else:
-				c.execute( """update objects set sequence=?, mtime=?
-								where id=?""",
-							[time.time(), sequence, object_id] )
-			if data and media_type == "text/plain":
-				c.execute( """update text set data=?
-								where object_id=?""",
-							[data, object_id] )
+			if media_type:
+				raise NotImplementedError( "Cannot change media type" )
+			c.execute( """update objects set sequence=?, mtime=?
+							where id=?""",
+						[sequence, time.time(), object_id] )
+			if data:
+				c.execute( """select type from objects where id=?""", [object_id] )
+				result = c.fetchone()
+				media_type = result[0]
+				if media_type == "text/plain":
+					c.execute( """update text set data=?
+									where object_id=?""",
+								[data, object_id] )
+				else:
+					raise NotImplementedError( "Unsupported media type for update" )
 		con.commit()
 		c.close()
 		response.output = str( {"succeeded" : True, 

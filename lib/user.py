@@ -103,7 +103,7 @@ def can_access( app, user_id, object_id, access_type ):
 	if access_id == None:
 		parent_id = None
 		c.execute( """select m.parent_id from objects o
-						left join membership m on on o.id=m.child_id
+						left join membership m on o.id=m.child_id
 						where o.id=?""", [object_id] )
 		for row in c:
 			parent_id = row[0]

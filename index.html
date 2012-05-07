@@ -53,16 +53,19 @@
 			{
 				$("title")[0].innerHTML = "Anmeldung"
 				$(".ems-heading")[0].innerHTML = "Anmeldung"
-				$(".ems-login")[0].style.display = "block"
+				$(".ems-login")[0].style.display = ""
 				$(".menu-logout")[0].style.display = "none"
+				$(".ems-new-entry")[0].style.display = "none"
 			}
 			
-			function show_overview( result )
+			function show_overview( session )
 			{
 				$("title")[0].innerHTML = "Übersicht"
 				$(".ems-heading")[0].innerHTML = "Übersicht"
 				$(".ems-login")[0].style.display = "none"
-				$(".menu-logout")[0].style.display = "block"
+				$(".menu-logout")[0].style.display = ""
+				$(".ems-new-entry")[0].style.display = ""
+				load_entries( session )
 			}
 			
 			function logout()
@@ -112,15 +115,111 @@
 			function hide_register()
 			{
 				$(".ems-register")[0].style.display="none"
-				$(".login-submit")[0].style.display="block"
-				$(".login-register")[0].style.display="block"
+				$(".login-submit")[0].style.display=""
+				$(".login-register")[0].style.display=""
 			}
 			
 			function show_register()
 			{
-				$(".ems-register")[0].style.display="block"
+				$(".ems-register")[0].style.display=""
 				$(".login-submit")[0].style.display="none"
 				$(".login-register")[0].style.display="none"
+			}
+			
+			function new_entry( object_id )
+			{
+				if( object_id==undefined )
+				{
+					$.ajax({
+						url : "ems.wsgi?do=store&type=application/x-obj.entry",
+						async : false,
+						success :
+					function( result )
+					{
+						result = parse_result( result )
+						if( result.succeeded && resul.object_id!=undefined )
+						{
+							new_entry( result.object_id )
+						}
+					}})
+					return undefined;
+				}
+				else
+				{
+					var entry = $("#ems-entry-template").first().clone(true)[0];
+					entry.id = "ems-entry-"+String(object_id)
+					entry.style.display = ""
+					$(".ems-entry").first().before( entry )
+					entry.data = {
+						"object_id" : object_id,
+					}
+					return entry;
+				}
+			}
+			
+			function load_entries( session )
+			{
+				if( session )
+				{
+					$.get("ems.wsgi?do=get&id="+session.login.id+"&view=meta",
+					function( result )
+					{
+						result = parse_result( result )
+						for( i in result.children )
+						{
+							var entry_id = result.children[i]
+							$.ajax({
+								url : "ems.wsgi?do=get&id="+entry_id+"&view=meta",
+								async : false,
+								success :
+							function( result )
+							{
+								result = parse_result( result )
+								if( result.type == "application/x-obj.entry" )
+								{
+									var entry = $("ems-entry-"+String(result.id))[0]
+									if( !entry )
+									{
+										entry = new_entry( result.id )
+									}
+									entry_heading = $(".entry-heading",entry)[0]
+									if( result.title )
+									{
+										entry_heading.innerHTML = result.title
+									}
+									entry_content = $(".entry-content",entry)[0]
+									for( j in result.children )
+									{
+										var part_id = result.children[j]
+										$.ajax({
+											url : "ems.wsgi?do=get&id="+part_id+"&view=meta",
+											async : false,
+											success :
+										function( result )
+										{
+											result = parse_result( result )
+											if( result.type == "text/plain" )
+											{
+												$.ajax({
+													url : "ems.wsgi?do=get&id="+result.id,
+													async : false,
+													success :
+												function( result )
+												{
+													var span = $("#entry-text-template").first().clone()[0]
+													span.id = "entry-text-"+String(entry_id)+"-"+String(part_id)
+													span.style.display = ""
+													span.innerHTML = result
+													entry_content.appendChild( span );
+												}})
+											}
+										}})
+									}
+								}
+							}})
+						}
+					})
+				}
 			}
 		</script>
 	</head>
@@ -163,11 +262,15 @@
 			</button>
 		</div>
 		<div class="ems-content">
+			<button class="ems-new-entry" onclick="new_entry()" style="display:none">
+				Beitrag erstellen
+			</button>
 			<div id="ems-entry-template" class="ems-entry" style="display:none">
-				<h1 class="entry-heading"></h1>
-				<p class="entry-content"></p>
+				<h2 class="entry-heading"></h2>
+				<div class="entry-content"></div>
 				<button class="entry-edit">Bearbeiten</button>
 			</div>
+			<span id="entry-text-template" class="entry-text" style="display:none"></span>
 		</div>
 		<div class="ems-status">
 			<pre class="ems-error"></pre>

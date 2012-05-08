@@ -84,12 +84,10 @@ def process( app ):
 							values(?,?)""",
 						[parent_id, object_id] )
 			if media_type == "text/plain":
-				if data:
-	 				c.execute( """insert into text (object_id, data)
-									values(?,?)""",
-								[object_id, data] )
-				else:
-					raise errors.ParameterError( "Missing text data" )
+				if data == None:
+					data = ""
+				c.execute( """insert into text (object_id, data) values(?,?)""",
+							[object_id, data] )
 		else:
 			if parent_id:
 				raise NotImplementedError( "TODO: Objektreferenzen ändern" )

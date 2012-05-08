@@ -128,6 +128,7 @@
 			{
 				if( object_id==undefined )
 				{
+					// Neuen Eintrag auf dem Server anlegen:
 					$.ajax({
 						url : "ems.wsgi?do=store&type=application/x-obj.entry",
 						async : false,
@@ -135,9 +136,30 @@
 					function( result )
 					{
 						result = parse_result( result )
-						if( result.succeeded && resul.object_id!=undefined )
+						if( result.succeeded && result.object_id!=undefined )
 						{
-							new_entry( result.object_id )
+							// Neuen Eintrag im Browser anlegen:
+							var entry_id = result.object_id
+							var entry = new_entry( entry_id )
+							var entry_content = $(".entry-content",entry)[0]
+							// Erstes Textsegment auf dem Server anlegen:
+							$.ajax({
+								url : "ems.wsgi?do=store&type=text/plain&data=&parent_id="+String(entry_id),
+								async : false,
+								success :
+							function( result )
+							{
+								result = parse_result( result )
+								if( result.succeeded && result.object_id!=undefined )
+								{
+									// Erstes Textsegment im Browser anlegen:
+									var span = $("#entry-text-template").first().clone()[0]
+									span.id = "entry-text-"+String(entry_id)+"-"+String(result.object_id)
+									span.style.display = ""
+									span.innerHTML = "..."
+									entry_content.appendChild( span );
+								}
+							}})
 						}
 					}})
 					return undefined;
@@ -180,12 +202,12 @@
 									{
 										entry = new_entry( result.id )
 									}
-									entry_heading = $(".entry-heading",entry)[0]
+									var entry_heading = $(".entry-heading",entry)[0]
 									if( result.title )
 									{
 										entry_heading.innerHTML = result.title
 									}
-									entry_content = $(".entry-content",entry)[0]
+									var entry_content = $(".entry-content",entry)[0]
 									for( j in result.children )
 									{
 										var part_id = result.children[j]
@@ -218,6 +240,43 @@
 						}
 					})
 				}
+			}
+			
+			function edit_entry( button )
+			{
+				var content = $(".entry-content",button.parent)[0]
+				if( !content ) return;
+				content.contentEditable = true
+				button.innerHTML = "Speichern"
+				button.onclick = function(){ save_entry(button) }
+			}
+			
+			function save_entry( button )
+			{
+				var content = $(".entry-content",button.parent)[0]
+				if( !content ) return;
+				$.each( $(content).children, 
+				function(i,child)
+				{
+					var child = $(content).children[i]
+					if( child.className=="entry-text" )
+					{
+						// FIXME: data muss vorkodiert werden!
+						$.ajax({
+							url : "ems.wsgi?do=store&id="+String(entry_id)
+								+"&sequence="+String(10+i*10)
+								+"&data="+child.innerHTML,
+							async : false,
+							success :
+						function( result )
+						{
+							result = parse_result( result )
+						}})
+					}
+				})
+				content.contentEditable = false
+				button.innerHTML = "Bearbeiten"
+				button.onclick = function(){ edit_entry(button) }
 			}
 		</script>
 	</head>
@@ -265,8 +324,8 @@
 			</button>
 			<div id="ems-entry-template" class="ems-entry" style="display:none">
 				<h2 class="entry-heading"></h2>
-				<div class="entry-content"></div>
-				<button class="entry-edit">Bearbeiten</button>
+				<div class="entry-content" contentEditable="false"></div>
+				<button class="entry-edit" onclick="edit_entry(this)">Bearbeiten</button>
 			</div>
 			<span id="entry-text-template" class="entry-text" style="display:none"></span>
 		</div>

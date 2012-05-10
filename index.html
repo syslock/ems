@@ -154,11 +154,11 @@
 								if( result.succeeded && result.object_id!=undefined )
 								{
 									// Erstes Textsegment im Browser anlegen:
-									var span = $("#entry-text-template").first().clone()[0]
-									span.id = "entry-text-"+String(entry_id)+"-"+String(result.object_id)
-									span.style.display = ""
-									span.innerHTML = data
-									entry_content.appendChild( span );
+									var div = $("#entry-text-template").first().clone()[0]
+									div.id = "entry-text-"+String(entry_id)+"-"+String(result.object_id)
+									div.style.display = ""
+									div.innerHTML = data
+									entry_content.appendChild( div );
 								}
 							}})
 						}
@@ -227,11 +227,11 @@
 													success :
 												function( result )
 												{
-													var span = $("#entry-text-template").first().clone()[0]
-													span.id = "entry-text-"+String(entry_id)+"-"+String(part_id)
-													span.style.display = ""
-													span.innerHTML = result
-													entry_content.appendChild( span );
+													var div = $("#entry-text-template").first().clone()[0]
+													div.id = "entry-text-"+String(entry_id)+"-"+String(part_id)
+													div.style.display = ""
+													div.innerHTML = result
+													entry_content.appendChild( div );
 												}})
 											}
 										}})
@@ -336,7 +336,7 @@
 				<div class="entry-content"></div>
 				<button class="entry-edit" onclick="edit_entry(this)">Bearbeiten</button>
 			</div>
-			<span id="entry-text-template" class="entry-text" style="display:none"></span>
+			<div id="entry-text-template" class="entry-text" style="display:none"></div>
 		</div>
 		<div class="ems-status">
 			<pre class="ems-error"></pre>

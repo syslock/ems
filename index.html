@@ -143,8 +143,9 @@
 							var entry = new_entry( entry_id )
 							var entry_content = $(".entry-content",entry)[0]
 							// Erstes Textsegment auf dem Server anlegen:
+							var data = ""
 							$.ajax({
-								url : "ems.wsgi?do=store&type=text/plain&data=&parent_id="+String(entry_id),
+								url : "ems.wsgi?do=store&type=text/plain&data="+data+"&parent_id="+String(entry_id),
 								async : false,
 								success :
 							function( result )
@@ -156,7 +157,7 @@
 									var span = $("#entry-text-template").first().clone()[0]
 									span.id = "entry-text-"+String(entry_id)+"-"+String(result.object_id)
 									span.style.display = ""
-									span.innerHTML = "..."
+									span.innerHTML = data
 									entry_content.appendChild( span );
 								}
 							}})
@@ -246,7 +247,13 @@
 			{
 				var content = $(".entry-content",button.parent)[0]
 				if( !content ) return;
-				content.contentEditable = true
+				var children = $(content).children()
+				$.each( children, 
+				function(i,child)
+				{
+					var child = children[i]
+					child.contentEditable = true
+				})
 				button.innerHTML = "Speichern"
 				button.onclick = function(){ save_entry(button) }
 			}
@@ -255,15 +262,18 @@
 			{
 				var content = $(".entry-content",button.parent)[0]
 				if( !content ) return;
-				$.each( $(content).children, 
+				var children = $(content).children()
+				$.each( children, 
 				function(i,child)
 				{
-					var child = $(content).children[i]
+					var child = children[i]
+					child.contentEditable = false
 					if( child.className=="entry-text" )
 					{
+						var part_id = Number( child.id.split("-").reverse()[0] )
 						// FIXME: data muss vorkodiert werden!
 						$.ajax({
-							url : "ems.wsgi?do=store&id="+String(entry_id)
+							url : "ems.wsgi?do=store&id="+String(part_id)
 								+"&sequence="+String(10+i*10)
 								+"&data="+child.innerHTML,
 							async : false,
@@ -274,7 +284,6 @@
 						}})
 					}
 				})
-				content.contentEditable = false
 				button.innerHTML = "Bearbeiten"
 				button.onclick = function(){ edit_entry(button) }
 			}
@@ -324,7 +333,7 @@
 			</button>
 			<div id="ems-entry-template" class="ems-entry" style="display:none">
 				<h2 class="entry-heading"></h2>
-				<div class="entry-content" contentEditable="false"></div>
+				<div class="entry-content"></div>
 				<button class="entry-edit" onclick="edit_entry(this)">Bearbeiten</button>
 			</div>
 			<span id="entry-text-template" class="entry-text" style="display:none"></span>

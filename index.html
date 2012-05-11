@@ -245,7 +245,7 @@
 			
 			function edit_entry( button )
 			{
-				var content = $(".entry-content",button.parent)[0]
+				var content = $(".entry-content",button.parentNode)[0]
 				if( !content ) return;
 				var children = $(content).children()
 				$.each( children, 
@@ -260,7 +260,7 @@
 			
 			function save_entry( button )
 			{
-				var content = $(".entry-content",button.parent)[0]
+				var content = $(".entry-content",button.parentNode)[0]
 				if( !content ) return;
 				var children = $(content).children()
 				$.each( children, 

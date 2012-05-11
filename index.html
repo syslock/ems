@@ -124,6 +124,27 @@
 				$(".login-register")[0].style.display="none"
 			}
 			
+			function new_text_part( entry_id, data )
+			{
+				// neuese Textsegment auf Server und im Browser anlegen:
+				var div = $("#entry-text-template").first().clone()[0]
+				$.ajax({
+					url : "ems.wsgi?do=store&type=text/plain&data="+data+"&parent_id="+String(entry_id),
+					async : false,
+					success :
+				function( result )
+				{
+					result = parse_result( result )
+					if( result.succeeded && result.object_id!=undefined )
+					{
+						div.id = "entry-text-"+String(entry_id)+"-"+String(result.object_id)
+						div.style.display = ""
+						div.innerHTML = data
+					}
+				}})
+				return div
+			}
+			
 			function new_entry( object_id )
 			{
 				if( object_id==undefined )
@@ -141,26 +162,8 @@
 							// Neuen Eintrag im Browser anlegen:
 							var entry_id = result.object_id
 							var entry = new_entry( entry_id )
-							var entry_content = $(".entry-content",entry)[0]
-							// Erstes Textsegment auf dem Server anlegen:
-							var data = ""
-							$.ajax({
-								url : "ems.wsgi?do=store&type=text/plain&data="+data+"&parent_id="+String(entry_id),
-								async : false,
-								success :
-							function( result )
-							{
-								result = parse_result( result )
-								if( result.succeeded && result.object_id!=undefined )
-								{
-									// Erstes Textsegment im Browser anlegen:
-									var div = $("#entry-text-template").first().clone()[0]
-									div.id = "entry-text-"+String(entry_id)+"-"+String(result.object_id)
-									div.style.display = ""
-									div.innerHTML = data
-									entry_content.appendChild( div );
-								}
-							}})
+							var button = $(".entry-edit",entry)[0]
+							edit_entry( button )
 						}
 					}})
 					return undefined;
@@ -247,13 +250,8 @@
 			{
 				var content = $(".entry-content",button.parentNode)[0]
 				if( !content ) return;
-				var children = $(content).children()
-				$.each( children, 
-				function(i,child)
-				{
-					var child = children[i]
-					child.contentEditable = true
-				})
+				content.contentEditable = true
+				content.focus()
 				button.innerHTML = "Speichern"
 				button.onclick = function(){ save_entry(button) }
 			}
@@ -262,12 +260,46 @@
 			{
 				var content = $(".entry-content",button.parentNode)[0]
 				if( !content ) return;
-				var children = $(content).children()
-				$.each( children, 
-				function(i,child)
+				content.contentEditable = false
+				// 1.) Strukturnormalisierung:
+				for( i=0; i<content.childNodes.length; i+=1 )
 				{
-					var child = children[i]
-					child.contentEditable = false
+					var child = content.childNodes[i]
+					if( child.nodeName=="#text" )
+					{
+						var data = child.nodeValue
+						var entry_id = Number( button.parentNode.id.split("-").reverse()[0] )
+						$(child).before( new_text_part(entry_id, data) )
+						$(child).remove()
+					}
+					if( child.tagName=="br" )
+					{
+						$(child).remove()
+					}
+					if( child.className=="entry-text" )
+					{
+						var extract_siblings = [];
+						for( k=0; k<child.childNodes.length; k+=1 )
+						{
+							var sub = child.childNodes[k]
+							if( sub.nodeName!="#text" || extract_siblings.length>0 )
+							{
+								extract_siblings.push(sub);
+							}
+						}
+						extract_siblings.reverse()
+						for( k in extract_siblings )
+						{
+							var sub = extract_siblings[k]
+							$(sub).detach()
+							$(child).after( sub )
+						}
+					}
+				}
+				// 2.) Speicherung und Sortierung:
+				for( i in content.childNodes )
+				{
+					var child = content.childNodes[i]
 					if( child.className=="entry-text" )
 					{
 						var part_id = Number( child.id.split("-").reverse()[0] )
@@ -283,7 +315,7 @@
 							result = parse_result( result )
 						}})
 					}
-				})
+				}
 				button.innerHTML = "Bearbeiten"
 				button.onclick = function(){ edit_entry(button) }
 			}

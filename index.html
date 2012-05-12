@@ -258,17 +258,17 @@
 			
 			function save_entry( button )
 			{
+				var entry_id = Number( button.parentNode.id.split("-").reverse()[0] )
 				var content = $(".entry-content",button.parentNode)[0]
 				if( !content ) return;
 				content.contentEditable = false
 				// 1.) Strukturnormalisierung:
-				for( i=0; i<content.childNodes.length; i+=1 )
+				for( var i=0; i<content.childNodes.length; i++ )
 				{
 					var child = content.childNodes[i]
 					if( child.nodeName=="#text" )
 					{
 						var data = child.nodeValue
-						var entry_id = Number( button.parentNode.id.split("-").reverse()[0] )
 						$(child).before( new_text_part(entry_id, data) )
 						$(child).remove()
 					}
@@ -279,7 +279,7 @@
 					if( child.className=="entry-text" )
 					{
 						var extract_siblings = [];
-						for( k=0; k<child.childNodes.length; k+=1 )
+						for( var k=0; k<child.childNodes.length; k++ )
 						{
 							var sub = child.childNodes[k]
 							if( sub.nodeName!="#text" || extract_siblings.length>0 )
@@ -297,12 +297,14 @@
 					}
 				}
 				// 2.) Speicherung und Sortierung:
-				for( i in content.childNodes )
+				var part_id_list = []
+				for( var i=0; i<content.childNodes.length; i++ )
 				{
 					var child = content.childNodes[i]
 					if( child.className=="entry-text" )
 					{
 						var part_id = Number( child.id.split("-").reverse()[0] )
+						part_id_list.push( part_id )
 						// FIXME: data muss vorkodiert werden!
 						$.ajax({
 							url : "ems.wsgi?do=store&id="+String(part_id)
@@ -316,6 +318,16 @@
 						}})
 					}
 				}
+				// 3.) serverseitige Bereinigung der entfernten Elemente:
+				$.ajax({
+					url : "ems.wsgi?do=delete&parent_id="+String(entry_id)
+						+"&child_not_in="+part_id_list.join(","),
+					async : false,
+					success :
+				function( result )
+				{
+					result = parse_result( result )
+				}})
 				button.innerHTML = "Bearbeiten"
 				button.onclick = function(){ edit_entry(button) }
 			}

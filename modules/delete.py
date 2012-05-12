@@ -8,7 +8,7 @@ def delete_in( app, user_id, object_id_list ):
 	object_id_list = [ int(x) for x in object_id_list ]
 	for object_id in object_id_list:
 		if not user.can_delete( app, user_id, object_id ):
-			raise errors.PrivilegeError()
+			raise errors.PrivilegeError( "%d cannot delete %d" % (user_id, object_id) )
 	con = sqlite3.connect( app.db_path )
 	c = con.cursor()
 	in_list = ",".join( [str(x) for x in object_id_list] )

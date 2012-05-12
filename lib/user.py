@@ -1,6 +1,8 @@
 import sqlite3, time, re, socket, imp
 from lib import password
 password = imp.reload( password ) # DEBUG
+from lib import errors
+errors = imp.reload( errors )
 
 # CREATE TABLE users (object_id NUMERIC REFERENCES objects(id) ON UPDATE CASCADE ON DELETE CASCADE, nick TEXT UNIQUE, email TEXT, fullname TEXT, password TEXT)
 
@@ -66,7 +68,7 @@ def can_delete( app, user_id, object_id ):
 		if not deletable:
 			break
 		parent_id = row[0]
-		deletable &= can_write( app, user_id, parent_id )
+		deletable = deletable and can_write( app, user_id, parent_id )
 	return deletable and has_parent
 def can_access( app, user_id, object_id, access_type ):
 	if access_type not in ("read", "write"):

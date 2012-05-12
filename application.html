@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<script src="js/jquery.js"></script>
+		<script src="js/util.js"></script>
+		<script src="js/login.js"></script>
+		<script src="js/entry.js"></script>
+		<script>
+			$(document).ready( init )
+			function init()
+			{
+				query_string = $(document)[0].location.search
+				if( query_string )
+				{
+					$.get( 'ems.wsgi'+query_string, parse_result )
+				}
+				$.get('ems.wsgi?do=status',
+				function(result)
+				{
+					result = parse_result( result )
+					if( result.login )
+					{
+						$(".ems-heading").innerHTML = "Hallo "+result.login.nick+"!"
+						load_entries( result )
+					}
+					else
+					{
+						open("index.html")
+					}
+				})
+			}
+		</script>
+	</head>
+	<body>
+		<div class="ems-menu">
+			<button class="menu-logout" onclick="logout()">
+				Abmelden
+			</button>
+		</div>
+		<h1 class="ems-heading">Bewerbung</h1>
+		<div class="ems-content">
+			<div class="ems-help">
+				Hier kannst du deine Bewerbung formulieren.
+			</div>
+			<button class="ems-new-entry" onclick="new_entry()">
+				Beitrag erstellen
+			</button>
+			<div id="ems-entry-template" class="ems-entry" style="display:none">
+				<h2 class="entry-heading"></h2>
+				<div class="entry-content"></div>
+				<button class="entry-edit" onclick="edit_entry(this)">Bearbeiten</button>
+			</div>
+			<div id="entry-text-template" class="entry-text" style="display:none"></div>
+		</div>
+		<div class="ems-status">
+			<pre class="ems-error"></pre>
+		</div>
+	</body>
+</html>

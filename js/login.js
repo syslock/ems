@@ -1,11 +1,3 @@
-function show_login()
-{
-	$("title")[0].innerHTML = $(".ems-heading")[0].innerHTML = "Anmeldung"
-	$(".ems-login")[0].style.display = ""
-	$(".menu-logout")[0].style.display = "none"
-	$(".ems-new-entry")[0].style.display = "none"
-}
-
 function logout()
 {
 	$.get( "ems.wsgi?do=logout", function(result)

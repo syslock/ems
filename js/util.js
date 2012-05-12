@@ -1,3 +1,8 @@
+function open( doc )
+{
+	document.location = doc
+}
+
 function parse_result( result )
 {
 	try

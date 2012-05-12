@@ -16,79 +16,57 @@
 					$.get( 'ems.wsgi'+query_string, parse_result )
 				}
 				hide_register()
-				$.get('ems.wsgi?do=status', function(result)
+				$.get('ems.wsgi?do=status', 
+				function( result )
 				{
 					result = parse_result( result )
 					if( result.login )
 					{
-						show_overview( result )
+						open("application.html")
 					}
 					else
 					{
-						show_login()
 					}
 				})
 			}
-			
-			function show_overview( session )
-			{
-				$("title")[0].innerHTML = $(".ems-heading")[0].innerHTML = "Übersicht"
-				$(".ems-login")[0].style.display = "none"
-				$(".menu-logout")[0].style.display = ""
-				$(".ems-new-entry")[0].style.display = ""
-				load_entries( session )
-			}
-			
 		</script>
 	</head>
 	<body>
 		<div class="ems-menu">
-			<button class="menu-logout" onclick="logout()" style="display:none">
-				Abmelden
-			</button>
 		</div>
-		<h1 class="ems-heading"></h1>
-		<div class="ems-login" style="display:none">
-			<div class="login-nick">
-				<p class="login-nick">Benutzername:</p>
-				<input type="text" class="login-nick"/>
-			</div>
-			<div class="login-password">
-				<p class="login-password">Passwort:</p>
-				<input type="password" class="login-password"/>
-			</div>
-			<button class="login-submit" onclick="login()">Anmelden</button>
-			<button class="login-register" onclick="show_register()">
-				Noch nicht registriert?
-			</button>
-		</div>
-		<div class="ems-register" style="display:none">
-			<div class="register-password">
-				<p class="register-password">Passwort wiederholen:</p>
-				<input type="password" class="register-password"/>
-			</div>
-			<div class="register-fullname">
-				<p class="register-fullname">Vor- und Nachname:</p>
-				<input type="text" class="register-fullname"/>
-			</div>
-			<div class="register-email">
-				<p class="register-email">E-Mail-Adresse:</p>
-				<input type="text" class="register-email"/>
-			</div>
-			<button class="register-submit" onclick="register()">
-				Registrieren
-			</button>
-		</div>
+		<h1 class="ems-heading">Anmeldung</h1>
 		<div class="ems-content">
-			<button class="ems-new-entry" onclick="new_entry()" style="display:none">
-				Beitrag erstellen
-			</button>
-			<div id="ems-entry-template" class="ems-entry" style="display:none">
-				<h2 class="entry-heading"></h2>
-				<div class="entry-content"></div>
-				<button class="entry-edit" onclick="edit_entry(this)">Bearbeiten</button>
+			<div class="ems-login">
+				<div class="login-nick">
+					<p class="login-nick">Benutzername:</p>
+					<input type="text" class="login-nick"/>
+				</div>
+				<div class="login-password">
+					<p class="login-password">Passwort:</p>
+					<input type="password" class="login-password"/>
+				</div>
+				<button class="login-submit" onclick="login()">Anmelden</button>
+				<button class="login-register" onclick="show_register()">
+					Noch nicht registriert?
+				</button>
 			</div>
-			<div id="entry-text-template" class="entry-text" style="display:none"></div>
+			<div class="ems-register" style="display:none">
+				<div class="register-password">
+					<p class="register-password">Passwort wiederholen:</p>
+					<input type="password" class="register-password"/>
+				</div>
+				<div class="register-fullname">
+					<p class="register-fullname">Vor- und Nachname:</p>
+					<input type="text" class="register-fullname"/>
+				</div>
+				<div class="register-email">
+					<p class="register-email">E-Mail-Adresse:</p>
+					<input type="text" class="register-email"/>
+				</div>
+				<button class="register-submit" onclick="register()">
+					Registrieren
+				</button>
+			</div>
 		</div>
 		<div class="ems-status">
 			<pre class="ems-error"></pre>

@@ -53,6 +53,21 @@ def can_read( app, user_id, object_id=None ):
 	return can_access( app, user_id, object_id, "read" )
 def can_write( app, user_id, object_id=None ):
 	return can_access( app, user_id, object_id, "write" )
+def can_delete( app, user_id, object_id ):
+	"""Ein Objekt ist löschbar, wenn es selbst und alle Eltern schreibbar sind."""
+	con = sqlite3.connect( app.db_path )
+	c = con.cursor()
+	c.execute( """select parent_id from membership where child_id=?""",
+				[object_id] )
+	deletable = can_write( app, user_id, object_id )
+	has_parent = False
+	for row in c:
+		has_parent = True
+		if not deletable:
+			break
+		parent_id = row[0]
+		deletable &= can_write( app, user_id, parent_id )
+	return deletable and has_parent
 def can_access( app, user_id, object_id, access_type ):
 	if access_type not in ("read", "write"):
 		raise NotImplementedError( "Unsupported access_type" )

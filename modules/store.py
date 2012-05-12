@@ -70,6 +70,9 @@ def process( app ):
 		data = None
 		if "data" in query.parms:
 			data = query.parms["data"]
+		title = None
+		if "title" in query.parms:
+			title = query.parms["title"]
 		sequence = 0
 		if "sequence" in query.parms:
 			sequence = int( query.parms["sequence"] )
@@ -83,6 +86,9 @@ def process( app ):
 			c.execute( """insert into membership (parent_id, child_id)
 							values(?,?)""",
 						[parent_id, object_id] )
+			if title:
+				c.execute( """insert into titles (object_id, data) values(?,?)""",
+							[object_id, title] )
 			if media_type == "text/plain":
 				if data == None:
 					data = ""
@@ -96,6 +102,15 @@ def process( app ):
 			c.execute( """update objects set sequence=?, mtime=?
 							where id=?""",
 						[sequence, time.time(), object_id] )
+			if title:
+				c.execute( """select object_id from titles where object_id=?""",
+							[object_id] )
+				if c.fetchone():
+					c.execute( """update titles set data=? where object_id=?""",
+								[title, object_id] )
+				else:
+					c.execute( """insert into titles (object_id, data) values(?,?)""",
+								[object_id, title] )
 			if data:
 				c.execute( """select type from objects where id=?""", [object_id] )
 				result = c.fetchone()

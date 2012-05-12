@@ -16,10 +16,11 @@ def delete_in( app, user_id, object_id_list ):
 	con.commit()
 	# FIXME: Alles folgende ist eigentlich nur nötig, wenn das Backend die 
 	# Foreign-Key-Constraints nicht unterstützt. Wie stellen wir das fest?
-	c.execute( """delete from text where object_id in (%(in_list)s)""" % locals() )
-	c.execute( """delete from users where object_id in (%(in_list)s)""" % locals() )
 	c.execute( """delete from membership where child_id in (%(in_list)s)""" % locals() )
 	c.execute( """delete from membership where parent_id in (%(in_list)s)""" % locals() )
+	c.execute( """delete from users where object_id in (%(in_list)s)""" % locals() )
+	c.execute( """delete from text where object_id in (%(in_list)s)""" % locals() )
+	c.execute( """delete from titles where object_id in (%(in_list)s)""" % locals() )
 	con.commit()
 
 def process( app ):

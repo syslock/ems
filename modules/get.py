@@ -44,13 +44,18 @@ def process( app ):
 				for row in c:
 					children.append( row[0] )
 				obj["children"] = children
+				c.execute( """select data from titles where object_id=?""", 
+					[object_id] )
+				result = c.fetchone()
+				if result:
+					obj["title"] = result[0]
 				response.output = str( obj )
 				return
 			elif view=="data":
 				pass
 			else:
 				raise NotImplementedError( "Unsupported object view" )
-		if object_type=="text/plain":
+		if object_type == "text/plain":
 			c.execute( """select data from text where object_id=?""", 
 				[object_id] )
 			result = c.fetchone()

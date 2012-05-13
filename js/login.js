@@ -24,7 +24,7 @@ function register()
 	if( $("input.login-password")[0].value
 		!= $("input.register-password")[0].value )
 	{
-		$("ems-error")[0].innerHTML = "Passwörter müssen übereinstimmen"
+		$("ems-error")[0].innerHTML = LS("20120513162118","Passwörter müssen übereinstimmen")
 		$("input.login-password")[0].value = ""
 		$("input.register-password")[0].value = ""
 		return;

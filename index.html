@@ -6,6 +6,7 @@
 		<script src="js/util.js"></script>
 		<script src="js/login.js"></script>
 		<script src="js/entry.js"></script>
+		<script src="js/localization.js"></script>
 		<script>
 			$(document).ready( init )
 			function init()
@@ -26,6 +27,7 @@
 					}
 					else
 					{
+						localize( result.language )
 					}
 				})
 			}
@@ -33,38 +35,56 @@
 	</head>
 	<body>
 		<div class="ems-menu">
+			<select class="menu-language" onchange="change_language(this.value)">
+				<option value="en">English</option>
+				<option value="de">Deutsch</option>
+			</select>
 		</div>
-		<h1 class="ems-heading">Anmeldung</h1>
+		<h1 class="ems-heading">
+			<span class="L" id="20120513154437">Anmeldung</span>
+		</h1>
 		<div class="ems-content">
 			<div class="ems-login">
 				<div class="login-nick">
-					<p class="login-nick">Benutzername:</p>
+					<span class="login-nick">
+						<span class="L" id="20120513154451">Benutzername:</span>
+					</span>
 					<input type="text" class="login-nick"/>
 				</div>
 				<div class="login-password">
-					<p class="login-password">Passwort:</p>
+					<span class="login-password">
+						<span class="L" id="20120513154515">Passwort:</span>
+					</span>
 					<input type="password" class="login-password"/>
 				</div>
-				<button class="login-submit" onclick="login()">Anmelden</button>
+				<button class="login-submit" onclick="login()">
+					<span class="L" id="20120513154532">Anmelden</span>
+				</button>
 				<button class="login-register" onclick="show_register()">
-					Noch nicht registriert?
+					<span class="L" id="20120513154545">Noch nicht registriert?</span>
 				</button>
 			</div>
 			<div class="ems-register" style="display:none">
 				<div class="register-password">
-					<p class="register-password">Passwort wiederholen:</p>
+					<span class="register-password">
+						<span class="L" id="20120513154559">Passwort wiederholen:</span>
+					</span>
 					<input type="password" class="register-password"/>
 				</div>
 				<div class="register-fullname">
-					<p class="register-fullname">Vor- und Nachname:</p>
+					<span class="register-fullname">
+						<span class="L" id="20120513154611">Vor- und Nachname:</span>
+					</span>
 					<input type="text" class="register-fullname"/>
 				</div>
 				<div class="register-email">
-					<p class="register-email">E-Mail-Adresse:</p>
+					<span class="register-email">
+						<span class="L" id="20120513154623">E-Mail-Adresse:</span>
+					</span>
 					<input type="text" class="register-email"/>
 				</div>
 				<button class="register-submit" onclick="register()">
-					Registrieren
+					<span class="L" id="20120513154632">Registrieren</span>
 				</button>
 			</div>
 		</div>

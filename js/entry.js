@@ -130,7 +130,7 @@ function edit_entry( button )
 	content.contentEditable = true
 	if( title.innerHTML.length==0 ) title.focus()
 	else content.focus()
-	button.innerHTML = "Speichern"
+	button.innerHTML = LS("20120513161628","Speichern")
 	button.onclick = function(){ save_entry(button) }
 }
 
@@ -235,7 +235,7 @@ function save_entry( button )
 	{
 		result = parse_result( result )
 	}})
-	button.innerHTML = "Bearbeiten"
+	button.innerHTML = LS("20120513162048","Bearbeiten")
 	button.onclick = function(){ edit_entry(button) }
 }
 

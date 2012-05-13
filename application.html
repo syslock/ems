@@ -6,6 +6,7 @@
 		<script src="js/util.js"></script>
 		<script src="js/login.js"></script>
 		<script src="js/entry.js"></script>
+		<script src="js/localization.js"></script>
 		<script>
 			$(document).ready( init )
 			function init()
@@ -21,7 +22,7 @@
 					result = parse_result( result )
 					if( result.login )
 					{
-						$(".ems-heading").innerHTML = "Hallo "+result.login.nick+"!"
+						localize( result.language )
 						load_entries( result )
 					}
 					else
@@ -34,24 +35,35 @@
 	</head>
 	<body>
 		<div class="ems-menu">
+			<select class="menu-language" onchange="change_language(this.value)">
+				<option value="en">English</option>
+				<option value="de">Deutsch</option>
+			</select>
 			<button class="menu-logout" onclick="logout()">
-				Abmelden
+				<span class="L" id="20120513122714">Abmelden</span>
 			</button>
 		</div>
-		<h1 class="ems-heading">Bewerbung</h1>
+		<h1 class="ems-heading">
+			<span class="L" id="20120513130121">Bewerbung</span>
+		</h1>
 		<div class="ems-content">
 			<div class="ems-help">
-				Hier kannst du deine Bewerbung formulieren.
+				<span class="L" id="20120513130138">
+					Hier kannst du deine Bewerbung formulieren.
+				</span>
 			</div>
 			<button class="ems-new-entry" onclick="new_entry()">
-				Beitrag erstellen
+				<span class="L" id="20120513130151">Beitrag erstellen</span>
 			</button>
 			<div id="ems-entry-template" class="ems-entry" style="display:none">
 				<div class="entry-heading">
-					Titel: <span class="entry-title"></span>
+					<span class="L" id="20120513160559">Titel:</span>
+					<span class="entry-title"></span>
 				</div>
 				<div class="entry-content"></div>
-				<button class="entry-edit" onclick="edit_entry(this)">Bearbeiten</button>
+				<button class="entry-edit" onclick="edit_entry(this)">
+					<span class="L" id="20120513130201">Bearbeiten</span>
+				</button>
 			</div>
 			<div id="entry-text-template" class="entry-text" style="display:none"></div>
 		</div>
@@ -60,3 +72,4 @@
 		</div>
 	</body>
 </html>
+

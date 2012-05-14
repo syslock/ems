@@ -19,13 +19,29 @@ function new_text_part( entry_id, data )
 	return div
 }
 
-function new_entry( object_id )
+function new_entry( object_id_or_title )
 {
+	var object_id = undefined
+	var title = undefined
+	if( String(Number(object_id_or_title))!=String(NaN) )
+	{
+		object_id = Number(object_id_or_title)
+	}
+	else if( object_id_or_title!=undefined )
+	{
+		title = object_id_or_title;
+	}
 	if( object_id==undefined )
 	{
 		// Neuen Eintrag auf dem Server anlegen:
+		var url = "ems.wsgi?do=store&type=application/x-obj.entry";
+		if( title )
+		{
+			// Titel kann, muss aber nicht vordefiniert werden
+			url += "&title="+title
+		}
 		$.ajax({
-			url : "ems.wsgi?do=store&type=application/x-obj.entry",
+			url : url,
 			async : false,
 			success :
 		function( result )
@@ -59,7 +75,10 @@ function load_entries( session )
 {
 	if( session )
 	{
-		$.get("ems.wsgi?do=get&id="+session.login.id+"&view=meta",
+		$.ajax({
+			url : "ems.wsgi?do=get&id="+session.login.id+"&view=meta",
+			async : false,
+			success :
 		function( result )
 		{
 			result = parse_result( result )
@@ -116,7 +135,7 @@ function load_entries( session )
 					}
 				}})
 			}
-		})
+		}})
 	}
 }
 

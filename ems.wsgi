@@ -6,11 +6,11 @@ def myapp( environ, start_response ):
 	
 	if script_dir not in sys.path:
 		sys.path.append( script_dir )
-	import webapp
-	webapp = imp.reload( webapp ) # FIXME: Reload nur für Entwicklung
+	from lib import application
+	application = imp.reload( application ) # FIXME: Reload nur für Entwicklung
 	from lib import errors
 	errors = imp.reload( errors )
-	app = webapp.Application( environ, start_response )
+	app = application.Application( environ, start_response )
 	query = app.query
 	response = app.response
 	session = app.session

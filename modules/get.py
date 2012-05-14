@@ -1,4 +1,4 @@
-import sqlite3, time, imp
+import time, imp
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -15,8 +15,7 @@ def process( app ):
 		object_id = int( query.parms["id"] )
 		if not user.can_read( app, user_id, object_id ):
 			raise errors.PrivilegeError()
-		con = sqlite3.connect( app.db_path )
-		c = con.cursor()
+		c = app.db.cursor()
 		c.execute( """select type, read, write, sequence, mtime 
 						from objects where id=?""", 
 					[object_id] )

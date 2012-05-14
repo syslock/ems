@@ -1,4 +1,4 @@
-import sqlite3, imp
+import imp
 from lib import password
 password = imp.reload( password )
 from lib import user
@@ -10,12 +10,10 @@ def process( app ):
 	response = app.response
 	session = app.session
 	if "nick" in query.parms and "password" in query.parms:
-		con = sqlite3.connect( app.db_path )
-		c = con.cursor()
+		c = app.db.cursor()
 		result = c.execute( 
 			"""select object_id, password from users where nick=?""",
 			[query.parms["nick"]] ).fetchone()
-		c.close()
 		if not result:
 			raise Exception( "Invalid user name or password" )
 		user_id, encrypted_password = result

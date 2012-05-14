@@ -1,4 +1,4 @@
-import sqlite3, time, imp
+import time, imp
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -9,11 +9,10 @@ def delete_in( app, user_id, object_id_list ):
 	for object_id in object_id_list:
 		if not user.can_delete( app, user_id, object_id ):
 			raise errors.PrivilegeError( "%d cannot delete %d" % (user_id, object_id) )
-	con = sqlite3.connect( app.db_path )
-	c = con.cursor()
+	c = app.db.cursor()
 	in_list = ",".join( [str(x) for x in object_id_list] )
 	c.execute( """delete from objects where id in (%(in_list)s)""" % locals() )
-	con.commit()
+	app.db.commit()
 	# FIXME: Alles folgende ist eigentlich nur nötig, wenn das Backend die 
 	# Foreign-Key-Constraints nicht unterstützt. Wie stellen wir das fest?
 	c.execute( """delete from membership where child_id in (%(in_list)s)""" % locals() )
@@ -21,7 +20,7 @@ def delete_in( app, user_id, object_id_list ):
 	c.execute( """delete from users where object_id in (%(in_list)s)""" % locals() )
 	c.execute( """delete from text where object_id in (%(in_list)s)""" % locals() )
 	c.execute( """delete from titles where object_id in (%(in_list)s)""" % locals() )
-	con.commit()
+	app.db.commit()
 
 def process( app ):
 	query = app.query
@@ -42,8 +41,7 @@ def process( app ):
 		object_id_list = []
 		if "child_not_in" in query.parms:
 			object_id_list = query.parms["child_not_in"].split(",")
-		con = sqlite3.connect( app.db_path )
-		c = con.cursor()
+		c = app.db.cursor()
 		not_in_list = ",".join( [str(x) for x in object_id_list] )
 		c.execute( """select child_id from membership where parent_id=? and
 						child_id not in (%(not_in_list)s)""" % locals(),

@@ -1,4 +1,4 @@
-import sqlite3, time, imp
+import time, imp
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -29,8 +29,8 @@ def process( app ):
 		if "id" in query.parms:
 			raise NotImplementedError( "Missing feature" ) # TODO
 		else:
-			con = sqlite3.connect( app.db_path )
-			c = con.cursor()
+			raise NotImplementedError( "Missing feature" ) # TODO
+			c = app.db.cursor()
 			c.execute( """select count(*) from privileges 
 							where privilege=? and object_id=?""",
 						['create_user', user_id] )
@@ -51,8 +51,7 @@ def process( app ):
 			else:
 				raise errors.ParameterError()
 	else:
-		con = sqlite3.connect( app.db_path )
-		c = con.cursor()
+		c = app.db.cursor()
 		object_id = None
 		if "id" in query.parms:
 			object_id = int( query.parms["id"] )
@@ -87,6 +86,7 @@ def process( app ):
 							values(?,?)""",
 						[parent_id, object_id] )
 			if title:
+				# Jedes Objekt darf einen Titel haben
 				c.execute( """insert into titles (object_id, data) values(?,?)""",
 							[object_id, title] )
 			if media_type == "text/plain":
@@ -121,8 +121,7 @@ def process( app ):
 								[data, object_id] )
 				else:
 					raise NotImplementedError( "Unsupported media type for update" )
-		con.commit()
-		c.close()
+		app.db.commit()
 		response.output = str( {"succeeded" : True, 
 								"object_id" : object_id} )
 

@@ -4,14 +4,10 @@ password = imp.reload( password ) # DEBUG
 from lib import errors
 errors = imp.reload( errors )
 
-# CREATE TABLE users (object_id NUMERIC REFERENCES objects(id) ON UPDATE CASCADE ON DELETE CASCADE, nick TEXT UNIQUE, email TEXT, fullname TEXT, password TEXT)
-
-def check( app, nick, password, email, fullname ):
-	con = sqlite3.connect( app.db_path )
-	c = con.cursor()
+def check( app, nick, password, email ):
+	c = app.db.cursor()
 	c.execute( """select object_id from users where nick=?""", [nick] )
 	if c.fetchall():
-		c.close()
 		raise Exception( "Nick already in use" )
 	if len(password)<6:
 		raise Exception( "Password has to be at least 6 characters long" )
@@ -27,28 +23,22 @@ def check( app, nick, password, email, fullname ):
 	if not name or not host:
 		raise Exception( "Invalid email address" )
 	socket.gethostbyname( host ) # Wirft Socket-Error bei unauflösbaren Hostnamen
-	if not fullname:
-		raise Exception( "Full name must not be empty" )
 	return True
 
-def create( app, nick, plain_password, email, fullname ):
-	check( app, nick, plain_password, email, fullname )
-	con = sqlite3.connect( app.db_path )
-	c = con.cursor()
+def create( app, nick, plain_password, email ):
+	check( app, nick, plain_password, email )
+	c = app.db.cursor()
 	c.execute( """insert into objects (type,mtime) values (?,?)""",
 				("application/x-obj.user", time.time()) )
 	object_id = c.lastrowid
 	encrypted_password = password.encrypt( plain_password )
 	try:
-		c.execute( """insert into users (object_id,nick,password,email,fullname)
+		c.execute( """insert into users (object_id,nick,password,email)
 						values (?,?,?,?,?)""",
-					[object_id, nick, encrypted_password,
-					 email, fullname] )
+					[object_id, nick, encrypted_password, email] )
 	except sqlite3.IntegrityError as e:
-		c.close()
 		raise Exception( "Nick already in use" )
-	con.commit()
-	c.close()
+	app.db.commit()
 	return object_id
 
 def can_read( app, user_id, object_id=None ):
@@ -57,8 +47,7 @@ def can_write( app, user_id, object_id=None ):
 	return can_access( app, user_id, object_id, "write" )
 def can_delete( app, user_id, object_id ):
 	"""Ein Objekt ist löschbar, wenn es selbst und alle Eltern schreibbar sind."""
-	con = sqlite3.connect( app.db_path )
-	c = con.cursor()
+	c = app.db.cursor()
 	c.execute( """select parent_id from membership where child_id=?""",
 				[object_id] )
 	deletable = can_write( app, user_id, object_id )
@@ -73,8 +62,7 @@ def can_delete( app, user_id, object_id ):
 def can_access( app, user_id, object_id, access_type ):
 	if access_type not in ("read", "write"):
 		raise NotImplementedError( "Unsupported access_type" )
-	con = sqlite3.connect( app.db_path )
-	c = con.cursor()
+	c = app.db.cursor()
 	# mehrstufiger join zur gleichzeitigen Auflösung von bis zu 10
 	# Verschachtelungsstufen der jeweiligen Zugriffsgruppe:
 	object_constraint = "1=1"
@@ -138,11 +126,9 @@ def grant_write( app, user_id, object_id ):
 def grant_access( app, user_id, object_id, access_type ):
 	if access_type not in ("read", "write"):
 		raise NotImplementedError( "Unsupported access_type" )
-	con = sqlite3.connect( app.db_path )
-	c = con.cursor()
+	c = app.db.cursor()
 	c.execute( """update objects set %(access_type)s=? where id=?""" \
 					% locals(),
 				[user_id, object_id] )
-	con.commit()
-	c.close()
+	app.db.commit()
 

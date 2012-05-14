@@ -1,4 +1,4 @@
-import time, sqlite3, os, sys, imp, traceback
+import time, os, sys, imp, traceback
 
 def myapp( environ, start_response ):
 	"""Anfragebehandlung der Webanwendung"""

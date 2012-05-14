@@ -105,25 +105,21 @@ class Session:
 											+ string.digits, 32))
 		self.sid = sid
 		self.parms = {}
-		con = sqlite3.connect( self.app.db_path )
-		c = con.cursor()
+		c = self.app.db.cursor()
 		c.execute( """select key, value from session_parms
 			where sid=? order by mtime""", [self.sid] )
 		for row in c:
 			key, value = row
 			self.parms[key] = value
-		c.close()
 	def store( self ):
-		con = sqlite3.connect( self.app.db_path )
-		c = con.cursor()
+		c = self.app.db.cursor()
 		c.execute( """delete from session_parms where sid=?""",
 					[self.sid] )
 		for key in self.parms:
 			c.execute( """insert into session_parms (sid,key,value,mtime) 
 							values (?,?,?,?)""",
 						[self.sid,key,self.parms[key],time.time()] )
-		con.commit()
-		c.close()
+		self.app.db.commit()
 	def get_cookie( self ):
 		return Cookie( "sid", self.sid )
 
@@ -134,7 +130,8 @@ class Application:
 		self.response = Response( start_response )
 		self.path = path or os.path.dirname( environ["SCRIPT_FILENAME"] )
 		self.name = name or ".".join( os.path.basename(environ["SCRIPT_FILENAME"]).split(".")[:-1] )
-		self.db_path = os.path.join( self.path, self.name+".db" )
+		db_path = os.path.join( self.path, self.name+".db" )
+		self.db = sqlite3.connect( db_path )
 		self.session = Session( self, sid=("sid" in self.query.parms \
 										  and self.query.parms["sid"] or None) )
 		self.config = config

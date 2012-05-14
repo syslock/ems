@@ -1,4 +1,4 @@
-import sqlite3, imp
+import imp
 from lib import user
 user = imp.reload( user )
 
@@ -11,19 +11,18 @@ def process( app ):
 	
 	if "user_id" in session.parms:
 		user_id = int( session.parms["user_id"] )
-		con = sqlite3.connect( app.db_path )
-		c = con.cursor()
-		c.execute( """select object_id, nick, email, fullname from users where object_id=?""", 
+		c = app.db.cursor()
+		c.execute( """select object_id, nick, email from users where object_id=?""", 
 					[user_id] )
 		for row in c:
 			result["login"] = { 
 				"id" : row[0],
 				"nick" : row[1],
-				"email" : row[2],
-				"fullname" : row[3] }
+				"email" : row[2] }
 		visible_objects = []
 		for row in user.can_read( app, user_id ):
 			visible_objects.append( row[0] )
 		result["visible_objects"] = visible_objects
 
 	response.output = str( result )
+

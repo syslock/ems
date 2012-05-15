@@ -3,6 +3,8 @@ from lib import user
 user = imp.reload( user )
 from lib import errors
 errors = imp.reload( errors )
+from lib import db_object
+db_object = imp.reload( db_object )
 
 def process( app ):
 	"""Speichert neue Datenobjekte (Texte bzw. Textbestandteile, später evtl. 
@@ -22,9 +24,13 @@ def process( app ):
 	if not "user_id" in session.parms:
 		raise errors.AuthenticationNeeded()
 	user_id = int(session.parms["user_id"])
+	usr = user.User( app, user_id=user_id )
 	media_type = None
 	if "type" in query.parms:
 		media_type = query.parms["type"]
+	# FIXME: Hier blacklisten wir kritische Objekttypen vor unautorisierter
+	# Erstellung (z.B. x-obj.user). Sicherer, aber im Prototyping unpraktischer 
+	# wär es unkritische Objekttypen zu whitelisten.
 	if media_type == "application/x-obj.user":
 		if "id" in query.parms:
 			raise NotImplementedError( "Missing feature" ) # TODO
@@ -35,37 +41,27 @@ def process( app ):
 							where privilege=? and object_id=?""",
 						['create_user', user_id] )
 			if( c.fetchone()!=1 ):
-				c.close()
 				raise errors.PrivilegeError()
-			c.close()
 			if "nick" in query.parms and "password" in query.parms \
 			and "email" in query.parms and "fullname" in query.parms:
-				object_id = user.create( 
-								app=app,
-								nick=query.parms["nick"], 
-								plain_password=query.parms["password"],
-								email=query.parms["email"], 
-								fullname=query.parms["fullname"] )
+				usr = user.User( app = app,
+								  nick = query.parms["nick"], 
+								  plain_password = query.parms["password"],
+								  email = query.parms["email"], 
+								  fullname = query.parms["fullname"] )
 				response.output = str( {"succeeded" : True,
-										"object_id" : object_id} )
+										"object_id" : usr.id} )
 			else:
 				raise errors.ParameterError()
 	else:
-		c = app.db.cursor()
 		object_id = None
 		if "id" in query.parms:
 			object_id = int( query.parms["id"] )
-			if not user.can_write( app, user_id, object_id ):
+			if not usr.can_write( object_id ):
 				raise errors.PrivilegeError()
 		parent_id = None
 		if "parent_id" in query.parms:
 			parent_id = int( query.parms["parent_id"] )
-		if parent_id or not object_id:
-			if not parent_id:
-				# Beiträge gehören standardmäßig zum Nutzer:
-				parent_id = user_id
-			if not user.can_write( app, user_id, parent_id ):
-				raise errors.PrivilegeError()
 		data = None
 		if "data" in query.parms:
 			data = query.parms["data"]
@@ -75,53 +71,16 @@ def process( app ):
 		sequence = 0
 		if "sequence" in query.parms:
 			sequence = int( query.parms["sequence"] )
-		if not object_id:
-			if not media_type:
-				raise errors.ParameterError( "Missing media type" )
-			c.execute( """insert into objects (type,sequence,mtime) 
-							values(?,?,?)""",
-						[media_type, sequence, time.time()] )
-			object_id = c.lastrowid
-			c.execute( """insert into membership (parent_id, child_id)
-							values(?,?)""",
-						[parent_id, object_id] )
-			if title:
-				# Jedes Objekt darf einen Titel haben
-				c.execute( """insert into titles (object_id, data) values(?,?)""",
-							[object_id, title] )
-			if media_type == "text/plain":
-				if data == None:
-					data = ""
-				c.execute( """insert into text (object_id, data) values(?,?)""",
-							[object_id, data] )
+		obj = None
+		if media_type == "text/plain":
+			obj = db_object.Text( app, usr=usr, object_id=object_id,
+								  parent_id=parent_id )
 		else:
-			if parent_id:
-				raise NotImplementedError( "TODO: Objektreferenzen ändern" )
-			if media_type:
-				raise NotImplementedError( "Cannot change media type" )
-			c.execute( """update objects set sequence=?, mtime=?
-							where id=?""",
-						[sequence, time.time(), object_id] )
-			if title:
-				c.execute( """select object_id from titles where object_id=?""",
-							[object_id] )
-				if c.fetchone():
-					c.execute( """update titles set data=? where object_id=?""",
-								[title, object_id] )
-				else:
-					c.execute( """insert into titles (object_id, data) values(?,?)""",
-								[object_id, title] )
-			if data:
-				c.execute( """select type from objects where id=?""", [object_id] )
-				result = c.fetchone()
-				media_type = result[0]
-				if media_type == "text/plain":
-					c.execute( """update text set data=?
-									where object_id=?""",
-								[data, object_id] )
-				else:
-					raise NotImplementedError( "Unsupported media type for update" )
-		app.db.commit()
+			obj = db_object.DBObject( app, usr=usr, object_id=object_id, 
+									  parent_id=parent_id, 
+									  media_type=media_type )
+		obj.update( parent_id=parent_id, data=data, title=title, 
+					sequence=sequence )
 		response.output = str( {"succeeded" : True, 
-								"object_id" : object_id} )
+								"object_id" : obj.id} )
 

@@ -11,9 +11,10 @@ def process( app ):
 	if not "user_id" in session.parms:
 		raise errors.AuthenticationNeeded()
 	user_id = int( session.parms["user_id"] )
+	usr = user.User( app, user_id=user_id )
 	if "id" in query.parms:
 		object_id = int( query.parms["id"] )
-		if not user.can_read( app, user_id, object_id ):
+		if not usr.can_read( object_id ):
 			raise errors.PrivilegeError()
 		c = app.db.cursor()
 		c.execute( """select type, read, write, sequence, mtime 

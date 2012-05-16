@@ -1,10 +1,12 @@
-import time, imp
+import time, imp, itertools
 from lib import user
 user = imp.reload( user )
 from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
+from iswi import profile
+profile = imp.reload( profile )
 
 def process( app ):
 	"""Speichert neue Datenobjekte (Texte bzw. Textbestandteile, später evtl. 
@@ -31,7 +33,7 @@ def process( app ):
 	# FIXME: Hier blacklisten wir kritische Objekttypen vor unautorisierter
 	# Erstellung (z.B. x-obj.user). Sicherer, aber im Prototyping unpraktischer 
 	# wär es unkritische Objekttypen zu whitelisten.
-	if media_type == "application/x-obj.user":
+	if media_type == user.User.media_type:
 		if "id" in query.parms:
 			raise NotImplementedError( "Missing feature" ) # TODO
 		else:
@@ -72,15 +74,24 @@ def process( app ):
 		if "sequence" in query.parms:
 			sequence = int( query.parms["sequence"] )
 		obj = None
-		if media_type == "text/plain":
+		if media_type == db_object.Text.media_type:
 			obj = db_object.Text( app, usr=usr, object_id=object_id,
 								  parent_id=parent_id )
+		elif media_type == profile.Contact.media_type:
+			obj = profile.Contact( app, usr=usr, object_id=object_id, 
+									parent_id=parent_id )
+		elif media_type == profile.Application.media_type:
+			obj = profile.Application( app, usr=usr, object_id=object_id, 
+										parent_id=parent_id )
 		else:
 			obj = db_object.DBObject( app, usr=usr, object_id=object_id, 
 									  parent_id=parent_id, 
 									  media_type=media_type )
-		obj.update( parent_id=parent_id, data=data, title=title, 
-					sequence=sequence )
+		obj.update( **dict(itertools.chain( 
+						query.parms.items(),
+						{"parent_id":parent_id, "data":data, "title":title, 
+							"sequence":sequence}.items()
+						 )) )
 		response.output = str( {"succeeded" : True, 
 								"object_id" : obj.id} )
 

@@ -7,13 +7,14 @@ from lib import db_object
 db_object = imp.reload( db_object )
 
 class User( db_object.DBObject ):
+	media_type = "application/x-obj.user"
 	def __init__( self, app, user_id=None, nick=None, plain_password=None, 
 					email=None ):
 		if( user_id!=None ):
 			super().__init__( app, object_id=user_id )
 		else:
-			super().__init__( app, media_type="application/x-obj.user" )
 			self.check( self.app, nick, plain_password, email )
+			super().__init__( app, media_type=self.media_type )
 			encrypted_password = password.encrypt( plain_password )
 			try:
 				c = self.app.db.cursor()

@@ -45,17 +45,26 @@ class DBObject:
 				self.children = []
 				self.parents = [ parent_id ]
 			self.app.db.commit()
-	def update( self, sequence=0, title=None, data=None, parent_id=None, 
-				media_type=None ):
+	def update( self, **keyargs ):
+		sequence = 0
+		if "sequence" in keyargs:
+			sequence = keyargs["sequence"]
+		parent_id = None
+		if "parent_id" in keyargs:
+			parent_id = keyargs["parent_id"]
 		if parent_id!=None and parent_id not in self.parents:
 			raise NotImplementedError( "TODO: Objektbaum umstrukturieren" )
+		media_type = None
+		if "media_type" in keyargs:
+			media_type = keyargs["media_type"]
 		if media_type!=None and media_type!=self.media_type:
 			raise NotImplementedError( "Cannot change media type" )
 		c = self.app.db.cursor()
 		c.execute( """update objects set sequence=?, mtime=?
 						where id=?""",
 					[sequence, time.time(), self.id] )
-		if title:
+		if "title" in keyargs:
+			title = keyargs["title"]
 			# Jedes Objekt darf einen Titel haben
 			c.execute( """select object_id from titles where object_id=?""",
 						[self.id] )
@@ -68,8 +77,9 @@ class DBObject:
 		self.app.db.commit()
 
 class Text( DBObject ):
+	media_type = "text/plain"
 	def __init__( self, app, **keyargs ):
-		keyargs["media_type"] = "text/plain"
+		keyargs["media_type"] = self.media_type
 		super().__init__( app, **keyargs )
 	def update( self, **keyargs ):
 		super().update( **keyargs )
@@ -84,5 +94,43 @@ class Text( DBObject ):
 				c.execute( """update text set data=?
 								where object_id=?""",
 							[keyargs["data"], self.id] )
+			self.app.db.commit()
+
+class UserAttributes( DBObject ):
+	"""Abstrakte Basisklasse, für nutzerspezifische Zusatzattribute, wie z.b.
+		Profildaten etc.; Implementierungen benötigen die Klassenattribute
+		table, media_type und valid_fields"""
+	def __init__( self, app, **keyargs ):
+		if "usr" not in keyargs:
+			raise errors.ObjectError( str(type(self))+" ctor needs argument usr of class User" )
+		self.user = keyargs["usr"]
+		c = app.db.cursor()
+		c.execute( """select object_id from """+self.table+""" where user_id=?""",
+					[self.user.id] )
+		result = c.fetchone()
+		if result:
+			keyargs["object_id"] = result[0]
+		keyargs["media_type"] = self.media_type
+		super().__init__( app, **keyargs )
+		if not result:
+			c.execute( """insert into """+self.table+""" (object_id, user_id) 
+							values(?,?)""", [self.id, self.user.id] )
+		app.db.commit()
+	def update( self, **keyargs ):
+		super().update( **keyargs )
+		update_fields = []
+		update_values = []
+		for key, value in keyargs.items():
+			if key in self.valid_fields:
+				update_fields.append( key )
+				update_values.append( value )
+		if update_fields:
+			stmt = "update "+self.table+" set "+update_fields[0]+"=?"
+			for field in update_fields[1:]:
+				stmt += ", "+field+"=?"
+			stmt += " where object_id=?"
+			update_values.append( self.id )
+			c = self.app.db.cursor()
+			c.execute( stmt, update_values )
 			self.app.db.commit()
 

@@ -12,26 +12,44 @@ class DBObject:
 				parent_id = usr.id
 		if parent_id!=None and usr and not usr.can_write( parent_id ):
 			raise errors.PrivilegeError()
+		c = self.app.db.cursor()
 		if object_id != None:
 			self.id = object_id
+			c.execute( """select type from objects where id=?""", [self.id] )
+			real_media_type = c.fetchone()[0]
+			if media_type!=None and real_media_type!=media_type:
+				raise errors.ObjectError( "Real media type differs from requested" )
+			self.media_type = real_media_type
+			c.execute( """select parent_id from membership where child_id=?""", 
+						[self.id] )
+			self.parents = []
+			for row in c:
+				self.parents.append( row[0] )
+			c.execute( """select child_id from membership where parent_id=?""", 
+						[self.id] )
+			self.children = []
+			for row in c:
+				self.children.append( row[0] )
 		else:
 			if not media_type:
 				raise errors.ParameterError( "Missing media type" )
-			c = self.app.db.cursor()
+			self.media_type = media_type
 			c.execute( """insert into objects (type,sequence,mtime) 
 							values(?,?,?)""",
-						[media_type, sequence, time.time()] )
+						[self.media_type, sequence, time.time()] )
 			self.id = c.lastrowid
 			if parent_id != None:
 				c.execute( """insert into membership (parent_id, child_id)
 								values(?,?)""",
-							[parent_id, object_id] )
+							[parent_id, self.id] )
+				self.children = []
+				self.parents = [ parent_id ]
 			self.app.db.commit()
 	def update( self, sequence=0, title=None, data=None, parent_id=None, 
 				media_type=None ):
-		if parent_id:
-			raise NotImplementedError( "TODO: Objektreferenzen ändern" )
-		if media_type:
+		if parent_id!=None and parent_id not in self.parents:
+			raise NotImplementedError( "TODO: Objektbaum umstrukturieren" )
+		if media_type!=None and media_type!=self.media_type:
 			raise NotImplementedError( "Cannot change media type" )
 		c = self.app.db.cursor()
 		c.execute( """update objects set sequence=?, mtime=?
@@ -47,28 +65,24 @@ class DBObject:
 			else:
 				c.execute( """insert into titles (object_id, data) values(?,?)""",
 							[self.id, title] )
-		if data:
-			c.execute( """select type from objects where id=?""", [self.id] )
-			result = c.fetchone()
-			media_type = result[0]
-			if media_type == "text/plain":
-				c.execute( """update text set data=?
-								where object_id=?""",
-							[data, object_id] )
-			else:
-				raise NotImplementedError( "Unsupported media type for update" )
 		self.app.db.commit()
 
 class Text( DBObject ):
 	def __init__( self, app, **keyargs ):
 		keyargs["media_type"] = "text/plain"
 		super().__init__( app, **keyargs )
-		if object_id == None:
-			# neu erstellt...
-			if data == None:
-				data = ""
+	def update( self, **keyargs ):
+		super().update( **keyargs )
+		if "data" in keyargs:
 			c = self.app.db.cursor()
-			c.execute( """insert into text (object_id, data) values(?,?)""",
-						[self.id, data] )
+			c.execute( """select object_id from text where object_id=?""",
+						[self.id] )
+			if not c.fetchone():
+				c.execute( """insert into text (object_id, data) values(?,?)""",
+							[self.id, keyargs["data"]] )
+			else:
+				c.execute( """update text set data=?
+								where object_id=?""",
+							[keyargs["data"], self.id] )
 			self.app.db.commit()
 

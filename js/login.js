@@ -3,7 +3,7 @@ function logout()
 	$.get( "ems.wsgi?do=logout", function(result)
 	{
 		result = parse_result( result )
-		if( result.succeeded ) { init() }
+		init()
 	})
 }
 
@@ -31,8 +31,7 @@ function register()
 	}
 	$.get( "ems.wsgi?do=register&nick="+$("input.login-nick")[0].value
 			+"&password="+$("input.login-password")[0].value
-			+"&email="+$("input.register-email")[0].value
-			+"&fullname="+$("input.register-fullname")[0].value,
+			+"&email="+$("input.register-email")[0].value,
 	function(result)
 	{
 		result = parse_result( result )

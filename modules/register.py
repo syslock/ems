@@ -1,9 +1,8 @@
 import imp, smtplib, sqlite3
 from email.mime.text import MIMEText
 
-import webapp
-webapp = imp.reload( webapp ) # DEBUG
-from webapp import Session
+from lib import application
+application = imp.reload( application ) # DEBUG
 from lib import user
 user = imp.reload( user ) # DEBUG
 
@@ -32,14 +31,15 @@ def process( app ):
 	response = app.response
 	session = app.session
 	if "msid" in query.parms:
-		confirmation_session = Session( app, query.parms["msid"] )
+		confirmation_session = application.Session( app, query.parms["msid"] )
 		if "registration_sid" in confirmation_session.parms \
 		and confirmation_session.parms["registration_sid"] == session.sid \
 		and "registration_user_id" in confirmation_session.parms:
 			user_id = int( confirmation_session.parms["registration_user_id"] )
+			usr = user.User( app=app, user_id=user_id )
 			# Nutzer Lese-/Schreib-Zugriff auf sein eigenes Nutzerobjekt geben:
-			user.grant_read( app, user_id, user_id )
-			user.grant_write( app, user_id, user_id )
+			usr.grant_read( user_id )
+			usr.grant_write( user_id )
 			confirmation_session.parms=[]
 			confirmation_session.store()
 			response.output = str( {"succeeded" : True} )
@@ -47,6 +47,7 @@ def process( app ):
 		elif "reconfirm" in query.parms \
 		and "registration_user_id" in confirmation_session.parms:
 			user_id = int( confirmation_session.parms["registration_user_id"] )
+			usr = user.User( app=app, user_id=user_id )
 			send_confirmation_request( app=app, user_id=user_id )
 			confirmation_session.parms=[]
 			confirmation_session.store()
@@ -55,37 +56,34 @@ def process( app ):
 		else:
 			raise Exception( "Registration confirmation failed" )
 	elif "nick" in query.parms and "password" in query.parms \
-	and "email" in query.parms and "fullname" in query.parms:
+	and "email" in query.parms:
 		nick = query.parms["nick"]
 		password = query.parms["password"]
 		email = query.parms["email"]
-		fullname = query.parms["fullname"]
-		object_id = user.create( app=app, nick=nick, plain_password=password,
-								 email=email, fullname=fullname )
+		usr = user.User( app=app, nick=nick, plain_password=password,
+								 email=email )
 		# FIXME: Falls das Versenden der E-Mail hier sofort fehlschlägt,
 		# müssen wir user.create entweder zurückrollen oder den 
 		# fehlgeschlagenen Zustellungsversuch zwischenspeichern, sodass
 		# er vom Administrator oder einem Cronjob später nochmal ausgelöst
 		# werden kann:
-		send_confirmation_request( app=app, user_id=object_id )
+		send_confirmation_request( app=app, user_id=usr.id )
 		response.output = str( {"succeeded" : True} )
 		return
 	else:
 		raise Exception( "Missing parameters" )
 
 def send_confirmation_request( app, user_id ):
-	con = sqlite3.connect( app.db_path )
-	c = con.cursor()
-	c.execute( """select nick, email, fullname from users where object_id=?""",
+	c = app.db.cursor()
+	c.execute( """select nick, email from users where object_id=?""",
 				[user_id] )
 	result = c.fetchone()
-	c.close()
 	if not result:
 		raise Exception( "Invalid user_id" )
-	nick, email, fullname = result
+	nick, email = result
 	session = app.session
 	config = app.config
-	confirmation_session = Session( app )
+	confirmation_session = application.Session( app )
 	confirmation_session.parms["registration_sid"] = session.sid
 	confirmation_session.parms["registration_user_id"] = user_id
 	confirmation_session.store()
@@ -98,7 +96,7 @@ def send_confirmation_request( app, user_id ):
 		if hasattr(config, "smtp_tls") and config.smtp_tls:
 			server.starttls()
 		confirmation_link = ""
-		msg_vars = { "nick" : nick, "fullname" : fullname, "msid" : confirmation_session.sid }
+		msg_vars = { "nick" : nick, "msid" : confirmation_session.sid }
 		msg_vars.update( vars(config) )
 		msg = MIMEText( config.registration_message % msg_vars )
 		msg.set_charset("utf-8")

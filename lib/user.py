@@ -16,8 +16,9 @@ class User( db_object.DBObject ):
 			self.check( self.app, nick, plain_password, email )
 			encrypted_password = password.encrypt( plain_password )
 			try:
+				c = self.app.db.cursor()
 				c.execute( """insert into users (object_id,nick,password,email)
-								values (?,?,?,?,?)""",
+								values (?,?,?,?)""",
 							[self.id, nick, encrypted_password, email] )
 			except sqlite3.IntegrityError as e:
 				raise Exception( "Nick already in use" )
@@ -45,8 +46,8 @@ class User( db_object.DBObject ):
 		c.execute( """select object_id from users where nick=?""", [nick] )
 		if c.fetchall():
 			raise Exception( "Nick already in use" )
-		if len(password)<6:
-			raise Exception( "Password has to be at least 6 characters long" )
+		if len(password)<8:
+			raise Exception( "Password has to be at least 8 characters long" )
 		if not re.findall( "[a-zA-Z]", password ):
 			raise Exception( "Password must contain latin letters" )
 		if not re.findall( "[0-9]", password ):

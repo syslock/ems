@@ -21,9 +21,10 @@ def process( app ):
 		or not password.check( password=query.parms["password"], 
 								encrypted_password=encrypted_password ):
 			raise Exception( "Invalid user name or password" )
-		if not user.can_read( app, user_id, user_id ):
+		usr = user.User( app, user_id )
+		if not usr.can_read( user_id ):
 			raise Exception( "Insufficient privileges" )
-		session.parms["user_id"] = str(user_id)
+		session.parms["user_id"] = str(usr.id)
 		session.store()
 		response.output = str( {"succeeded":True} )
 	else:

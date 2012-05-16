@@ -15,6 +15,10 @@ function new_text_part( entry_id, data )
 			div.style.display = ""
 			div.innerHTML = data
 		}
+		else
+		{
+			div = undefined
+		}
 	}})
 	return div
 }
@@ -180,7 +184,9 @@ function save_entry( button )
 		if( child.nodeName=="#text" )
 		{
 			var data = child.nodeValue
-			$(child).before( new_text_part(entry_id, data) )
+			new_div = new_text_part(entry_id, data)
+			if( new_div==undefined ) return;
+			$(child).before( new_div )
 			$(child).remove()
 		}
 		else if( child.className=="entry-text" )

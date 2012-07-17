@@ -2,7 +2,10 @@ import time, os, sys, imp, traceback
 
 def myapp( environ, start_response ):
 	"""Anfragebehandlung der Webanwendung"""
-	script_dir = os.path.dirname( environ["SCRIPT_FILENAME"] )
+	try:
+		script_dir = environ["EMS_PATH"]
+	except KeyError:
+		script_dir = os.path.dirname( environ["SCRIPT_FILENAME"] )
 	
 	if script_dir not in sys.path:
 		sys.path.append( script_dir )
@@ -10,7 +13,7 @@ def myapp( environ, start_response ):
 	application = imp.reload( application ) # FIXME: Reload nur für Entwicklung
 	from lib import errors
 	errors = imp.reload( errors )
-	app = application.Application( environ, start_response )
+	app = application.Application( environ, start_response, path=script_dir )
 	query = app.query
 	response = app.response
 	session = app.session

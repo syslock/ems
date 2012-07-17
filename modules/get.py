@@ -62,7 +62,7 @@ def process( app ):
 			if not result:
 				raise errors.ObjectError( "Missing object data" )
 			data = result[0]
-			response.output = data
+			response.output = str( data )
 			response.media_type = object_type
 		else:
 			raise NotImplementedError( "Unsupported media type" )

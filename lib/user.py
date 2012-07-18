@@ -35,10 +35,7 @@ class User( db_object.DBObject ):
 				"id" : row[0],
 				"nick" : row[1],
 				"email" : row[2] }
-		visible_objects = []
-		for row in self.can_read():
-			visible_objects.append( row[0] )
-		result["visible_objects"] = visible_objects
+		result["visible_objects"] = self.can_read()
 		return result
 	
 	@classmethod

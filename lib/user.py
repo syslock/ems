@@ -130,9 +130,7 @@ class User( db_object.DBObject ):
 		access_id = result[1]
 		if access_id == None:
 			parent_id = None
-			c.execute( """select m.parent_id from objects o
-							left join membership m on o.id=m.child_id
-							where o.id=?""", [object_id] )
+			c.execute( """select parent_id from membership where child_id=?""", [object_id] )
 			for row in c:
 				parent_id = row[0]
 				if parent_id == object_id \

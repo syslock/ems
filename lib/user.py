@@ -13,7 +13,7 @@ class User( db_object.DBObject ):
 		if( user_id!=None ):
 			super().__init__( app, object_id=user_id )
 		else:
-			self.check( self.app, nick, plain_password, email )
+			self.check( app, nick, plain_password, email )
 			super().__init__( app, media_type=self.media_type )
 			encrypted_password = password.encrypt( plain_password )
 			try:
@@ -63,6 +63,7 @@ class User( db_object.DBObject ):
 		socket.gethostbyname( host ) # Wirft Socket-Error bei unauflösbaren Hostnamen
 		return True
 	
+	ACCESS_MASKS={ "read" : 1, "write" : 2 }
 	def can_read( self, object_id=None ):
 		return self.can_access( object_id, "read" )
 	def can_write( self, object_id=None ):
@@ -82,63 +83,35 @@ class User( db_object.DBObject ):
 			deletable = deletable and self.can_write( parent_id )
 		return deletable and has_parent
 	def can_access( self, object_id, access_type ):
-		if access_type not in ("read", "write"):
+		if access_type not in self.ACCESS_MASKS:
 			raise NotImplementedError( "Unsupported access_type" )
+		access_mask = self.ACCESS_MASKS[ access_type ]
 		c = self.app.db.cursor()
-		# mehrstufiger join zur gleichzeitigen Auflösung von bis zu 10
-		# Verschachtelungsstufen der jeweiligen Zugriffsgruppe:
-		object_constraint = "1=1"
-		null_access = "1=0"
-		if object_id!=None:
-			object_constraint = "o.id=%(object_id)d" % locals()
-			null_access = "o.%(access_type)s is null" % locals()
-		user_id = self.id
-		c.execute( """select o.id, o.%(access_type)s from objects o
-						left join membership m0 on o.%(access_type)s=m0.parent_id
-						left join membership m1 on m0.child_id=m1.parent_id
-						left join membership m2 on m1.child_id=m2.parent_id
-						left join membership m3 on m2.child_id=m3.parent_id
-						left join membership m4 on m3.child_id=m4.parent_id
-						left join membership m5 on m4.child_id=m5.parent_id
-						left join membership m6 on m5.child_id=m6.parent_id
-						left join membership m7 on m6.child_id=m7.parent_id
-						left join membership m8 on m7.child_id=m8.parent_id
-						left join membership m9 on m8.child_id=m9.parent_id
-						where %(object_constraint)s
-							and (%(null_access)s
-								or o.%(access_type)s=%(user_id)d
-								or m0.child_id=%(user_id)d
-								or m1.child_id=%(user_id)d
-								or m2.child_id=%(user_id)d
-								or m3.child_id=%(user_id)d
-								or m4.child_id=%(user_id)d
-								or m5.child_id=%(user_id)d
-								or m6.child_id=%(user_id)d
-								or m7.child_id=%(user_id)d
-								or m8.child_id=%(user_id)d
-								or m9.child_id=%(user_id)d
-								)""" \
-					% locals() )
-		if object_id==None:
-			# Falls keine object_id übergeben wurde, geben wir die direkt
-			# entsprechend zugreifbaren Object-IDs, zusammen mit den dafür
-			# verantwortlichen Zugriffs-IDs zurück 
-			return c.fetchall()
-		result = c.fetchone()
-		if not result:
-			return False
-		access_id = result[1]
-		if access_id == None:
-			parent_id = None
-			c.execute( """select parent_id from membership where child_id=?""", [object_id] )
+		subjects = [self.id] + self.resolve_parents()
+		subject_constraint = "subject_id in %s" % str(tuple(subjects)).replace(",)",")")
+		objects = object_id and ([object_id] + self.resolve_parents(object_id)) or [None]
+		for object_id in objects:
+			object_constraint = "1=1"
+			if object_id != None:
+				object_constraint = "object_id=%(object_id)d" % locals()
+			c.execute( """select subject_id, object_id, access_mask
+							from permissions
+							where %(object_constraint)s and %(subject_constraint)s""" \
+						% locals() )
+			if object_id==None:
+				# Falls keine object_id übergeben wurde, geben wir die direkt
+				# entsprechend zugreifbaren Object-IDs, zusammen mit den dafür
+				# verantwortlichen Zugriffs-IDs zurück 
+				return c.fetchall()
+			test_mask = None
 			for row in c:
-				parent_id = row[0]
-				if parent_id == object_id \
-				or not self.can_access( parent_id, access_type ):
-					return False
-			if parent_id == None:
-				return False
-		return True
+				if test_mask == None:
+					test_mask = row[2]
+				else:
+					test_mask &= row[2]
+			if test_mask!=None and test_mask & access_mask:
+				return True
+		return False
 	
 	def grant_read( self, object_id ):
 		self.grant_access( object_id, "read" )
@@ -147,9 +120,15 @@ class User( db_object.DBObject ):
 	def grant_access( self, object_id, access_type ):
 		if access_type not in ("read", "write"):
 			raise NotImplementedError( "Unsupported access_type" )
+		access_mask = self.ACCESS_MASKS[ access_type ]
 		c = self.app.db.cursor()
-		c.execute( """update objects set %(access_type)s=? where id=?""" \
-						% locals(),
-					[self.id, object_id] )
-		self.app.db.commit()
+		c.execute( """select * from permissions where subject_id=? and object_id=?""", [self.id, object_id] )
+		if c.fetchone()!=None:
+			c.execute( """update permissions set access_mask=(access_mask|%(access_mask)d) where subject_id=? and object_id=?""" \
+							% locals(), [self.id, object_id] )
+			self.app.db.commit()
+		else:
+			c.execute( """insert into permissions (subject_id, object_id, access_mask) values (?,?,%(access_mask)d)""" \
+							% locals(), [self.id, object_id] )
+			self.app.db.commit()
 

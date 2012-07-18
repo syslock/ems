@@ -3,6 +3,7 @@ from lib import errors
 errors = imp.reload( errors )
 
 class DBObject:
+	
 	def __init__( self, app, usr=None, object_id=None, parent_id=None, 
 					media_type=None, sequence=0 ):
 		self.app = app
@@ -45,6 +46,7 @@ class DBObject:
 				self.children = []
 				self.parents = [ parent_id ]
 			self.app.db.commit()
+	
 	def update( self, **keyargs ):
 		sequence = 0
 		if "sequence" in keyargs:
@@ -75,6 +77,27 @@ class DBObject:
 				c.execute( """insert into titles (object_id, data) values(?,?)""",
 							[self.id, title] )
 		self.app.db.commit()
+	
+	def resolve_parents( self, child_id=None ):
+		result = []
+		child_id = child_id or self.id
+		c = self.app.db.cursor()
+		c.execute( """select parent_id from membership where child_id=?""", [child_id] )
+		for row in c:
+			parent_id = row[0]
+			result += [parent_id] + self.resolve_parents( parent_id )
+		return result
+	
+	def resolve_children( self, parent_id=None ):
+		result = []
+		parent_id = parent_id or self.id
+		c = self.app.db.cursor()
+		c.execute( """select child_id from membership where parent_id=?""", [parent_id] )
+		for row in c:
+			child_id = row[0]
+			result += [child_id] + self.resolve_children( child_id )
+		return result
+	
 
 class Text( DBObject ):
 	media_type = "text/plain"
@@ -96,6 +119,7 @@ class Text( DBObject ):
 							[keyargs["data"], self.id] )
 			self.app.db.commit()
 
+			
 class UserAttributes( DBObject ):
 	"""Abstrakte Basisklasse, für nutzerspezifische Zusatzattribute, wie z.b.
 		Profildaten etc.; Implementierungen benötigen die Klassenattribute

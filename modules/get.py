@@ -17,7 +17,7 @@ def process( app ):
 		if not usr.can_read( object_id ):
 			raise errors.PrivilegeError()
 		c = app.db.cursor()
-		c.execute( """select type, read, write, sequence, mtime 
+		c.execute( """select type, sequence, mtime 
 						from objects where id=?""", 
 					[object_id] )
 		result = c.fetchone()
@@ -27,10 +27,8 @@ def process( app ):
 		obj = {
 			"id" : object_id,
 			"type" : object_type,
-			"read" : result[1],
-			"write" : result[2],
-			"sequence" : result[3],
-			"mtime" : result[4], 
+			"sequence" : result[1],
+			"mtime" : result[2],
 			}
 		if "view" in query.parms:
 			view = query.parms["view"]

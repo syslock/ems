@@ -17,15 +17,18 @@
 				function(result)
 				{
 					result = parse_result( result )
+					localize( result.language )
 					if( result.login )
 					{
-						localize( result.language )
-						load_entries( result )
+						$(".menu-login")[0].style.display="none";
+						$(".menu-logout")[0].style.display="";
 					}
 					else
 					{
-						open("index.html")
+						$(".menu-login")[0].style.display="";
+						$(".menu-logout")[0].style.display="none";
 					}
+					load_visible_objects( result )
 				})
 			}
 		</script>
@@ -36,19 +39,18 @@
 				<option value="en">English</option>
 				<option value="de">Deutsch</option>
 			</select>
+			<button class="menu-login" onclick="window.setTimeout('open(\'login.html\')',100)">
+				<span class="L" id="20120718195058">Anmelden</span>
+			</button>
 			<button class="menu-logout" onclick="logout()">
 				<span class="L" id="20120513122714">Abmelden</span>
 			</button>
 		</div>
 		<h1 class="ems-heading">
-			<span class="L" id="20120513130121">Bewerbung</span>
+			<span class="L" id="20120718165235">Übersicht</span>
 		</h1>
 		<div class="ems-content">
-			<div class="ems-help">
-				<span class="L" id="20120513130138">
-					Hier kannst du deine Bewerbung formulieren.
-				</span>
-			</div>
+			<div class="ems-help"></div>
 			<button class="ems-new-entry" onclick="new_entry()">
 				<span class="L" id="20120513130151">Beitrag erstellen</span>
 			</button>

@@ -129,3 +129,11 @@ class User( db_object.DBObject ):
 							% locals(), [self.id, object_id] )
 			self.app.db.commit()
 
+def get_anonymous_user( app ):
+	c = app.db.cursor()
+	c.execute( "select object_id from users where nick='anonymous'" )
+	result = c.fetchone()
+	if result:
+		return User(app, user_id=result[0])
+	else:
+		return None

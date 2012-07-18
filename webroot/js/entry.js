@@ -11,7 +11,7 @@ function new_text_part( entry_id, data )
 		result = parse_result( result )
 		if( result.succeeded && result.object_id!=undefined )
 		{
-			div.id = "entry-text-"+String(entry_id)+"-"+String(result.object_id)
+			div.id = "entry-text-"+String(result.object_id)
 			div.style.display = ""
 			div.innerHTML = data
 		}
@@ -75,71 +75,66 @@ function new_entry( object_id_or_title )
 	}
 }
 
-function load_entries( session )
+function load_visible_objects( session )
 {
 	if( session )
 	{
 		$.ajax({
-			url : "ems.wsgi?do=get&id="+session.login.id+"&view=meta",
+			url : "ems.wsgi?do=get&view=all&recursive=true",
 			async : false,
 			success :
 		function( result )
 		{
 			result = parse_result( result )
-			for( i in result.children )
+			for( i in result )
 			{
-				var entry_id = result.children[i]
-				$.ajax({
-					url : "ems.wsgi?do=get&id="+entry_id+"&view=meta",
-					async : false,
-					success :
-				function( result )
-				{
-					result = parse_result( result )
-					if( result.type == "application/x-obj.entry" )
-					{
-						var entry = $("ems-entry-"+String(result.id))[0]
-						if( !entry )
-						{
-							entry = new_entry( result.id )
-						}
-						var entry_title = $(".entry-title",entry)[0]
-						if( result.title )
-						{
-							entry_title.innerHTML = result.title
-						}
-						var entry_content = $(".entry-content",entry)[0]
-						for( j in result.children )
-						{
-							var part_id = result.children[j]
-							$.ajax({
-								url : "ems.wsgi?do=get&id="+part_id+"&view=meta",
-								async : false,
-								success :
-							function( result )
-							{
-								result = parse_result( result )
-								if( result.type == "text/plain" )
-								{
-									$.ajax({
-										url : "ems.wsgi?do=get&id="+result.id,
-										async : false,
-										success :
-									function( result )
-									{
-										var div = $("#entry-text-template").first().clone()[0]
-										div.id = "entry-text-"+String(entry_id)+"-"+String(part_id)
-										div.style.display = ""
-										div.innerHTML = result
-										entry_content.appendChild( div );
-									}})
-								}
-							}})
-						}
-					}
-				}})
+				show_object( result[i] )
 			}
 		}})
+	}
+}
+
+function show_object( obj, dom_parent )
+{
+	if( obj.type == "application/x-obj.group" )
+	{
+		for( i in obj.children )
+		{
+			show_object( obj.children[i] )
+		}
+	}
+	if( obj.type == "application/x-obj.user" )
+	{
+		for( i in obj.children )
+		{
+			show_object( obj.children[i] )
+		}
+	}
+	if( obj.type == "application/x-obj.entry" )
+	{
+		var entry = $("ems-entry-"+String(obj.id))[0]
+		if( !entry )
+		{
+			entry = new_entry( obj.id )
+		}
+		var entry_title = $(".entry-title",entry)[0]
+		if( obj.title )
+		{
+			entry_title.innerHTML = obj.title
+		}
+		for( i in obj.children )
+		{
+			show_object( obj.children[i], entry )
+		}
+	}
+	if( obj.type == "text/plain" )
+	{
+		var entry_content = $(".entry-content",dom_parent)[0]
+		var div = $("#entry-text-template").first().clone()[0]
+		div.id = "entry-text-"+String(obj.id)
+		div.style.display = ""
+		div.innerHTML = obj.data
+		entry_content.appendChild( div );
 	}
 }
 

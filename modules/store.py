@@ -23,10 +23,12 @@ def process( app ):
 	query = app.query
 	response = app.response
 	session = app.session
-	if not "user_id" in session.parms:
+	if "user_id" in session.parms:
+		usr = user.User( app, user_id=int(session.parms["user_id"]) )
+	else:
+		usr = user.get_anonymous_user( app )
+	if not usr:
 		raise errors.AuthenticationNeeded()
-	user_id = int(session.parms["user_id"])
-	usr = user.User( app, user_id=user_id )
 	media_type = None
 	if "type" in query.parms:
 		media_type = query.parms["type"]
@@ -41,7 +43,7 @@ def process( app ):
 			c = app.db.cursor()
 			c.execute( """select count(*) from privileges 
 							where privilege=? and object_id=?""",
-						['create_user', user_id] )
+						['create_user', usr.id] )
 			if( c.fetchone()!=1 ):
 				raise errors.PrivilegeError()
 			if "nick" in query.parms and "password" in query.parms \

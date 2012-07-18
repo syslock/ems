@@ -1,6 +1,6 @@
 function open( doc )
 {
-	document.location = doc
+	document.location.href = doc
 }
 
 function parse_result( result )

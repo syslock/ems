@@ -26,10 +26,12 @@ def process( app ):
 	query = app.query
 	response = app.response
 	session = app.session
-	if not "user_id" in session.parms:
+	if "user_id" in session.parms:
+		usr = user.User( app, user_id=int(session.parms["user_id"]) )
+	else:
+		usr = user.get_anonymous_user( app )
+	if not usr:
 		raise errors.AuthenticationNeeded()
-	user_id = int(session.parms["user_id"])
-	usr = user.User( app, user_id )
 	media_type = None
 	object_id = None
 	if "id" in query.parms:

@@ -7,22 +7,42 @@ errors = imp.reload( errors )
 def process( app ):
 	query = app.query
 	response = app.response
-	session = app.session
-	if not "user_id" in session.parms:
-		raise errors.AuthenticationNeeded()
-	user_id = int( session.parms["user_id"] )
-	usr = user.User( app, user_id=user_id )
 	if "id" in query.parms:
 		object_id = int( query.parms["id"] )
+		result = get( app, [object_id] )
+	else:
+		result = get( app )
+	if result != None:
+		response.output = str( result )
+
+def get( app, object_ids=[] ):
+	query = app.query
+	response = app.response
+	session = app.session
+	if "user_id" in session.parms:
+		usr = user.User( app, user_id=int(session.parms["user_id"]) )
+	else:
+		usr = user.get_anonymous_user( app )
+	if not usr:
+		raise errors.AuthenticationNeeded()
+	if not object_ids:
+		permissions = usr.can_read()
+		for permission in permissions:
+			object_ids.append( permission[1] )
+	view = "all"
+	if "view" in query.parms:
+		view = query.parms["view"]
+	c = app.db.cursor()
+	objects = []
+	for object_id in object_ids:
 		if not usr.can_read( object_id ):
 			raise errors.PrivilegeError()
-		c = app.db.cursor()
 		c.execute( """select type, sequence, mtime 
 						from objects where id=?""", 
 					[object_id] )
 		result = c.fetchone()
 		if not result:
-			raise errors.ParameterError()
+			raise errors.ParameterError( "Invalid object id" )
 		object_type = result[0]
 		obj = {
 			"id" : object_id,
@@ -30,40 +50,42 @@ def process( app ):
 			"sequence" : result[1],
 			"mtime" : result[2],
 			}
-		if "view" in query.parms:
-			view = query.parms["view"]
-			if view=="meta":
-				c.execute( """select child_id from membership m
-								inner join objects o on o.id=m.child_id
-								where parent_id=?
-								order by o.sequence, o.id""",
-							[object_id] )
-				children = []
-				for row in c:
-					children.append( row[0] )
-				obj["children"] = children
-				c.execute( """select data from titles where object_id=?""", 
+		recursive = False
+		if "recursive" in query.parms:
+			recursive = query.parms["recursive"].lower()=="true"
+		c.execute( """select child_id from membership m
+						inner join objects o on o.id=m.child_id
+						where parent_id=?
+						order by o.sequence, o.id""",
+					[object_id] )
+		children = []
+		for row in c:
+			children.append( row[0] )
+		if children and recursive:
+			obj["children"] = get( app, children )
+		else:
+			obj["children"] = children
+		c.execute( """select data from titles where object_id=?""", 
+			[object_id] )
+		result = c.fetchone()
+		if result:
+			obj["title"] = result[0]
+		if view in ["data", "all"]:
+			if object_type == "text/plain":
+				c.execute( """select data from text where object_id=?""", 
 					[object_id] )
 				result = c.fetchone()
-				if result:
-					obj["title"] = result[0]
-				response.output = str( obj )
-				return
-			elif view=="data":
-				pass
-			else:
-				raise NotImplementedError( "Unsupported object view" )
-		if object_type == "text/plain":
-			c.execute( """select data from text where object_id=?""", 
-				[object_id] )
-			result = c.fetchone()
-			if not result:
-				raise errors.ObjectError( "Missing object data" )
-			data = result[0]
-			response.output = str( data )
-			response.media_type = object_type
-		else:
-			raise NotImplementedError( "Unsupported media type" )
-	else:
-		raise errors.ParameterError()
+				if not result:
+					raise errors.ObjectError( "Missing object data" )
+				data = result[0]
+				if view=="data":
+					response.output += str( data )
+					response.media_type = object_type
+				elif view=="all":
+					obj["data"] = str( data )
+		if view in ["meta", "all"]:
+			objects.append( obj )
+	if view in ["meta", "all"]:
+		return objects
+	
 

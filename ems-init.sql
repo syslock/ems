@@ -17,6 +17,7 @@ INSERT INTO objects (id,type) VALUES(2,'application/x-obj.user');
 INSERT INTO users (object_id,nick,password) VALUES(2,'admin','Ia56nGWe|026390949e48a5252d2f079b341249fc3845010dbc2f093939c20c62ec2a3fa1');
 INSERT INTO membership (parent_id,child_id) VALUES(1,2);
 INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(2,3,1);
+INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(2,3,2);
 
 INSERT INTO objects (id,type) VALUES(3,'application/x-obj.user');
 INSERT INTO users (object_id,nick) VALUES(3,'anonymous');

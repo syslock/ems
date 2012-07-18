@@ -46,12 +46,12 @@ class User( db_object.DBObject ):
 			raise Exception( "Nick already in use" )
 		if len(password)<8:
 			raise Exception( "Password has to be at least 8 characters long" )
-		if not re.findall( "[a-zA-Z]", password ):
-			raise Exception( "Password must contain latin letters" )
-		if not re.findall( "[0-9]", password ):
-			raise Exception( "Password must contain decimal digits" )
-		if not re.findall( "[^a-zA-Z0-9]", password ):
-			raise Exception( "Password must contain special charactes" )
+		#if not re.findall( "[a-zA-Z]", password ):
+		#	raise Exception( "Password must contain latin letters" )
+		#if not re.findall( "[0-9]", password ):
+		#	raise Exception( "Password must contain decimal digits" )
+		#if not re.findall( "[^a-zA-Z0-9]", password ):
+		#	raise Exception( "Password must contain special charactes" )
 		if not "@" in email:
 			raise Exception( "Invalid email address" )
 		name, host = email.split("@")

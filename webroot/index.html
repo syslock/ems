@@ -21,11 +21,15 @@
 					if( result.login )
 					{
 						$(".menu-login")[0].style.display="none";
+						$(".menu-nick-caption")[0].style.display="";
+						$(".menu-nick")[0].innerHTML=result.login.nick;
 						$(".menu-logout")[0].style.display="";
 					}
 					else
 					{
 						$(".menu-login")[0].style.display="";
+						$(".menu-nick-caption")[0].style.display="none";
+						$(".menu-nick")[0].innerHTML="";
 						$(".menu-logout")[0].style.display="none";
 					}
 					load_visible_objects( result )
@@ -35,6 +39,7 @@
 	</head>
 	<body>
 		<div class="ems-menu">
+			<span class="L" id="20120719003003">Sprache:</span>
 			<select class="menu-language" onchange="change_language(this.value)">
 				<option value="en">English</option>
 				<option value="de">Deutsch</option>
@@ -42,6 +47,10 @@
 			<button class="menu-login" onclick="window.setTimeout('open(\'login.html\')',100)">
 				<span class="L" id="20120718195058">Anmelden</span>
 			</button>
+			<span class="menu-nick-caption">
+				<span class="L" id="20120719002628">Angemeldet als:</span>
+				<span class="menu-nick"></span>
+			</span>
 			<button class="menu-logout" onclick="logout()">
 				<span class="L" id="20120513122714">Abmelden</span>
 			</button>

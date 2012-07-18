@@ -8,7 +8,7 @@ def delete_in( app, usr, object_id_list ):
 	object_id_list = [ int(x) for x in object_id_list ]
 	for object_id in object_id_list:
 		if not usr.can_delete( object_id ):
-			raise errors.PrivilegeError( "%d cannot delete %d" % (user_id, object_id) )
+			raise errors.PrivilegeError( "%d cannot delete %d" % (usr.id, object_id) )
 	c = app.db.cursor()
 	in_list = ",".join( [str(x) for x in object_id_list] )
 	c.execute( """delete from objects where id in (%(in_list)s)""" % locals() )

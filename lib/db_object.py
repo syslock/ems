@@ -14,6 +14,8 @@ class DBObject:
 		if parent_id!=None and usr and not usr.can_write( parent_id ):
 			raise errors.PrivilegeError()
 		c = self.app.db.cursor()
+		self.parents = []
+		self.children = []
 		if object_id != None:
 			self.id = object_id
 			c.execute( """select type from objects where id=?""", [self.id] )
@@ -23,12 +25,10 @@ class DBObject:
 			self.media_type = real_media_type
 			c.execute( """select parent_id from membership where child_id=?""", 
 						[self.id] )
-			self.parents = []
 			for row in c:
 				self.parents.append( row[0] )
 			c.execute( """select child_id from membership where parent_id=?""", 
 						[self.id] )
-			self.children = []
 			for row in c:
 				self.children.append( row[0] )
 		else:
@@ -39,11 +39,15 @@ class DBObject:
 							values(?,?,?)""",
 						[self.media_type, sequence, time.time()] )
 			self.id = c.lastrowid
+			if parent_id == None:
+				# Objekte ohne explizites Elternobjekt werden dem Wurzelobjekt untergeordnet:
+				root = get_root_object( self.app )
+				if root:
+					parent_id = root.id
 			if parent_id != None:
 				c.execute( """insert into membership (parent_id, child_id)
 								values(?,?)""",
 							[parent_id, self.id] )
-				self.children = []
 				self.parents = [ parent_id ]
 			self.app.db.commit()
 	
@@ -97,7 +101,43 @@ class DBObject:
 			child_id = row[0]
 			result += [child_id] + self.resolve_children( child_id )
 		return result
-	
+
+
+def get_root_object( app ):
+	c = app.db.cursor()
+	c.execute( "select object_id from groups where name='root'" )
+	result = c.fetchone()
+	if result:
+		return Group( app, object_id=result[0] )
+	else:
+		return None
+
+
+class Group( DBObject ):
+	media_type = "application/x-obj.group"
+	def __init__( self, app, **keyargs ):
+		keyargs["media_type"] = self.media_type
+		super().__init__( app, **keyargs )
+	def update( self, **keyargs ):
+		super().update( **keyargs )
+		update_fields = []
+		if "name" in keyargs:
+			update_fields.append( "name" )
+		if "description" in keyargs:
+			update_fields.append( "description" )
+		for field in update_fields:
+			c = self.app.db.cursor()
+			c.execute( """select object_id from groups where object_id=?""",
+						[self.id] )
+			if not c.fetchone():
+				c.execute( """insert into groups (object_id, %(field)s) values(?,?)""" \
+							% locals(), [self.id, keyargs[field]] )
+			else:
+				c.execute( """update groups set %(field)s=?
+								where object_id=?""",
+							[keyargs[field], self.id] )
+			self.app.db.commit()
+
 
 class Text( DBObject ):
 	media_type = "text/plain"
@@ -119,7 +159,7 @@ class Text( DBObject ):
 							[keyargs["data"], self.id] )
 			self.app.db.commit()
 
-			
+
 class UserAttributes( DBObject ):
 	"""Abstrakte Basisklasse, für nutzerspezifische Zusatzattribute, wie z.b.
 		Profildaten etc.; Implementierungen benötigen die Klassenattribute

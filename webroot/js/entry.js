@@ -48,7 +48,8 @@ function new_item( parms )
 			{
 				// Neues Element im Browser anlegen:
 				var item_id = result.object_id
-				var item = new_item( {id:item_id} )
+				parms.id = item_id
+				var item = new_item( parms )
 				var button = $("."+short_type+"-edit",item)[0]
 				if( button ) edit_entry( button )
 			}

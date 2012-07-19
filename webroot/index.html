@@ -58,14 +58,28 @@
 		<h1 class="ems-heading">
 			<span class="L" id="20120718165235">Übersicht</span>
 		</h1>
+		<div class="ems-help"></div>
+		<button class="ems-new-entry" onclick="new_entry()">
+			<span class="L" id="20120513130151">Beitrag erstellen</span>
+		</button>
 		<div class="ems-content">
-			<div class="ems-help"></div>
-			<button class="ems-new-entry" onclick="new_entry()">
-				<span class="L" id="20120513130151">Beitrag erstellen</span>
-			</button>
+			<div id="ems-group-template" class="ems-group" style="display:none">
+				<div class="group-heading">
+					<span class="L" id="20120719003625">Gruppe:</span>
+					<span class="group-name"></span>
+				</div>
+				<div class="group-content"></div>
+			</div>
+			<div id="ems-user-template" class="ems-user" style="display:none">
+				<div class="user-heading">
+					<span class="L" id="20120719003741">Nutzer:</span>
+					<span class="user-nick"></span>
+				</div>
+				<div class="user-content"></div>
+			</div>
 			<div id="ems-entry-template" class="ems-entry" style="display:none">
 				<div class="entry-heading">
-					<span class="L" id="20120513160559">Titel:</span>
+					<span class="L" id="20120719004857">Beitrag:</span>
 					<span class="entry-title"></span>
 				</div>
 				<div class="entry-content"></div>

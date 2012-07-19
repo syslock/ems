@@ -83,6 +83,24 @@ def get( app, object_ids=[] ):
 					response.media_type = object_type
 				elif view=="all":
 					obj["data"] = str( data )
+			if object_type == "application/x-obj.user":
+				c.execute( """select nick from users where object_id=?""", 
+					[object_id] )
+				result = c.fetchone()
+				if not result:
+					raise errors.ObjectError( "Missing object data" )
+				nick = result[0]
+				if view=="all":
+					obj["nick"] = str( nick )
+			if object_type == "application/x-obj.group":
+				c.execute( """select name from groups where object_id=?""", 
+					[object_id] )
+				result = c.fetchone()
+				if not result:
+					raise errors.ObjectError( "Missing object data" )
+				name = result[0]
+				if view=="all":
+					obj["name"] = str( name )
 		if view in ["meta", "all"]:
 			objects.append( obj )
 	if view in ["meta", "all"]:

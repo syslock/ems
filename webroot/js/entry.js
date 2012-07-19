@@ -23,27 +23,20 @@ function new_text_part( entry_id, data )
 	return div
 }
 
-function new_entry( object_id_or_title )
+function get_short_type( type ) {
+	return type.match(/.*\.([^.]*)/)[1]
+}
+function new_item( parms )
 {
-	var object_id = undefined
-	var title = undefined
-	if( String(Number(object_id_or_title))!=String(NaN) )
+	var short_type = get_short_type( parms.type )
+	if( parms.id==undefined )
 	{
-		object_id = Number(object_id_or_title)
-	}
-	else if( object_id_or_title!=undefined )
-	{
-		title = object_id_or_title;
-	}
-	if( object_id==undefined )
-	{
-		// Neuen Eintrag auf dem Server anlegen:
-		var url = "ems.wsgi?do=store&type=application/x-obj.entry";
-		if( title )
-		{
-			// Titel kann, muss aber nicht vordefiniert werden
-			url += "&title="+title
-		}
+		// Neues Objekt auf dem Server anlegen:
+		var url = "ems.wsgi?do=store&type="+parms.type;
+		// optionale Zusatzparameter:
+		if( parms.title ) url += "&title="+parms.title
+		if( parms.nick ) url += "&nick="+parms.nick
+		if( parms.name ) url += "&name="+parms.name
 		$.ajax({
 			url : url,
 			async : false,
@@ -53,25 +46,38 @@ function new_entry( object_id_or_title )
 			result = parse_result( result )
 			if( result.succeeded && result.object_id!=undefined )
 			{
-				// Neuen Eintrag im Browser anlegen:
-				var entry_id = result.object_id
-				var entry = new_entry( entry_id )
-				var button = $(".entry-edit",entry)[0]
-				edit_entry( button )
+				// Neues Element im Browser anlegen:
+				var item_id = result.object_id
+				var item = new_item( {id:item_id} )
+				var button = $("."+short_type+"-edit",item)[0]
+				if( button ) edit_entry( button )
 			}
 		}})
 		return undefined;
 	}
 	else
 	{
-		var entry = $("#ems-entry-template").first().clone(true)[0];
-		entry.id = "ems-entry-"+String(object_id)
-		entry.style.display = ""
-		$(".ems-entry").first().before( entry )
-		entry.data = {
-			"object_id" : object_id,
+		var item = $("#ems-"+short_type+"-"+String(parms.id))[0]
+		if( !item )
+		{
+			item = $("#ems-"+short_type+"-template").first().clone(true)[0];
+			item.id = "ems-"+short_type+"-"+String(parms.id)
+			item.style.display = ""
+			$(parms.dom_parent).first().prepend( item )
+			item.data = {
+				"object_id" : parms.id,
+			}
 		}
-		return entry;
+		var field_name = undefined
+		if( parms.title ) field_name = "title";
+		if( parms.nick ) field_name = "nick";
+		if( parms.name ) field_name = "name";
+		if( field_name )
+		{
+			var item_field = $( "."+short_type+"-"+field_name, item )[0]
+			if( item_field ) item_field.innerHTML = parms[ field_name ]
+		}
+		return item;
 	}
 }
 
@@ -88,7 +94,7 @@ function load_visible_objects( session )
 			result = parse_result( result )
 			for( i in result )
 			{
-				show_object( result[i] )
+				show_object( result[i], $(".ems-content")[0] )
 			}
 		}})
 	}
@@ -98,43 +104,39 @@ function show_object( obj, dom_parent )
 {
 	if( obj.type == "application/x-obj.group" )
 	{
-		for( i in obj.children )
+		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_parent:dom_parent} )
+		for( var i in obj.children )
 		{
-			show_object( obj.children[i] )
+			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
 		}
 	}
 	if( obj.type == "application/x-obj.user" )
 	{
-		for( i in obj.children )
+		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_parent:dom_parent} )
+		for( var i in obj.children )
 		{
-			show_object( obj.children[i] )
+			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
 		}
 	}
 	if( obj.type == "application/x-obj.entry" )
 	{
-		var entry = $("ems-entry-"+String(obj.id))[0]
-		if( !entry )
+		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_parent:dom_parent} )
+		for( var i in obj.children )
 		{
-			entry = new_entry( obj.id )
-		}
-		var entry_title = $(".entry-title",entry)[0]
-		if( obj.title )
-		{
-			entry_title.innerHTML = obj.title
-		}
-		for( i in obj.children )
-		{
-			show_object( obj.children[i], entry )
+			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
 		}
 	}
 	if( obj.type == "text/plain" )
 	{
-		var entry_content = $(".entry-content",dom_parent)[0]
-		var div = $("#entry-text-template").first().clone()[0]
-		div.id = "entry-text-"+String(obj.id)
+		var div = $( "#entry-text-"+String(obj.id) )[0]
+		if( !div )
+		{
+			div = $("#entry-text-template").first().clone()[0]
+			div.id = "entry-text-"+String(obj.id)
+			dom_parent.appendChild( div );
+		}
 		div.style.display = ""
 		div.innerHTML = obj.data
-		entry_content.appendChild( div );
 	}
 }
 

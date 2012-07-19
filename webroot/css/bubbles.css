@@ -1,0 +1,81 @@
+html {
+	background-color: #f0f0ff;
+}
+
+.ems-heading {
+	position: fixed;
+	background-color: #d0d0ff;
+	margin: 0px;
+	padding: 10px;
+	padding-left: 30px;
+	padding-top: 30px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	display: normal;
+	top: -20px;
+	left: -20px;
+	width: 200px;
+	z-index: 0;
+}
+
+.ems-menu {
+	position: fixed;
+	background-color: #d0d0ff;
+	padding: 10px;
+	padding-top: 30px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-left: none;
+	top: -20px;
+	left: 200px;
+	z-index: 1;
+}
+
+.ems-help {
+	padding-top: 50px;
+}
+
+.ems-content {
+	border-radius: 10px;
+	background-color: #d0d0ff;
+	padding-top: 10px;
+	padding-left: 10px;
+	border: 1px solid;
+	border-color: black;
+}
+
+.ems-user {
+	background-color: #ffe0b0;
+	padding-top: 10px;
+	padding-left: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+.ems-group {
+	background-color: #ffd0ff;
+	padding-top: 10px;
+	padding-left: 10px;	
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+.ems-entry {
+	background-color: #ffffd0;
+	padding-top: 10px;
+	padding-left: 10px;	
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+

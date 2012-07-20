@@ -45,10 +45,16 @@ function get_cookie( key )
 	return cookies[ key ]
 }
 
-function set_cookie( key, value, path )
+function set_cookie( key, value, path, expires )
 {
 	del_cookie( key );
-	document.cookie = key + "=" + value + "; path=" + (path ? path : "/");
+	if( !expires )
+	{
+		var d = new Date()
+		d.setFullYear( d.getFullYear()+1 )
+		expires = d.toGMTString()
+	}
+	document.cookie = key + "=" + value + "; path=" + (path ? path : "/") + "; expires="+expires;
 }
 
 function del_cookie( key, path )

@@ -18,8 +18,6 @@ def myapp( environ, start_response ):
 	response = app.response
 	session = app.session
 	
-	# Anfrage-Cookies spiegeln:
-	response.cookies.update( query.cookies )
 	# Session-Cookies aktualisieren:
 	response.cookies.update( session.get_cookies() )
 	

@@ -45,6 +45,11 @@
 				<option value="en">English</option>
 				<option value="de">Deutsch</option>
 			</select>
+			<span class="L" id="20120719184906">Stil:</span>
+			<select class="menu-style" onchange="change_style(this.value)">
+				<option value="bubbles">Bubbles</option>
+				<option value="notes">Notes</option>
+			</select>
 			<button class="menu-login" onclick="window.setTimeout('open(\'login.html\')',100)">
 				<span class="L" id="20120718195058">Anmelden</span>
 			</button>
@@ -56,13 +61,15 @@
 				<span class="L" id="20120513122714">Abmelden</span>
 			</button>
 		</div>
+		<div class="page-menu">
+			<button class="ems-new-entry" onclick="new_item({type:'application/x-obj.entry', dom_parent:$('.ems-content')[0]})">
+				<span class="L" id="20120513130151">Beitrag erstellen</span>
+			</button>
+		</div>
 		<h1 class="ems-heading">
 			<span class="L" id="20120718165235">Übersicht</span>
 		</h1>
 		<div class="ems-help"></div>
-		<button class="ems-new-entry" onclick="new_item({type:'application/x-obj.entry', dom_parent:$('.ems-content')[0]})">
-			<span class="L" id="20120513130151">Beitrag erstellen</span>
-		</button>
 		<div class="ems-content">
 			<div id="ems-group-template" class="ems-group" style="display:none">
 				<div class="group-heading">

@@ -1,0 +1,111 @@
+html {
+	background-image: url(../images/holz_dunkel_512x4.jpg);
+}
+
+.ems-heading {
+	position: fixed;
+	margin: 0px;
+	padding-top: 10px;
+	padding-left: 15px;
+	display: normal;
+	top: 0px;
+	left: 0px;
+	width: 185px;
+	z-index: 3;
+}
+
+.ems-menu {
+	position: fixed;
+	margin: 0px;
+	padding-top: 50px;
+	padding-left: 15px;
+	display: normal;
+	top: 0px;
+	left: 0px;
+	width: 185px;
+	height: 150px;
+	background-image: url(../images/postit_200.png);
+	background-repeat: no-repeat;
+	z-index: 2;
+}
+
+.page-menu {
+	position: fixed;
+	margin: 0px;
+	padding-top: 50px;
+	padding-left: 15px;
+	display: normal;
+	top: 150px;
+	left: 20px;
+	width: 185px;
+	height: 150px;
+	background-image: url(../images/postit_200.png);
+	background-repeat: no-repeat;
+	z-index: 1;
+}
+
+.menu-language {
+	display: block;
+}
+
+.menu-style {
+	display: block;
+}
+
+.menu-login {
+	display: block;
+}
+
+.menu-logout {
+	display: block;
+}
+
+.ems-help {
+}
+
+.ems-content {
+	background-image: url(../images/block_800.png);
+	margin-left: 200px;
+	padding: 20px;
+	padding-left: 100px;
+	width: 680px;
+}
+
+.ems-user {
+	padding: 10px;
+	margin: 10px;
+	border-top: 2px solid;
+	border-color: darkRed;
+}
+.user-heading {
+	color: darkRed;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.ems-group {
+	padding: 10px;
+	margin: 10px;
+	border-top: 2px solid;
+	border-color: darkGreen;
+}
+.group-heading {
+	color: darkGreen;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.ems-entry {
+	padding: 10px;
+	margin: 10px;
+	border-top: 2px solid;
+	border-color: darkBlue;
+	color: darkBlue;
+	font-weight: bold;
+	text-decoration: none;
+}
+.entry-heading {
+	color: darkBlue;
+	font-weight: bold;
+	text-decoration: underline;
+}

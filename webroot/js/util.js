@@ -25,3 +25,8 @@ function parse_result( result )
 	return result;
 }
 
+function change_style( style )
+{
+	$("#main_style")[0].href="css/"+style+".css"
+}
+

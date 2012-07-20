@@ -33,8 +33,21 @@ html {
 	z-index: 1;
 }
 
+.page-menu {
+	position: fixed;
+	background-color: #d0d0ff;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-top: none;
+	top: 40px;
+	left: 200px;
+	z-index: 2;
+}
+
 .ems-help {
-	padding-top: 50px;
+	padding-top: 70px;
 }
 
 .ems-content {

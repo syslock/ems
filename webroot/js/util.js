@@ -1,4 +1,4 @@
-function open( doc )
+function open_page( doc )
 {
 	document.location.href = doc
 }

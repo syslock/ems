@@ -49,7 +49,7 @@
 				<option value="bubbles">Bubbles</option>
 				<option value="notes">Notes</option>
 			</select>
-			<button class="menu-login" onclick="window.setTimeout('open(\'login.html\')',100)">
+			<button class="menu-login" onclick="open_page('login.html')">
 				<span class="L" id="20120718195058">Anmelden</span>
 			</button>
 			<span class="menu-nick-caption">
@@ -61,6 +61,9 @@
 			</button>
 		</div>
 		<div class="page-menu">
+			<button class="ems-contact" onclick="open_page('contact.html')">
+				<span class="L" id="20120720192225">Kontaktdaten</span>
+			</button>
 			<button class="ems-new-entry" onclick="new_item({type:'application/x-obj.entry', dom_parent:$('.ems-content')[0]})">
 				<span class="L" id="20120513130151">Beitrag erstellen</span>
 			</button>

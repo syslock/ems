@@ -74,6 +74,8 @@ function localize( new_lang )
 
 function change_language( new_lang )
 {
+	set_cookie( "lang", new_lang )
 	localize( new_lang )
-	// TODO: Sprache in Session speichern
+	var menu_language = $(".menu-language")[0]
+	if( menu_language ) menu_language.value = new_lang;
 }

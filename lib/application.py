@@ -8,6 +8,7 @@ class Request:
 	"""Implementiert Parameterübergabe an die Webanwendung"""
 	def __init__( self, environ ):
 		self.environ = environ
+		self.cookies = {}
 		self.parms = {}
 		self.merge_cookies()
 		self.merge_parms() # Parms überschreiben Cookies
@@ -42,6 +43,7 @@ class Request:
 			cookies = re.findall( '([^=; ]*)=(?:"([^"]*)"|([^;]*))', 
 									self.environ["HTTP_COOKIE"] )
 			for cookie in cookies:
+				self.cookies[cookie[0]] = cookie[1] or cookie[2]
 				self.parms[cookie[0]] = cookie[1] or cookie[2]
 
 class Cookie:
@@ -73,9 +75,7 @@ class Response:
 		self.start_response = start_response
 		self.response_headers = []
 		self.caching = False
-		self.cookies = []
-	def add_cookie( self, cookie ):
-		self.cookies.append( cookie )		
+		self.cookies = {}
 	def finalize( self ):
 		"""Sendet Header und liefert korrekt kodierten Ausgabestrom zurück"""
 		if self.encoding:
@@ -86,7 +86,8 @@ class Response:
 			self.response_headers.append( ('Content-type', self.media_type) )
 		self.response_headers.append(
 			('Content-Length', str(len(self.encoded_output))) )
-		for cookie in self.cookies:
+		cookie_objects = map( lambda key: Cookie(key, self.cookies[key]), self.cookies.keys() )
+		for cookie in cookie_objects:
 			self.response_headers.append( cookie.get_header() )
 		if not self.caching:
 			self.response_headers.append(
@@ -120,8 +121,8 @@ class Session:
 							values (?,?,?,?)""",
 						[self.sid,key,self.parms[key],time.time()] )
 		self.app.db.commit()
-	def get_cookie( self ):
-		return Cookie( "sid", self.sid )
+	def get_cookies( self ):
+		return { "sid" : self.sid }
 
 class Application:
 	"""Container für Anfrage- und Antwortobjekte und Pfad- und Datenbankparameter""" 

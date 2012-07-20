@@ -18,7 +18,10 @@ def myapp( environ, start_response ):
 	response = app.response
 	session = app.session
 	
-	response.add_cookie( session.get_cookie() )
+	# Anfrage-Cookies spiegeln:
+	response.cookies.update( query.cookies )
+	# Session-Cookies aktualisieren:
+	response.cookies.update( session.get_cookies() )
 	
 	if "do" in query.parms:
 		mod_name = query.parms["do"]

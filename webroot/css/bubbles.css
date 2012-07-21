@@ -28,9 +28,9 @@ html {
 	border: 1px solid;
 	border-color: black;
 	border-left: none;
-	top: -20px;
+	top: -15px;
 	left: 200px;
-	z-index: 1;
+	z-index: 2;
 }
 
 .page-menu {
@@ -41,13 +41,13 @@ html {
 	border: 1px solid;
 	border-color: black;
 	border-top: none;
-	top: 40px;
-	left: 200px;
-	z-index: 2;
+	top: 45px;
+	left: 10px;
+	z-index: 1;
 }
 
 .ems-help {
-	padding-top: 70px;
+	padding-top: 100px;
 }
 
 .ems-content {
@@ -72,7 +72,7 @@ html {
 }
 
 .contact-address {
-	float:right;
+	float: left;
 	background-color: #ffffd0;
 	padding: 10px;
 	border-radius: 10px;
@@ -89,6 +89,13 @@ html {
 
 .contact-input {
 	float: right;
+}
+
+#contact-name-title {
+	padding-top: 15px;
+}
+#contact-nationality {
+	padding-bottom: 15px;
 }
 
 .ems-user {

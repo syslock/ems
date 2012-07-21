@@ -57,6 +57,38 @@ html {
 	padding-left: 10px;
 	border: 1px solid;
 	border-color: black;
+	float: left;
+}
+
+.contact-personal {
+	float: left;
+	background-color: #ffe0b0;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+.contact-address {
+	float:right;
+	background-color: #ffffd0;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+.contact-field {
+	width: 400px;
+	height: 30px;
+}
+
+.contact-input {
+	float: right;
 }
 
 .ems-user {

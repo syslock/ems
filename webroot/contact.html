@@ -6,7 +6,8 @@
 		<link id="main_style" rel="stylesheet" type="text/css" href="css/bubbles.css" />
 		<script data-main="js/main.js" src="js/require-jquery.js"></script>
 		<script>
-			var session = undefined;
+			var status = undefined;
+			var user = undefined;
 			function init()
 			{
 				query_string = $(document)[0].location.search
@@ -18,12 +19,20 @@
 				function(result)
 				{
 					result = parse_result( result )
+					status = result
 					if( result.login )
 					{
 						$(".menu-login")[0].style.display="none";
 						$(".menu-nick-caption")[0].style.display="";
 						$(".menu-nick")[0].innerHTML=result.login.nick;
 						$(".menu-logout")[0].style.display="";
+						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
+						function(result)
+						{
+							result = parse_result( result )
+							user = result[0]
+							update_contact()
+						})
 					}
 					else
 					{
@@ -32,7 +41,71 @@
 						$(".menu-nick")[0].innerHTML="";
 						$(".menu-logout")[0].style.display="none";
 					}
-					load_visible_objects( result )
+				})
+			}
+			
+			function hilight( field, color, width )
+			{
+				field.style.border = String(width ? width : 3)+"px solid"
+				field.style.borderColor = color ? color : "red"
+				field.style.borderRadius = "3px"
+			}
+			
+			function backlight( field, color )
+			{
+				field.style.backgroundColor = color ? color : "#ffd0d0"
+			}
+			
+			function unlight( field )
+			{
+				field.style.border = ""
+				field.style.borderColor = ""
+				field.style.borderRadius = ""
+				field.style.backgroundColor = ""
+			}
+			
+			function get_field_name( field )
+			{
+				return field.id.replace('contact-','').replace('-input','').replace('-','_')
+			}
+			
+			function rs( field )
+			{
+				hilight( field, "orange", 2 )
+				request_store( store_contact, field )
+			}
+			
+			function store_contact( field )
+			{
+				field_name = get_field_name( field )
+				$.get( 'ems.wsgi?do=store&type=application/x-obj.iswi.contact&'+field_name+'='+field.value, 
+				function(result)
+				{
+					result = parse_result( result )
+					if( !result.succeeded )
+					{
+						hilight( field )
+					}
+					unlight( field )
+				})
+			}
+			
+			function update_contact()
+			{
+				$.get( 'ems.wsgi?do=get&view=all&id='+user.contact_id,
+				function(result)
+				{
+					result = parse_result( result )[0]
+					$('.contact-input').each(
+					function( i, field )
+					{
+						field_name = get_field_name( field )
+						if( result[field_name] )
+						{
+							field.value = result[field_name]
+						}
+						else hilight( field, "orange", 2 )
+					})
 				})
 			}
 		</script>
@@ -73,23 +146,23 @@
 			<div class="contact-personal">
 				<div class="contact-field" id="contact-name-title">
 					<span class="contact-label" id="contact-name-title-label"><span class="L" id="20120720185959">Titel</span></span>
-					<input class="contact-input" id="contact-name-title-input" />
+					<input class="contact-input" id="contact-name-title-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-first-name">
 					<span class="contact-label" id="contact-first-name-label"><span class="L" id="20120720190303">Vorname</span></span>
-					<input class="contact-input" id="contact-first-name-input" />
+					<input class="contact-input" id="contact-first-name-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-surname">
 					<span class="contact-label" id="contact-surname-label"><span class="L" id="20120720190322">Nachname</span></span>
-					<input class="contact-input" id="contact-surname-input" />
+					<input class="contact-input" id="contact-surname-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-birthday">
 					<span class="contact-label" id="contact-birthday-label"><span class="L" id="20120720190402">Geburtsdatum</span></span>
-					<input class="contact-input" id="contact-birthday-input" />
+					<input class="contact-input" id="contact-birthday-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-gender">
 					<span class="contact-label" id="contact-gender-label"><span class="L" id="20120720190522">Geschlecht</span></span>
-					<select class="contact-input" id="contact-gender-input">
+					<select class="contact-input" id="contact-gender-input" onchange="rs(this)" >
 						<option value="undefined"></option>
 						<option value="female"><span class="L" id="20120720190729">weiblich</span></option>
 						<option value="male"><span class="L" id="20120720190736">männlich</span></option>
@@ -97,37 +170,37 @@
 				</div>
 				<div class="contact-field" id="contact-nationality">
 					<span class="contact-label" id="contact-nationality-label"><span class="L" id="20120720191112">Nationalität</span></span>
-					<input class="contact-input" id="contact-nationality-input" />
+					<input class="contact-input" id="contact-nationality-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 			</div>
 			<div class="contact-address">
 				<div class="contact-field" id="contact-country">
 					<span class="contact-label" id="contact-country-label"><span class="L" id="20120720191158">Staat</span></span>
-					<input class="contact-input" id="contact-country-input" />
+					<input class="contact-input" id="contact-country-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-region">
 					<span class="contact-label" id="contact-region-label"><span class="L" id="20120720191219">Region</span></span>
-					<input class="contact-input" id="contact-region-input" />
+					<input class="contact-input" id="contact-region-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-city">
 					<span class="contact-label" id="contact-city-label"><span class="L" id="20120720191350">Stadt</span></span>
-					<input class="contact-input" id="contact-city-input" />
+					<input class="contact-input" id="contact-city-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-street">
 					<span class="contact-label" id="contact-street-label"><span class="L" id="20120720191442">Straße und Hausnummer</span></span>
-					<input class="contact-input" id="contact-street-input" />
+					<input class="contact-input" id="contact-street-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-postal-code">
 					<span class="contact-label" id="contact-postal-code-label"><span class="L" id="20120720191409">Postleitzahl</span></span>
-					<input class="contact-input" id="contact-postal-code-input" />
+					<input class="contact-input" id="contact-postal-code-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-telephone1">
 					<span class="contact-label" id="contact-telephone1-label"><span class="L" id="20120720191607">Telefonnummer</span></span>
-					<input class="contact-input" id="contact-telephone1-input" />
+					<input class="contact-input" id="contact-telephone1-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="contact-field" id="contact-telephone2">
 					<span class="contact-label" id="contact-telephone2-label"><span class="L" id="20120720191640">Telefonnummer (alternativ)</span></span>
-					<input class="contact-input" id="contact-telephone2-input" />
+					<input class="contact-input" id="contact-telephone2-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 			</div>
 		</div>

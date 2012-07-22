@@ -89,6 +89,7 @@ html {
 
 .contact-input {
 	float: right;
+	border-radius: 3px;
 }
 
 #contact-name-title {

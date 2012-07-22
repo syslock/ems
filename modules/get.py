@@ -3,6 +3,10 @@ from lib import user
 user = imp.reload( user )
 from lib import errors
 errors = imp.reload( errors )
+from lib import db_object
+db_object = imp.reload( db_object )
+from iswi import profile
+profile = imp.reload( profile )
 
 def process( app ):
 	query = app.query
@@ -83,16 +87,21 @@ def get( app, object_ids=[] ):
 					response.media_type = object_type
 				elif view=="all":
 					obj["data"] = str( data )
-			if object_type == "application/x-obj.user":
-				c.execute( """select nick from users where object_id=?""", 
+			if object_type == user.User.media_type:
+				c.execute( """select u.nick, c.object_id, a.object_id from users u 
+								left join contacts c on u.object_id=c.user_id
+								left join applications a on u.object_id=a.user_id
+								where u.object_id=?""", 
 					[object_id] )
 				result = c.fetchone()
 				if not result:
 					raise errors.ObjectError( "Missing object data" )
-				nick = result[0]
+				nick, contact_id, application_id = result
 				if view=="all":
 					obj["nick"] = str( nick )
-			if object_type == "application/x-obj.group":
+					obj["contact_id"] = str( contact_id )
+					obj["application_id"] = str( application_id )
+			if object_type == db_object.Group.media_type:
 				c.execute( """select name from groups where object_id=?""", 
 					[object_id] )
 				result = c.fetchone()
@@ -101,6 +110,24 @@ def get( app, object_ids=[] ):
 				name = result[0]
 				if view=="all":
 					obj["name"] = str( name )
+			if object_type == profile.Contact.media_type:
+				# TODO: in generischen Code von profile.Contact oder UserAttributes umwandeln
+				requested_fields = []
+				valid_fields = ["user_id"] + list(profile.Contact.valid_fields)
+				for key in valid_fields:
+					if key in query.parms:
+						requested_fields.append( key )
+				if not requested_fields:
+					requested_fields = valid_fields
+				select_list = ", ".join( requested_fields )
+				c.execute( """select """+select_list+""" from contacts where object_id=?""",
+					[object_id] )
+				result = c.fetchone()
+				if not result:
+					raise errors.ObjectError( "Missing object data" )
+				if view=="all":
+					for i in range(len(result)):
+						obj[ requested_fields[i] ] = result[i]
 		if view in ["meta", "all"]:
 			objects.append( obj )
 	if view in ["meta", "all"]:

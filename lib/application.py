@@ -33,7 +33,7 @@ class Request:
 	def merge_parms( self ):
 		"""Liest URL-Query-String-Parameter ein"""
 		if "QUERY_STRING" in self.environ:
-			_parms = parse_qs( self.environ["QUERY_STRING"] )
+			_parms = parse_qs( self.environ["QUERY_STRING"], keep_blank_values=True )
 			for key in _parms:
 				self.parms[ key ] = _parms[key][0]
 	

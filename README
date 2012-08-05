@@ -3,10 +3,11 @@ Annotated Directory Structure (20120805)
 ems/
     images/ : raw image data not used by the webapp
     iswi/ : ISWI specific, server-side data structures and code
-        profile.py : definition of iswi.Contact and iswi.Application database objects
+        profile.py : definition of iswi.Contact and iswi.Application db objects
     lib/ : more generic server-side code and data structures
         application.py : web application core classes (Application, Session, ...)
-        db_object.py : database object abstraction layer (DBObject class) and simple derived classes
+        db_object.py : database object abstraction layer (DBObject class) 
+                       and simple derived classes
         errors.py : exceptions
         password.py : password encryption + checking
         user.py : definition of User class as a DBObject
@@ -47,6 +48,7 @@ Install (20120805)
     - Apache/mod_wsgi example: webroot/.htaccess
 - define EMS_PATH environment variable to an arbitrary application run path
     - Apache example: webroot/.htaccess
-- initialize EMS database at EMS_PATH: cat path/to/ems-init.sql |sqlite3 ${EMS_PATH)/ems.db
+- initialize EMS database at EMS_PATH:
+    cat path/to/ems-init.sql |sqlite3 ${EMS_PATH)/ems.db
 - create ${EMS_PATH}/config.py (see config.py.example)
 

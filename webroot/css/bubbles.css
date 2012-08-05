@@ -99,6 +99,61 @@ html {
 	padding-bottom: 15px;
 }
 
+.application-study {
+	float: left;
+	background-color: #ffe0b0;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+#application-statement {
+	float: left;
+	width: 450px;
+	background-color: #ffd0ff;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+.application-talk {
+	float: left;
+	background-color: #d0ffff;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+.application-wishes {
+	float: left;
+	background-color: #d0ffd0;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+.application-field {
+	width: 450px;
+	height: 30px;
+}
+
+.application-input {
+	float: right;
+	border-radius: 3px;
+}
+
 .ems-user {
 	background-color: #ffe0b0;
 	padding-top: 10px;

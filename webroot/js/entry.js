@@ -46,12 +46,20 @@ function new_item( parms )
 			result = parse_result( result )
 			if( result.succeeded && result.object_id!=undefined )
 			{
-				// Neues Element im Browser anlegen:
-				var item_id = result.object_id
-				parms.id = item_id
-				var item = new_item( parms )
-				var button = $("."+short_type+"-edit",item)[0]
-				if( button ) edit_entry( button )
+				parms.id = result.object_id
+				if( !parms.dom_object )
+				{
+					// Neues Element im Browser anlegen:
+					var item = new_item( parms )
+					var button = $("."+short_type+"-edit",item)[0]
+					if( button ) edit_entry( button )
+				}
+				else
+				{
+					parms.dom_object.data = {
+						"object_id" : parms.id,
+					}
+				}
 			}
 		}})
 		return undefined;
@@ -103,6 +111,18 @@ function load_visible_objects( session )
 
 function show_object( obj, dom_parent )
 {
+	if( obj.id && !obj.type )
+	{
+		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all",
+		function( result )
+		{
+			result = parse_result( result )
+			for( i in result )
+			{
+				show_object( result[i], $(".ems-content")[0] )
+			}
+		})
+	}
 	if( obj.type == "application/x-obj.group" )
 	{
 		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_parent:dom_parent} )

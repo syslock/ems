@@ -6,8 +6,8 @@
 		<link id="main_style" rel="stylesheet" type="text/css" href="css/bubbles.css" />
 		<script data-main="js/main.js" src="js/require-jquery.js"></script>
 		<script>
-			var status = undefined;
-			var user = undefined;
+			var global_status = undefined;
+			var global_user = undefined;
 			function init()
 			{
 				query_string = $(document)[0].location.search
@@ -19,7 +19,7 @@
 				function(result)
 				{
 					result = parse_result( result )
-					status = result
+					global_status = result
 					if( result.login )
 					{
 						$(".menu-login")[0].style.display="none";
@@ -30,7 +30,7 @@
 						function(result)
 						{
 							result = parse_result( result )
-							user = result[0]
+							global_user = result[0]
 							update_contact()
 						})
 					}
@@ -86,13 +86,13 @@
 					{
 						hilight( field )
 					}
-					unlight( field )
+					else unlight( field )
 				})
 			}
 			
 			function update_contact()
 			{
-				$.get( 'ems.wsgi?do=get&view=all&id='+user.contact_id,
+				$.get( 'ems.wsgi?do=get&view=all&id='+global_status.contact_id,
 				function(result)
 				{
 					result = parse_result( result )[0]
@@ -100,7 +100,7 @@
 					function( i, field )
 					{
 						field_name = get_field_name( field )
-						if( result[field_name] )
+						if( result && result[field_name] )
 						{
 							field.value = result[field_name]
 						}

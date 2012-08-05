@@ -197,4 +197,22 @@ class UserAttributes( DBObject ):
 			c = self.app.db.cursor()
 			c.execute( stmt, update_values )
 			self.app.db.commit()
+	def get( self, query, obj ):
+		requested_fields = []
+		valid_fields = ["user_id"] + list(self.valid_fields)
+		for key in valid_fields:
+			if key in query.parms:
+				requested_fields.append( key )
+		if not requested_fields:
+			requested_fields = valid_fields
+		select_list = ", ".join( requested_fields )
+		c = self.app.db.cursor()
+		c.execute( """select """+select_list+""" from """+self.table+""" where object_id=?""",
+			[obj["id"]] )
+		result = c.fetchone()
+		if not result:
+			raise errors.ObjectError( "Missing object data" )
+		for i in range(len(result)):
+			obj[ requested_fields[i] ] = result[i]
+		return obj
 

@@ -111,23 +111,11 @@ def get( app, object_ids=[] ):
 				if view=="all":
 					obj["name"] = str( name )
 			if object_type == profile.Contact.media_type:
-				# TODO: in generischen Code von profile.Contact oder UserAttributes umwandeln
-				requested_fields = []
-				valid_fields = ["user_id"] + list(profile.Contact.valid_fields)
-				for key in valid_fields:
-					if key in query.parms:
-						requested_fields.append( key )
-				if not requested_fields:
-					requested_fields = valid_fields
-				select_list = ", ".join( requested_fields )
-				c.execute( """select """+select_list+""" from contacts where object_id=?""",
-					[object_id] )
-				result = c.fetchone()
-				if not result:
-					raise errors.ObjectError( "Missing object data" )
-				if view=="all":
-					for i in range(len(result)):
-						obj[ requested_fields[i] ] = result[i]
+				contact = profile.Contact( app, usr=usr, object_id=object_id )
+				contact.get( query, obj )
+			if object_type == profile.Application.media_type:
+				application = profile.Application( app, usr=usr, object_id=object_id )
+				application.get( query, obj )
 		if view in ["meta", "all"]:
 			objects.append( obj )
 	if view in ["meta", "all"]:

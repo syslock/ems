@@ -44,9 +44,12 @@ ems/
 
 Install (20120805)
 ~~~~~~~
+- make webroot/ accessable by your webserver
 - instruct Python 3 WSGI module to execute webroot/ems.wsgi as a WSGI handler
     - Apache/mod_wsgi example: webroot/.htaccess
-- define EMS_PATH environment variable to an arbitrary application run path
+- define EMS_PATH environment variable to your application run path
+    - You may use your ems checkout directory for development purposes.
+    - subdirectories needed: iswi/ lib/ modules/
     - Apache example: webroot/.htaccess
 - initialize EMS database at EMS_PATH:
     cat path/to/ems-init.sql |sqlite3 ${EMS_PATH)/ems.db

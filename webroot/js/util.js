@@ -3,6 +3,12 @@ function open_page( doc )
 	document.location.href = doc
 }
 
+function open_tpl( tpl )
+{
+	/* FIXME: Wie können wir den WSGI-Handler konfigurierbar machen? */
+	open_page( 'ems.wsgi?do=render&tpl='+tpl )
+}
+
 function parse_result( result )
 {
 	try

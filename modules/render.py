@@ -20,7 +20,7 @@ def process( app ):
 	tpl = os.path.join( app.path, "templates", query.parms["tpl"] )
 	if "../" in tpl or not os.stat(tpl):
 		raise errors.ParameterError( "Invalid template identifier" )
-	response.output = Template( filename=tpl, input_encoding="utf-8" ).render()
+	response.output = Template( filename=tpl, input_encoding="utf-8" ).render( app=app )
 	tpl_ext = tpl.split(".")[-1]
 	response.media_type = default_response_type
 	# TODO: Kontrolle des media_types aus Template heraus zulassen

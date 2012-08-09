@@ -20,6 +20,11 @@ ems/
         search.py
         status.py : request session status
         store.py : store or update objects
+    templates/ : Mako templates directory (accessable through ?do=render&tpl=...)
+        application.html : ISWI application form
+        contact.html : personal contact data form
+        login.html : login and registration form
+        overview.html : overview page
     tools/ : development-tools (mainly translation stuff)
     webroot/ : public data visibile to or executable by web clients
         css/ : stylesheets
@@ -32,11 +37,8 @@ ems/
             require-jquery.js : combination of JQuery and RequireJS libraries
             util.js : some generic routines used throughout the code
         .htaccess : example configuration for Apache/mod_wsgi
-        application.html : ISWI application form
-        contact.html : personal contact data form
-        ems.wsgi : application entry point
-        index.html : overview page
-        login.html : login and registration form
+        ems.wsgi : application entry point (FIXME: should this be here?)
+        index.html : redirects to overview template
     config.py.example : example configuration file (see Install)
     ems-init.py : SQLite database initialization script (see Install)
     ems.kdev4 : simple KDevelop4 project description
@@ -44,14 +46,19 @@ ems/
 
 Install (20120805)
 ~~~~~~~
+- install Python 3
+- install the Mako template library (http://www.makotemplates.org/) for Python 3
+- setup a webserver with a Python 3 WSGI component (e.g. Apache/mod_wsgi)
 - make webroot/ accessable by your webserver
 - instruct Python 3 WSGI module to execute webroot/ems.wsgi as a WSGI handler
     - Apache/mod_wsgi example: webroot/.htaccess
+        FIXME: Maybe we should use an independent, configurable WSGI location 
+               that might be passed to the client side through a template?
 - define EMS_PATH environment variable to your application run path
     - You may use your ems checkout directory for development purposes.
     - subdirectories needed: iswi/ lib/ modules/
     - Apache example: webroot/.htaccess
 - initialize EMS database at EMS_PATH:
-    cat path/to/ems-init.sql |sqlite3 ${EMS_PATH)/ems.db
+    cat ems-init.sql |sqlite3 ${EMS_PATH)/ems.db
 - create ${EMS_PATH}/config.py (see config.py.example)
 

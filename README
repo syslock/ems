@@ -52,8 +52,7 @@ Install (20120809)
 - make webroot/ accessable by your webserver
 - instruct Python 3 WSGI module to execute webroot/ems.wsgi as a WSGI handler
     - Apache/mod_wsgi example: webroot/.htaccess
-        FIXME: Maybe we should use an independent, configurable WSGI location 
-               that might be passed to the client side through a template?
+        FIXME: Maybe we should use an independent, configurable WSGI location...
 - define EMS_PATH environment variable to your application run path
     - You may use your ems checkout directory for development purposes.
     - subdirectories needed: iswi/ lib/ modules/

@@ -1,4 +1,4 @@
-Annotated Directory Structure (20120805)
+Annotated Directory Structure (20120809)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ems/
     images/ : raw image data not used by the webapp
@@ -44,7 +44,7 @@ ems/
     ems.kdev4 : simple KDevelop4 project description
     README : this file
 
-Install (20120805)
+Install (20120809)
 ~~~~~~~
 - install Python 3
 - install the Mako template library (http://www.makotemplates.org/) for Python 3

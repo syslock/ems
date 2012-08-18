@@ -126,11 +126,11 @@ class Session:
 
 class Application:
 	"""Container für Anfrage- und Antwortobjekte und Pfad- und Datenbankparameter""" 
-	def __init__( self, environ, start_response, name=None, path=None ):
+	def __init__( self, environ, start_response, name="app", path=None ):
 		self.query = Request( environ )
 		self.response = Response( start_response )
-		self.path = path or os.path.dirname( environ["SCRIPT_FILENAME"] )
-		self.name = name or ".".join( os.path.basename(environ["SCRIPT_FILENAME"]).split(".")[:-1] )
+		self.path = path
+		self.name = name
 		db_path = os.path.join( self.path, self.name+".db" )
 		self.db = sqlite3.connect( db_path )
 		self.session = Session( self, sid=("sid" in self.query.parms \

@@ -6,6 +6,8 @@ def myapp( environ, start_response ):
 		script_dir = environ["EMS_PATH"]
 	except KeyError:
 		script_dir = os.path.dirname( environ["SCRIPT_FILENAME"] )
+	if script_dir[-1]=="/":
+		script_dir = script_dir[:-1]
 	
 	if script_dir not in sys.path:
 		sys.path.append( script_dir )
@@ -13,7 +15,7 @@ def myapp( environ, start_response ):
 	application = imp.reload( application ) # FIXME: Reload nur für Entwicklung
 	from lib import errors
 	errors = imp.reload( errors )
-	app = application.Application( environ, start_response, path=script_dir )
+	app = application.Application( environ, start_response, name="ems", path=script_dir )
 	query = app.query
 	response = app.response
 	session = app.session

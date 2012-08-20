@@ -32,11 +32,8 @@
 					}
 					else
 					{
-						show_message( "Please login to access contact data" )
-						$(".menu-login")[0].style.display="";
-						$(".menu-nick-caption")[0].style.display="none";
-						$(".menu-nick")[0].innerHTML="";
-						$(".menu-logout")[0].style.display="none";
+						$(".ems-content")[0].style.display="none";
+						open_tpl('login.html')
 					}
 				})
 			}
@@ -105,6 +102,7 @@
 						}
 						else hilight( field, "orange", 2 )
 					})
+					$(".ems-content")[0].style.display="";
 				})
 			}
 		</script>
@@ -141,7 +139,7 @@
 			<span class="L" id="20120720185334">Kontaktdaten</span>
 		</h2>
 		<div class="ems-help"></div>
-		<div class="ems-content">
+		<div class="ems-content" style="display:none" >
 			<div class="contact-personal">
 				<div class="contact-field" id="contact-name-title">
 					<span class="contact-label" id="contact-name-title-label"><span class="L" id="20120720185959">Titel</span></span>

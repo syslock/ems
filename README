@@ -50,35 +50,35 @@ Installation
 - setup a webserver with a Python 3 WSGI component
     - e.g. Apache/mod_wsgi, nginx/uwsgi_python32
 - make webroot/ accessable by your webserver
-	- apache example:
-		<Directory "/path/to/ems/webroot">
-			Options Indexes FollowSymLinks
-			AllowOverride None
-			Order allow,deny
-			Allow from all
-		</Directory>
-		Alias "/ems" "/path/to/ems/webroot"
-	- nginx example:
-		location /ems {
+    - apache example:
+        <Directory "/path/to/ems/webroot">
+            Options Indexes FollowSymLinks
+            AllowOverride None
+            Order allow,deny
+            Allow from all
+        </Directory>
+        Alias "/ems" "/path/to/ems/webroot"
+    - nginx example:
+        location /ems {
             alias   /path/to/ems/webroot;
             index  index.html index.htm;
         }
 - instruct Python 3 WSGI module to execute webroot/ems.wsgi as a WSGI handler
     - Apache/mod_wsgi example:
-		<Location /ems>
-			Options +ExecCGI
-			AddHandler wsgi-script .wsgi
-			SetEnv EMS_PATH "/path/to/ems"
-		</Location>
+        <Location /ems>
+            Options +ExecCGI
+            AddHandler wsgi-script .wsgi
+            SetEnv EMS_PATH "/path/to/ems"
+        </Location>
     - nginx/uwsgi example:
-    	- having an uwsgi/python3 handler running like this:
-    		uwsgi_python32 --socket 127.0.0.1:3031 --file /path/to/ems/ems.wsgi
+        - having an uwsgi/python3 handler running like this:
+            uwsgi_python32 --socket 127.0.0.1:3031 --file /path/to/ems/ems.wsgi
           the following nginx setup should work:
-		    location ~ \.wsgi$ {
-		         uwsgi_pass 127.0.0.1:3031;
-		         uwsgi_param EMS_PATH /path/to/ems;
-		         include uwsgi_params;
-		    }
+            location ~ \.wsgi$ {
+                 uwsgi_pass 127.0.0.1:3031;
+                 uwsgi_param EMS_PATH /path/to/ems;
+                 include uwsgi_params;
+            }
 - EMS_PATH environment variable has to point to your application run path
     - You may use your ems checkout directory for development purposes.
     - subdirectories needed in production: iswi/ lib/ modules/ templates/

@@ -36,7 +36,6 @@ ems/
             main.js : RequireJS main file, used to include the rest of the code
             require-jquery.js : combination of JQuery and RequireJS libraries
             util.js : some generic routines used throughout the code
-        .htaccess : example configuration for Apache/mod_wsgi
         ems.wsgi : application entry point (FIXME: should this be here?)
         index.html : redirects to overview template
     config.py.example : example configuration file (see Install)
@@ -48,15 +47,41 @@ Install (20120809)
 ~~~~~~~
 - install Python 3
 - install the Mako template library (http://www.makotemplates.org/) for Python 3
-- setup a webserver with a Python 3 WSGI component (e.g. Apache/mod_wsgi)
+- setup a webserver with a Python 3 WSGI component
+    - e.g. Apache/mod_wsgi, nginx/uwsgi_python32
 - make webroot/ accessable by your webserver
+	- apache example:
+		<Directory "/path/to/ems/webroot">
+			Options Indexes FollowSymLinks
+			AllowOverride None
+			Order allow,deny
+			Allow from all
+		</Directory>
+		Alias "/ems" "/path/to/ems/webroot"
+	- nginx example:
+		location /ems {
+            alias   /path/to/ems/webroot;
+            index  index.html index.htm;
+        }
 - instruct Python 3 WSGI module to execute webroot/ems.wsgi as a WSGI handler
-    - Apache/mod_wsgi example: webroot/.htaccess
-        FIXME: Maybe we should use an independent, configurable WSGI location...
-- define EMS_PATH environment variable to your application run path
+    - Apache/mod_wsgi example:
+		<Location /ems>
+			Options +ExecCGI
+			AddHandler wsgi-script .wsgi
+			SetEnv EMS_PATH "/path/to/ems"
+		</Location>
+    - nginx/uwsgi example:
+    	- having an uwsgi/python3 handler running like this:
+    		uwsgi_python32 --socket 127.0.0.1:3031 --file /path/to/ems/ems.wsgi
+          the following nginx setup should work:
+		    location ~ \.wsgi$ {
+		         uwsgi_pass 127.0.0.1:3031;
+		         uwsgi_param EMS_PATH /path/to/ems;
+		         include uwsgi_params;
+		    }
+- EMS_PATH environment variable has to point to your application run path
     - You may use your ems checkout directory for development purposes.
-    - subdirectories needed: iswi/ lib/ modules/
-    - Apache example: webroot/.htaccess
+    - subdirectories needed in production: iswi/ lib/ modules/ templates/
 - initialize EMS database at EMS_PATH:
     cat ems-init.sql |sqlite3 ${EMS_PATH)/ems.db
 - create ${EMS_PATH}/config.py (see config.py.example)

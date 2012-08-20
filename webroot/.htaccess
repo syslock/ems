@@ -1,4 +1,0 @@
-#Options +ExecCGI
-AddHandler wsgi-script .wsgi
-SetEnv EMS_PATH "/home/thomas/data/programming/iswi/ems"
-

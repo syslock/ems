@@ -10,11 +10,6 @@
 			var global_user = undefined;
 			function init()
 			{
-				query_string = $(document)[0].location.search
-				if( query_string )
-				{
-					$.get( 'ems.wsgi'+query_string, parse_result )
-				}
 				$.get('ems.wsgi?do=status',
 				function(result)
 				{
@@ -30,12 +25,14 @@
 						function(result)
 						{
 							result = parse_result( result )
+							if( !result || !result[0] || !result[0].contact_id ) show_message( "Failed to retrieve user information" )
 							global_user = result[0]
 							update_contact()
 						})
 					}
 					else
 					{
+						show_message( "Please login to access contact data" )
 						$(".menu-login")[0].style.display="";
 						$(".menu-nick-caption")[0].style.display="none";
 						$(".menu-nick")[0].innerHTML="";
@@ -84,6 +81,7 @@
 					result = parse_result( result )
 					if( !result.succeeded )
 					{
+						show_message( "Failed to store '"+field_name+"'" )
 						hilight( field )
 					}
 					else unlight( field )
@@ -92,10 +90,11 @@
 			
 			function update_contact()
 			{
-				$.get( 'ems.wsgi?do=get&view=all&id='+global_status.contact_id,
+				$.get( 'ems.wsgi?do=get&view=all&id='+global_user.contact_id,
 				function(result)
 				{
-					result = parse_result( result )[0]
+					result = parse_result( result )
+					result = result[0]
 					$('.contact-input').each(
 					function( i, field )
 					{
@@ -205,6 +204,7 @@
 			</div>
 		</div>
 		<div class="ems-status">
+			<div class="ems-message"></div>
 			<pre class="ems-error"></pre>
 		</div>
 	</body>

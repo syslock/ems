@@ -17,18 +17,46 @@ function parse_result( result )
 		var True = true;
 		var None = undefined;
 		result = eval( "("+result+")" )
-		$(".ems-error")[0].innerHTML = ""
+		hide_status()
 	}
 	catch( e )
 	{
-		$(".ems-error")[0].innerHTML = "Error parsing response: "+e;
+		show_error( "Error parsing response: "+e+"\nwithin:\n\n("+result+")" );
+		throw e;
 	}
 	if( result.error )
 	{
-		$(".ems-error")[0].innerHTML = result.error.trace.join("");
+		show_error( result.error.trace.join("") );
 	}
-	else $(".ems-error")[0].innerHTML;
 	return result;
+}
+
+function show_message( text )
+{
+	$(".ems-message")[0].innerHTML += text
+	$(".ems-message")[0].style.display = "block"
+	show_status()
+}
+
+function show_error( text )
+{
+	$(".ems-error")[0].innerHTML += text
+	$(".ems-error")[0].style.display = "block"
+	show_status()
+}
+
+function show_status()
+{
+	$(".ems-status")[0].style.display = "block"
+}
+
+function hide_status()
+{
+	$(".ems-status")[0].style.display = "none"
+	$(".ems-message")[0].style.display = "none"
+	$(".ems-error")[0].style.display = "none"
+	$(".ems-message")[0].innerHTML = ""
+	$(".ems-error")[0].innerHTML = ""
 }
 
 function change_style( style )

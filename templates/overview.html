@@ -9,11 +9,6 @@
 			var session = undefined;
 			function init()
 			{
-				query_string = $(document)[0].location.search
-				if( query_string )
-				{
-					$.get( 'ems.wsgi'+query_string, parse_result )
-				}
 				$.get('ems.wsgi?do=status',
 				function(result)
 				{
@@ -103,6 +98,7 @@
 			<div id="entry-text-template" class="entry-text" style="display:none"></div>
 		</div>
 		<div class="ems-status">
+			<div class="ems-message"></div>
 			<pre class="ems-error"></pre>
 		</div>
 	</body>

@@ -187,3 +187,28 @@ html {
 	border-right: none;
 }
 
+.ems-status {
+	display: none;
+	float: left;
+	margin: 5px;
+}
+
+.ems-message {
+	display: none;
+	background-color: white;
+	margin: 5px;
+	padding: 10px;
+	border: 2px dashed;
+	border-color: blue;
+	border-radius: 10px;
+}
+
+.ems-error {
+	display: none;
+	background-color: white;
+	margin: 5px;
+	padding: 10px;
+	border: 2px dotted;
+	border-color: darkred;
+	border-radius: 10px;
+}

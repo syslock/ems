@@ -72,8 +72,8 @@ Installation
         </Location>
     - nginx/uwsgi example:
         - having an uwsgi/python3 handler running like this:
-            uwsgi_python32 --socket 127.0.0.1:3031 --file /path/to/ems/ems.wsgi
-          the following nginx setup should work:
+            uwsgi_python32 --socket 127.0.0.1:3031 --file /path/to/ems/webroot/ems.wsgi
+          then the following nginx setup should work:
             location ~ \.wsgi$ {
                  uwsgi_pass 127.0.0.1:3031;
                  uwsgi_param EMS_PATH /path/to/ems;

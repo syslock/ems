@@ -11,7 +11,25 @@ class Request:
 		self.cookies = {}
 		self.parms = {}
 		self.merge_cookies()
-		self.merge_parms() # Parms überschreiben Cookies
+		if "QUERY_STRING" in self.environ:
+			self.merge_parms( self.environ["QUERY_STRING"] ) # Parms überschreiben Cookies
+		self.content = None
+		self.content_type = "CONTENT_TYPE" in self.environ and self.environ["CONTENT_TYPE"] or None
+		self.content_length = "CONTENT_LENGTH" in self.environ and int(self.environ["CONTENT_LENGTH"]) or 0
+		if self.content_type and self.content_length:
+			ct_parts = [x.split("=") for x in [x.strip() for x in self.content_type.split(";")]]
+			# read and decode url-encoded form data from POST content if present:
+			if ct_parts and ct_parts[0][0] in ["application/x-www-form-urlencoded"]:
+				self.content = self.environ["wsgi.input"].read()
+				if len(ct_parts)>1 and ct_parts[1][0]=="charset":
+					charset = ct_parts[1][1]
+					self.content = self.content.decode( charset )
+				else:
+					try:
+						self.content = self.content.decode("utf-8")
+					except UnicodeDecodeError:
+						self.content = self.content.decode("latin1")
+				self.merge_parms( self.content ) # Post-Parameter überschreiben URL-Parameter
 		self.xml_fix_parms() # XML-Kontrollzeichen ersetzen
 		
 	def xml_fix_parm( self, parm ):
@@ -30,12 +48,11 @@ class Request:
 			new_parms[ self.xml_fix_parm(key) ] = self.xml_fix_parm(self.parms[key])
 		self.parms = new_parms
 	
-	def merge_parms( self ):
+	def merge_parms( self, query_string ):
 		"""Liest URL-Query-String-Parameter ein"""
-		if "QUERY_STRING" in self.environ:
-			_parms = parse_qs( self.environ["QUERY_STRING"], keep_blank_values=True )
-			for key in _parms:
-				self.parms[ key ] = _parms[key][0]
+		_parms = parse_qs( query_string, keep_blank_values=True )
+		for key in _parms:
+			self.parms[ key ] = _parms[key][0]
 	
 	def merge_cookies( self ):
 		"""Liest Cookies ein"""
@@ -81,9 +98,9 @@ class Response:
 		if self.encoding:
 			self.encoded_output = self.output.encode( self.encoding )
 			self.response_headers.append(
-				('Content-type', '%s; charset=%s' % (self.media_type,self.encoding.upper())) )
+				('Content-Type', '%s; charset=%s' % (self.media_type,self.encoding.upper())) )
 		else:
-			self.response_headers.append( ('Content-type', self.media_type) )
+			self.response_headers.append( ('Content-Type', self.media_type) )
 		self.response_headers.append(
 			('Content-Length', str(len(self.encoded_output))) )
 		cookie_objects = map( lambda key: Cookie(key, self.cookies[key]), self.cookies.keys() )

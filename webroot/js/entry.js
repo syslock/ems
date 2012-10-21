@@ -166,7 +166,7 @@ function show_object( obj, dom_parent )
 			dom_parent.appendChild( div );
 		}
 		div.style.display = ""
-		div.innerHTML = obj.data
+		div.innerHTML = obj.data.replace(/\r?\n$/,"").replace(/\r?\n/g,"<br/>")
 	}
 }
 
@@ -181,7 +181,77 @@ function edit_entry( button )
 	if( title.innerHTML.length==0 ) title.focus()
 	else content.focus()
 	button.innerHTML = LS("20120513161628","Speichern")
-	button.onclick = function(){ save_entry(button) }
+	button.onclick = function(){ save_entry_plain(button) }
+}
+
+function get_plain_text( element )
+{
+	var current_plain_text = ""
+	for( var i=0; i<element.childNodes.length; i++ )
+	{
+		var child = element.childNodes[i]
+		if( child.nodeName!="#text" )
+		{
+			current_plain_text += get_plain_text( child )
+			if( child.nodeName=="BR" || child.nodeName=="DIV" )
+			{
+				current_plain_text += "\n"
+			}
+		}
+		else current_plain_text += child.textContent;
+	}
+	return current_plain_text;
+}
+
+function save_entry_plain( button )
+{
+	var entry_id = button.parentNode.data.object_id
+	var title = $(".entry-title",button.parentNode)[0]
+	if( !title ) return;
+	var content = $(".entry-content",button.parentNode)[0]
+	if( !content ) return;
+	title.contentEditable = false
+	content.contentEditable = false
+	var title_text = get_plain_text( title )
+	var content_text = get_plain_text( content )
+	$.ajax({
+		url : "ems.wsgi?do=store&id="+String(entry_id),
+		type : "POST",
+		data : { title: title_text },
+		async : false,
+		success :
+	function( result )
+	{
+		result = parse_result( result )
+	}})
+	// Inhalt speichern:
+	var part_id_list = []
+	$.ajax({
+		url : "ems.wsgi?do=store&type=text/plain&parent_id="+String(entry_id),
+		type : "POST",
+		data : { data: content_text },
+		async : false,
+		success :
+	function( result )
+	{
+		result = parse_result( result )
+		if( result.succeeded )
+		{
+			part_id_list.push( result.object_id )
+		}
+	}})
+	// serverseitige Bereinigung alter Daten:
+	$.ajax({
+		url : "ems.wsgi?do=delete&parent_id="+String(entry_id)
+			+"&child_not_in="+part_id_list.join(","),
+		async : false,
+		success :
+	function( result )
+	{
+		result = parse_result( result )
+	}})
+	button.innerHTML = LS("20120513162048","Bearbeiten")
+	button.onclick = function(){ edit_entry(button) }
 }
 
 function save_entry( button )

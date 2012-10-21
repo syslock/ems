@@ -17,6 +17,10 @@
 					{
 						open_tpl("overview.html")
 					}
+					else
+					{
+						$("input.login-nick").focus()
+					}
 				})
 			}
 		</script>
@@ -44,13 +48,13 @@
 					<span class="login-nick">
 						<span class="L" id="20120513154451">Benutzername:</span>
 					</span>
-					<input type="text" class="login-nick"/>
+					<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
 				</div>
 				<div class="login-password">
 					<span class="login-password">
 						<span class="L" id="20120513154515">Passwort:</span>
 					</span>
-					<input type="password" class="login-password"/>
+					<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
 				</div>
 				<button class="login-submit" onclick="login()">
 					<span class="L" id="20120513154532">Anmelden</span>

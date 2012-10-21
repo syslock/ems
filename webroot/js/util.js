@@ -142,3 +142,8 @@ function unlight( field )
 	field.style.backgroundColor = ""
 }
 
+function onenter( event, dostuff )
+{     
+	if( event.keyCode==13 ) dostuff();
+}
+

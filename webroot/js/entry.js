@@ -3,7 +3,9 @@ function new_text_part( entry_id, data )
 	// neuese Textsegment auf Server und im Browser anlegen:
 	var div = $("#entry-text-template").first().clone()[0]
 	$.ajax({
-		url : "ems.wsgi?do=store&type=text/plain&data="+data+"&parent_id="+String(entry_id),
+		url : "ems.wsgi?do=store&type=text/plain&parent_id="+String(entry_id),
+		type : "POST",
+		data : { data : data },
 		async : false,
 		success :
 	function( result )
@@ -202,7 +204,7 @@ function save_entry( button )
 			remove_list.push( child )
 		}
 	}
-	// 2.b) Inhalt:
+	// 1.b) Inhalt:
 	for( var i=0; i<content.childNodes.length; i++ )
 	{
 		var child = content.childNodes[i]
@@ -245,8 +247,9 @@ function save_entry( button )
 	// 2.) Speicherung und Sortierung:
 	// 2.a) Titel:
 	$.ajax({
-		url : "ems.wsgi?do=store&id="+String(entry_id)
-			+"&title="+title.innerHTML,
+		url : "ems.wsgi?do=store&id="+String(entry_id),
+		type : "POST",
+		data : { title: title.innerHTML },
 		async : false,
 		success :
 	function( result )
@@ -265,8 +268,9 @@ function save_entry( button )
 			// FIXME: data muss vorkodiert werden!
 			$.ajax({
 				url : "ems.wsgi?do=store&id="+String(part_id)
-					+"&sequence="+String(10+i*10)
-					+"&data="+child.innerHTML,
+					+"&sequence="+String(10+i*10),
+				type : "POST",
+				data : { data: child.innerHTML },
 				async : false,
 				success :
 			function( result )

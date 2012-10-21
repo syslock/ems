@@ -144,7 +144,20 @@
 			{
 				var abstract = $('#application-abstract')[0]
 				if( obj.value=="true" ) abstract.style.display=''
-				else abstract.style.display='none'
+				else
+				{
+					abstract.style.display='none'
+					if( abstract.data && abstract.data.object_id )
+					{
+						$.get( 'ems.wsgi?do=delete&id='+String(abstract.data.object_id),
+						function( result )
+						{
+							result = parse_result( result )
+							abstract.data.object_id = 0
+							rs( $("#application-abstract-input")[0] )
+						})
+					}
+				}
 			}
 			
 			function create_or_edit_entry( button )
@@ -259,7 +272,7 @@
 						<span class="L" id="20120723111052">Vortragstitel:</span>
 						<span class="entry-title"></span>
 					</div>
-					<div class="entry-content"></div>
+					<!--<div class="entry-content"></div>-->
 					<button class="application-input" id="application-abstract-input" onclick="create_or_edit_entry(this)">
 						<span class="L" id="20120513130201">Bearbeiten</span>
 					</button>

@@ -123,12 +123,15 @@ function show_object( obj, dom_parent )
 		function( result )
 		{
 			result = parse_result( result )
-			for( i in result )
+			if( result.succeeded==undefined )
 			{
-				var merged_obj = {}
-				for( key in obj ) merged_obj[key] = obj[key];
-				for( key in result[i] ) merged_obj[key] = result[i][key];
-				show_object( merged_obj, $(".ems-content")[0] )
+				for( i in result )
+				{
+					var merged_obj = {}
+					for( key in obj ) merged_obj[key] = obj[key];
+					for( key in result[i] ) merged_obj[key] = result[i][key];
+					show_object( merged_obj, $(".ems-content")[0] )
+				}
 			}
 		})
 	}
@@ -163,7 +166,7 @@ function show_object( obj, dom_parent )
 		{
 			div = $("#entry-text-template").first().clone()[0]
 			div.id = "entry-text-"+String(obj.id)
-			dom_parent.appendChild( div );
+			if( dom_parent ) dom_parent.appendChild( div );
 		}
 		div.style.display = ""
 		div.innerHTML = obj.data.replace(/\r?\n$/,"").replace(/\r?\n/g,"<br/>")
@@ -173,13 +176,17 @@ function show_object( obj, dom_parent )
 function edit_entry( button )
 {
 	var title = $(".entry-title",button.parentNode)[0]
-	if( !title ) return;
 	var content = $(".entry-content",button.parentNode)[0]
-	if( !content ) return;
-	title.contentEditable = true
-	content.contentEditable = true
-	if( title.innerHTML.length==0 ) title.focus()
-	else content.focus()
+	if( title ) 
+	{
+		title.contentEditable = true
+		if( title.innerHTML.length==0 || !content ) title.focus()
+	}
+	if( content )
+	{
+		content.contentEditable = true
+		if( title.innerHTML.length>0 ) content.focus()
+	}
 	button.innerHTML = LS("20120513161628","Speichern")
 	button.onclick = function(){ save_entry_plain(button) }
 }
@@ -207,49 +214,53 @@ function save_entry_plain( button )
 {
 	var entry_id = button.parentNode.data.object_id
 	var title = $(".entry-title",button.parentNode)[0]
-	if( !title ) return;
 	var content = $(".entry-content",button.parentNode)[0]
-	if( !content ) return;
-	title.contentEditable = false
-	content.contentEditable = false
-	var title_text = get_plain_text( title )
-	var content_text = get_plain_text( content )
-	$.ajax({
-		url : "ems.wsgi?do=store&id="+String(entry_id),
-		type : "POST",
-		data : { title: title_text },
-		async : false,
-		success :
-	function( result )
+	if( title ) 
 	{
-		result = parse_result( result )
-	}})
-	// Inhalt speichern:
-	var part_id_list = []
-	$.ajax({
-		url : "ems.wsgi?do=store&type=text/plain&parent_id="+String(entry_id),
-		type : "POST",
-		data : { data: content_text },
-		async : false,
-		success :
-	function( result )
-	{
-		result = parse_result( result )
-		if( result.succeeded )
+		title.contentEditable = false
+		var title_text = get_plain_text( title )
+		$.ajax({
+			url : "ems.wsgi?do=store&id="+String(entry_id),
+			type : "POST",
+			data : { title: title_text },
+			async : false,
+			success :
+		function( result )
 		{
-			part_id_list.push( result.object_id )
-		}
-	}})
-	// serverseitige Bereinigung alter Daten:
-	$.ajax({
-		url : "ems.wsgi?do=delete&parent_id="+String(entry_id)
-			+"&child_not_in="+part_id_list.join(","),
-		async : false,
-		success :
-	function( result )
+			result = parse_result( result )
+		}})
+	}
+	if( content )
 	{
-		result = parse_result( result )
-	}})
+		content.contentEditable = false
+		var content_text = get_plain_text( content )
+		// Inhalt speichern:
+		var part_id_list = []
+		$.ajax({
+			url : "ems.wsgi?do=store&type=text/plain&parent_id="+String(entry_id),
+			type : "POST",
+			data : { data: content_text },
+			async : false,
+			success :
+		function( result )
+		{
+			result = parse_result( result )
+			if( result.succeeded )
+			{
+				part_id_list.push( result.object_id )
+			}
+		}})
+		// serverseitige Bereinigung alter Daten:
+		$.ajax({
+			url : "ems.wsgi?do=delete&parent_id="+String(entry_id)
+				+"&child_not_in="+part_id_list.join(","),
+			async : false,
+			success :
+		function( result )
+		{
+			result = parse_result( result )
+		}})
+	}
 	button.innerHTML = LS("20120513162048","Bearbeiten")
 	button.onclick = function(){ edit_entry(button) }
 }

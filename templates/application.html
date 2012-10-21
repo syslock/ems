@@ -40,7 +40,7 @@
 			function get_field_name( field )
 			{
 				var field_name = field.id.replace('application-','').replace('-input','').replace(/-/g,'_')
-				if( field_name in {"statement":0, "abstract":0} )
+				if( field_name in {"statement":0, "motivation":0, "motto":0, "abstract":0} )
 				{
 					field_name += "_id"
 				}
@@ -57,7 +57,7 @@
 			{
 				var field_name = get_field_name( field )
 				var value = field.value;
-				if( field_name in {"statement_id":0, "abstract_id":0} )
+				if( field_name in {"statement_id":0, "motivation_id":0, "motto_id":0, "abstract_id":0} )
 				{
 					value = field.parentNode.data.object_id
 				}
@@ -107,7 +107,7 @@
 						var field_name = get_field_name( field )
 						if( result && result[field_name] )
 						{
-							if( field_name in {"statement_id":0, "abstract_id":0} )
+							if( field_name in {"statement_id":0, "motivation_id":0, "motto_id":0, "abstract_id":0} )
 							{
 								if( field.parentNode.data ) field.parentNode.data["object_id"] = result[field_name]
 								else field.parentNode.data = { "object_id" : result[field_name] }
@@ -252,10 +252,30 @@
 			<div class="ems-entry" id="application-statement" >
 				<div class="entry-heading">
 					<span class="L" id="20120723110238">Titel:</span>
-					<span class="entry-title">Ausformulierte Bewerbung</span>
+					<span class="entry-title">Statement</span>
 				</div>
 				<div class="entry-content"></div>
 				<button class="application-input" id="application-statement-input" onclick="create_or_edit_entry(this)">
+					<span class="L" id="20120513130201">Bearbeiten</span>
+				</button>
+			</div>
+			<div class="ems-entry" id="application-motivation" >
+				<div class="entry-heading">
+					<span class="L" id="20120723110238">Titel:</span>
+					<span class="entry-title">Motivation</span>
+				</div>
+				<div class="entry-content"></div>
+				<button class="application-input" id="application-motivation-input" onclick="create_or_edit_entry(this)">
+					<span class="L" id="20120513130201">Bearbeiten</span>
+				</button>
+			</div>
+			<div class="ems-entry" id="application-motto" >
+				<div class="entry-heading">
+					<span class="L" id="20120723110238">Titel:</span>
+					<span class="entry-title">Motto</span>
+				</div>
+				<div class="entry-content"></div>
+				<button class="application-input" id="application-motto-input" onclick="create_or_edit_entry(this)">
 					<span class="L" id="20120513130201">Bearbeiten</span>
 				</button>
 			</div>

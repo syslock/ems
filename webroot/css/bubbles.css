@@ -112,7 +112,31 @@ html {
 
 #application-statement {
 	float: left;
-	width: 450px;
+	width: 90%;
+	background-color: #ffd0ff;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+#application-motivation {
+	float: left;
+	width: 90%;
+	background-color: #ffd0ff;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid;
+	border-color: black;
+	border-bottom: none;
+	border-right: none;
+}
+
+#application-motto {
+	float: left;
+	width: 90%;
 	background-color: #ffd0ff;
 	padding: 10px;
 	border-radius: 10px;

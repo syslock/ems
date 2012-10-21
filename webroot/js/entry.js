@@ -66,7 +66,11 @@ function new_item( parms )
 	}
 	else
 	{
-		var item = $("#ems-"+short_type+"-"+String(parms.id))[0]
+		var item = parms.dom_object;
+		if( !item )
+		{
+			item = $("#ems-"+short_type+"-"+String(parms.id))[0]
+		}
 		if( !item )
 		{
 			item = $("#ems-"+short_type+"-template").first().clone(true)[0];
@@ -113,19 +117,22 @@ function show_object( obj, dom_parent )
 {
 	if( obj.id && !obj.type )
 	{
-		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all",
+		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true",
 		function( result )
 		{
 			result = parse_result( result )
 			for( i in result )
 			{
-				show_object( result[i], $(".ems-content")[0] )
+				var merged_obj = {}
+				for( key in obj ) merged_obj[key] = obj[key];
+				for( key in result[i] ) merged_obj[key] = result[i][key];
+				show_object( merged_obj, $(".ems-content")[0] )
 			}
 		})
 	}
 	if( obj.type == "application/x-obj.group" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_parent:dom_parent} )
+		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_object:obj.dom_object, dom_parent:dom_parent} )
 		for( var i in obj.children )
 		{
 			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
@@ -133,7 +140,7 @@ function show_object( obj, dom_parent )
 	}
 	if( obj.type == "application/x-obj.user" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_parent:dom_parent} )
+		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_object:obj.dom_object, dom_parent:dom_parent} )
 		for( var i in obj.children )
 		{
 			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
@@ -141,7 +148,7 @@ function show_object( obj, dom_parent )
 	}
 	if( obj.type == "application/x-obj.entry" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_parent:dom_parent} )
+		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_object:obj.dom_object, dom_parent:dom_parent} )
 		for( var i in obj.children )
 		{
 			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
@@ -177,7 +184,7 @@ function edit_entry( button )
 
 function save_entry( button )
 {
-	var entry_id = Number( button.parentNode.id.split("-").reverse()[0] )
+	var entry_id = button.parentNode.data.object_id
 	var title = $(".entry-title",button.parentNode)[0]
 	if( !title ) return;
 	var content = $(".entry-content",button.parentNode)[0]

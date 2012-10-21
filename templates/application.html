@@ -109,7 +109,7 @@
 							{
 								if( field.parentNode.data ) field.parentNode.data["object_id"] = result[field_name]
 								else field.parentNode.data = { "object_id" : result[field_name] }
-								show_object( {id:result[field_name]}, field.parentNode.parentNode )
+								show_object( {id:result[field_name], dom_object:field.parentNode}, field.parentNode.parentNode )
 							}
 							else field.value = result[field_name]
 						}

@@ -75,6 +75,20 @@
 			
 			function update_application()
 			{
+				if( !global_user.application_id )
+				{
+					$.ajax({ url : 'ems.wsgi?do=store&type=application/x-obj.iswi.application',
+							 async : false,
+							 success :
+					function( result )
+					{
+						result = parse_result( result )
+						if( result.succeeded )
+						{
+							global_user.application_id = result.object_id;
+						}
+					}})
+				}
 				$.get( 'ems.wsgi?do=get&view=all&id='+global_user.application_id,
 				function(result)
 				{

@@ -99,8 +99,8 @@ def get( app, object_ids=[] ):
 				nick, contact_id, application_id = result
 				if view=="all":
 					obj["nick"] = str( nick )
-					obj["contact_id"] = str( contact_id )
-					obj["application_id"] = str( application_id )
+					obj["contact_id"] = contact_id
+					obj["application_id"] = application_id
 			if object_type == db_object.Group.media_type:
 				c.execute( """select name from groups where object_id=?""", 
 					[object_id] )

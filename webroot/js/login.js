@@ -43,9 +43,11 @@ function register()
 	if( $("input.login-password")[0].value
 		!= $("input.register-password")[0].value )
 	{
-		$("ems-error")[0].innerHTML = LS("20120513162118","Passwörter müssen übereinstimmen")
+		show_error( "Passwörter müssen übereinstimmen" )
 		$("input.login-password")[0].value = ""
 		$("input.register-password")[0].value = ""
+		hilight( $("input.login-password")[0] )
+		hilight( $("input.register-password")[0] )
 		return;
 	}
 	$.post( "ems.wsgi?do=register", 
@@ -55,7 +57,13 @@ function register()
 	function(result)
 	{
 		result = parse_result( result )
-		if( result.succeeded ) { init() }
+		if( result.succeeded )
+		{
+			hide_login()
+			hide_register()
+			show_message( "Vielen Dank! Du solltest nun eine Bestätigungsanfrage via E-Mail mit einem Bestätigungslink erhalten."+
+							" Beim Aufruf des Bestätigungslinks wird dein Zugang aktiviert, sodass du dich einloggen kannst." )
+		}
 		else { hilight_error_fields(result.error) }
 	})
 	$("input.login-password")[0].value = ""
@@ -71,7 +79,13 @@ function reconfirm()
 	function(result)
 	{
 		result = parse_result( result )
-		if( result.succeeded ) { init() }
+		if( result.succeeded )
+		{
+			hide_login()
+			hide_register()
+			show_message( "Vielen Dank! Du solltest nun eine Bestätigungsanfrage via E-Mail mit einem Bestätigungslink erhalten."+
+							" Beim Aufruf des Bestätigungslinks wird dein Zugang aktiviert, sodass du dich einloggen kannst." )
+		}
 		else { hilight_error_fields(result.error) }
 	})
 	$("input.login-password")[0].value = ""
@@ -97,6 +111,17 @@ function hilight_error_fields( error )
 		hilight( $(".register-email")[0] )
 	}
 	else unlight( $(".register-email")[0] )
+}
+
+function hide_login()
+{
+	$(".ems-login")[0].style.display="none"
+}
+
+function show_login()
+{
+	$(".ems-login")[0].style.display=""
+	$(".login-submit")[0].style.display=""
 }
 
 function hide_register()

@@ -8,8 +8,28 @@
 		<script>
 			function init()
 			{
-				open_tpl( 'overview.html' )
+				if( msid=document.location.search.match("[&?](msid=[^&]*)") )
+				{
+					msid=msid[1]
+					$.get( 'ems.wsgi?do=register&'+msid, 
+					function( result )
+					{
+						result = parse_result( result )
+						if( result.succeeded )
+						{
+							open_tpl( 'login.html' )
+						}
+						// TODO: Weiterleitung zu Hilfetemplate, falls Registrierung fehlgeschlagen
+					})
+				}
+				else open_tpl( 'overview.html' )
 			}
 		</script>
 	</head>
+	<body>
+		<div class="ems-status">
+			<div class="ems-message"></div>
+			<pre class="ems-error"></pre>
+		</div>
+	</body>
 </html>

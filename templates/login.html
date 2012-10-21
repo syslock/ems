@@ -8,13 +8,6 @@
 		<script>
 			function init()
 			{
-				// FIXME: das diente der email-bestätigten Registrierung via Email-Link,
-				// funktioniert aber mit Templates nicht mehr sooo einfach
-				//query_string = $(document)[0].location.search
-				//if( query_string )
-				//{
-				//	$.get( 'ems.wsgi'+query_string, parse_result )
-				//}
 				hide_register()
 				$.get('ems.wsgi?do=status', 
 				function( result )

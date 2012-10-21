@@ -121,3 +121,24 @@ function request_store( store_func, obj )
 		window.setTimeout( scheduled_store, min_store_period*store_request_count[obj], store_func, obj )
 	}
 }
+
+function hilight( field, color, width )
+{
+	field.style.border = String(width ? width : 3)+"px solid"
+	field.style.borderColor = color ? color : "red"
+	field.style.borderRadius = "3px"
+}
+
+function backlight( field, color )
+{
+	field.style.backgroundColor = color ? color : "#ffd0d0"
+}
+
+function unlight( field )
+{
+	field.style.border = ""
+	field.style.borderColor = ""
+	field.style.borderRadius = ""
+	field.style.backgroundColor = ""
+}
+

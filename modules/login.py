@@ -5,7 +5,21 @@ from lib import user
 user = imp.reload( user )
 
 def process( app ):
-	"""Prüfung von Nutzername und Passwort und ggf. Autorisierung der Session"""	
+	"""Autorisierung der Session eines gültigen Nutzers, sonst Ausnahme"""
+	query = app.query
+	response = app.response
+	session = app.session
+	usr = check_login( app )
+	if not usr.can_read( usr.id ):
+		# deaktivierter Nutzer oder sonstiges Rechteproblem
+		raise Exception( "Insufficient privileges" )
+	else:
+		session.parms["user_id"] = str(usr.id)
+		session.store()
+		response.output = str( {"succeeded":True} )
+
+def check_login( app ):
+	"""Gibt nach Prüfung von Nutzername und Passwort ein User-Objekt zurück, sonst Ausnahme"""
 	query = app.query
 	response = app.response
 	session = app.session
@@ -22,11 +36,6 @@ def process( app ):
 								encrypted_password=encrypted_password ):
 			raise Exception( "Invalid user name or password" )
 		usr = user.User( app, user_id )
-		if not usr.can_read( user_id ):
-			raise Exception( "Insufficient privileges" )
-		session.parms["user_id"] = str(usr.id)
-		session.store()
-		response.output = str( {"succeeded":True} )
+		return usr
 	else:
 		raise Exception( "Missing user name or password" )
-

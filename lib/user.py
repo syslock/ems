@@ -38,6 +38,15 @@ class User( db_object.DBObject ):
 		result["visible_objects"] = self.can_read()
 		return result
 	
+	def update( self, email=None, plain_password=None ):
+		if email or password:
+			c = self.app.db.cursor()
+			if email:
+				c.execute( """update users set email=? where object_id=?""", [email, self.id] )
+			if plain_password:
+				encrypted_password = password.encrypt( plain_password )
+				c.execute( """update users set password=? where object_id=?""", [encrypted_password, self.id] )
+	
 	@classmethod
 	def check( cls, app, nick, password, email ):
 		c = app.db.cursor()

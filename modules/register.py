@@ -5,6 +5,9 @@ from lib import application
 application = imp.reload( application ) # DEBUG
 from lib import user
 user = imp.reload( user ) # DEBUG
+from modules import login
+login = imp.reload( login ) # DEBUG
+
 
 def process( app ):
 	"""Registrierungsanfrage prüfen (Eindeutigkeit des Nutzernamens, syntaktische 
@@ -44,15 +47,6 @@ def process( app ):
 			confirmation_session.store()
 			response.output = str( {"succeeded" : True} )
 			return
-		elif "reconfirm" in query.parms \
-		and "registration_user_id" in confirmation_session.parms:
-			user_id = int( confirmation_session.parms["registration_user_id"] )
-			usr = user.User( app=app, user_id=user_id )
-			send_confirmation_request( app=app, user_id=user_id )
-			confirmation_session.parms=[]
-			confirmation_session.store()
-			response.output = str( {"succeeded" : True} )
-			return
 		else:
 			raise Exception( "Registration confirmation failed" )
 	elif "nick" in query.parms and "password" in query.parms \
@@ -60,16 +54,26 @@ def process( app ):
 		nick = query.parms["nick"]
 		password = query.parms["password"]
 		email = query.parms["email"]
-		usr = user.User( app=app, nick=nick, plain_password=password,
-								 email=email )
-		# FIXME: Falls das Versenden der E-Mail hier sofort fehlschlägt,
-		# müssen wir user.create entweder zurückrollen oder den 
-		# fehlgeschlagenen Zustellungsversuch zwischenspeichern, sodass
-		# er vom Administrator oder einem Cronjob später nochmal ausgelöst
-		# werden kann:
-		send_confirmation_request( app=app, user_id=usr.id )
-		response.output = str( {"succeeded" : True} )
-		return
+		if "reconfirm" in query.parms:
+			# Bei gültigen Login-Daten (keine Ausnahme in check_login),
+			# Neuauslösung der Email-Bestätigung an eine ggf. geänderte 
+			# Adresse erlauben:
+			usr = login.check_login( app )
+			usr.update( email=email )
+			send_confirmation_request( app=app, user_id=usr.id )
+			response.output = str( {"succeeded" : True} )
+			return
+		else:
+			usr = user.User( app=app, nick=nick, plain_password=password,
+									email=email )
+			# FIXME: Falls das Versenden der E-Mail hier sofort fehlschlägt,
+			# müssen wir user.create entweder zurückrollen oder den 
+			# fehlgeschlagenen Zustellungsversuch zwischenspeichern, sodass
+			# er vom Administrator oder einem Cronjob später nochmal ausgelöst
+			# werden kann:
+			send_confirmation_request( app=app, user_id=usr.id )
+			response.output = str( {"succeeded" : True} )
+			return
 	else:
 		raise Exception( "Missing parameters" )
 

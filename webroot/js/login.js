@@ -3,6 +3,7 @@ function logout()
 	$.get( "ems.wsgi?do=logout", function(result)
 	{
 		result = parse_result( result )
+		$(".ems-content").empty()
 		init()
 	})
 }

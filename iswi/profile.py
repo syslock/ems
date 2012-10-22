@@ -13,8 +13,6 @@ class Application( db_object.UserAttributes ):
 	table = "applications"
 	media_type = "application/x-obj.iswi.application"
 	valid_fields = { "statement_id", "motivation_id", "motto_id",
-		"university_name", "study_field", "study_years", "study_field", 
-		"study_finish", "topic1_id", "topic2_id", "topic3_id", 
-		"accommodation", "food", "comment", "abstract_id", "cultural_id", 
-		"conferences_id" }
+		"university_name", "study_field", "study_finish_year", 
+		"study_finish_month", "accommodation", "food", "abstract_id" }
 

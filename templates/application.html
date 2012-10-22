@@ -61,14 +61,6 @@
 				{
 					value = field.parentNode.data.object_id
 				}
-				if( field_name in {"study_finish_year":0, "study_finish_month":0} )
-				{
-					field_name = "study_finish"
-					value = $("#application-study-finish-month")[0].value
-					if( value.length==1 ) value = "0"+value
-					value = $("#application-study-finish-year")[0].value + value
-					value += "010000"
-				}
 				$.get( 'ems.wsgi?do=store&type=application/x-obj.iswi.application&'+field_name+'='+value, 
 				function(result)
 				{
@@ -122,14 +114,6 @@
 							var radio = $("#application-talk-request-"+id_suffix)[0]
 							radio.checked = "checked"
 							toggle_abstract( radio )
-						}
-						else if( result && field_name=="study_finish_year" )
-						{
-							$("#application-study-finish-year")[0].value = Number(String(result.study_finish).substr(0,4))
-						}
-						else if( result && field_name=="study_finish_month" )
-						{
-							$("#application-study-finish-month")[0].value = Number(String(result.study_finish).substr(4,2))
 						}
 						else 
 						{
@@ -237,12 +221,12 @@
 				</div>-->
 				<div class="application-field" id="application-study-finish">
 					<span class="application-label" id="application-study-finish-label"><span class="L" id="20120723101321">Voraussichtlicher Abschlusszeitpunkt</span></span>
-					<select class="application-input" id="application-study-finish-year" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="application-input" id="application-study-finish-year-input" onchange="rs(this)" onkeyup="rs(this)">
 						% for year in range(2013,2021):
 							<option value="${year}">${year}</option>
 						% endfor
 					</select>
-					<select class="application-input" id="application-study-finish-month" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="application-input" id="application-study-finish-month-input" onchange="rs(this)" onkeyup="rs(this)">
 						% for i, month in enumerate(["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"]):
 							<option value="${i+1}">${month}</option>
 						% endfor

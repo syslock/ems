@@ -181,7 +181,12 @@
 			<div class="contact-address">
 				<div class="contact-field" id="contact-country">
 					<span class="contact-label" id="contact-country-label"><span class="L" id="20120720191158">Staat</span></span>
-					<input class="contact-input" id="contact-country-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<% import os %>
+					<select class="contact-input" id="contact-country-input" onchange="rs(this)" onkeyup="rs(this)" >
+					% for line in [x.strip() for x in open(os.path.join(app.path,"country_en.txt"),"r")]:
+						<option value="${line}">${line[:40] + (len(line)>40 and "..." or "")}</option>
+					% endfor
+					</select>
 				</div>
 				<div class="contact-field" id="contact-region">
 					<span class="contact-label" id="contact-region-label"><span class="L" id="20120720191219">Region</span></span>

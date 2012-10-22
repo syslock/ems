@@ -67,6 +67,20 @@
 			
 			function update_contact()
 			{
+				if( !global_user.contact_id )
+				{
+					$.ajax({ url : 'ems.wsgi?do=store&type=application/x-obj.iswi.contact',
+							 async : false,
+							 success :
+					function( result )
+					{
+						result = parse_result( result )
+						if( result.succeeded )
+						{
+							global_user.contact_id = result.object_id;
+						}
+					}})
+				}
 				$.get( 'ems.wsgi?do=get&view=all&id='+global_user.contact_id,
 				function(result)
 				{

@@ -147,9 +147,23 @@
 					<span class="contact-label" id="contact-surname-label"><span class="L" id="20120720190322">Nachname</span></span>
 					<input class="contact-input" id="contact-surname-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
-				<div class="contact-field" id="contact-birthday">
-					<span class="contact-label" id="contact-birthday-label"><span class="L" id="20120720190402">Geburtsdatum</span></span>
-					<input class="contact-input" id="contact-birthday-input" onchange="rs(this)" onkeyup="rs(this)" />
+				<div class="contact-field" id="contact-birth">
+					<span class="contact-label" id="contact-birth-label">Geburtsdatum</span>
+					<select class="contact-input" id="contact-birth-year-input" onchange="rs(this)" onkeyup="rs(this)">
+						% for year in range(1950,2000):
+							<option value="${year}">${year}</option>
+						% endfor
+					</select>
+					<select class="contact-input" id="contact-birth-month-input" onchange="rs(this)" onkeyup="rs(this)">
+						% for i, month in enumerate(["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"]):
+							<option value="${i+1}">${month}</option>
+						% endfor
+					</select>
+					<select class="contact-input" id="contact-birth-day-input" onchange="rs(this)" onkeyup="rs(this)">
+						% for day in range(1,32):
+							<option value="${day}">${day}.</option>
+						% endfor
+					</select>
 				</div>
 				<div class="contact-field" id="contact-gender">
 					<span class="contact-label" id="contact-gender-label"><span class="L" id="20120720190522">Geschlecht</span></span>

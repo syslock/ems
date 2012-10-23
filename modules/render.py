@@ -1,5 +1,7 @@
 import imp, os
 from mako.template import Template
+from mako.lookup import TemplateLookup
+import mako.exceptions
 from lib import errors
 errors = imp.reload( errors )
 
@@ -20,9 +22,17 @@ def process( app ):
 	tpl = os.path.join( app.path, "templates", query.parms["tpl"] )
 	if "../" in tpl or not os.stat(tpl):
 		raise errors.ParameterError( "Invalid template identifier" )
-	response.output = Template( filename=tpl, input_encoding="utf-8" ).render( app=app )
-	tpl_ext = tpl.split(".")[-1]
-	response.media_type = default_response_type
-	# TODO: Kontrolle des media_types aus Template heraus zulassen
-	if tpl_ext in response_types_by_extension:
-		response.media_type = response_types_by_extension[tpl_ext]
+	template_lookup = TemplateLookup( directories=["."] )
+	try:
+		response.output = Template( filename=tpl, input_encoding="utf-8", lookup=template_lookup ).render( app=app )
+		tpl_ext = tpl.split(".")[-1]
+		response.media_type = default_response_type
+		# TODO: Kontrolle des media_types aus Template heraus zulassen
+		if tpl_ext in response_types_by_extension:
+			response.media_type = response_types_by_extension[tpl_ext]
+	except:
+		if "debug" in query.parms:
+			response.output = mako.exceptions.html_error_template().render().decode("utf-8")
+			response.media_type = response_types_by_extension["html"]
+		else:
+			raise

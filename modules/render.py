@@ -22,7 +22,7 @@ def process( app ):
 	tpl = os.path.join( app.path, "templates", query.parms["tpl"] )
 	if "../" in tpl or not os.stat(tpl):
 		raise errors.ParameterError( "Invalid template identifier" )
-	template_lookup = TemplateLookup( directories=["."], input_encoding="utf-8" )
+	template_lookup = TemplateLookup( directories=[os.path.join(app.path,"templates")], input_encoding="utf-8" )
 	try:
 		response.output = Template( filename=tpl, input_encoding="utf-8", lookup=template_lookup ).render( app=app )
 		tpl_ext = tpl.split(".")[-1]

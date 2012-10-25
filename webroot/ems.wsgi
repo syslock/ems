@@ -36,7 +36,14 @@ def myapp( environ, start_response ):
 	return response.finalize()
 
 def application( environ, start_response ):
-	"""WSGI-Einsprungpunkt mit Ausnahmebehandlung"""
+	"""WSGI-Einsprungpunkt mit Ausnahmebehandlung und optionaler CLI-Debugging-Unterstützung"""
+	pdb = ("EMS_DEBUG" in environ and environ["EMS_DEBUG"]=="pdb")
+	if pdb:
+		import pdb,sys
+		debugger = pdb.Pdb()
+		debugger.use_rawinput = 0
+		debugger.reset()
+		sys.settrace( debugger.trace_dispatch)
 	try:
 		return myapp( environ, start_response )
 	except Exception as e:
@@ -50,4 +57,7 @@ def application( environ, start_response ):
 		#for value in trace:
 		#	byte_trace.append( value.encode("utf-8") )
 		#return byte_trace # FIXME: DEBUG
-
+	finally:
+		if pdb:
+			debugger.quitting = 1
+			sys.settrace( None )

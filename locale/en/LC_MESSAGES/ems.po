@@ -35,54 +35,60 @@ msgstr "Your field of study"
 msgid "Voraussichtlicher Abschlusszeitpunkt"
 msgstr "Expected date of final degree"
 
-#: templates/application.html:213 templates/application.html:223
-#: templates/application.html:233
+#: templates/application.html:213 templates/application.html:226
+#: templates/application.html:239
 msgid "Titel:"
 msgstr "Title:"
 
-#: templates/application.html:218 templates/application.html:228
-#: templates/application.html:238 templates/application.html:256
+#: templates/application.html:218 templates/application.html:231
+#: templates/application.html:244 templates/application.html:265
 #: templates/overview.html:81
 msgid "Bearbeiten"
 msgstr "Edit"
 
-#: templates/application.html:243
+#: templates/application.html:221 templates/application.html:234
+#: templates/application.html:247 templates/application.html:268
+#: templates/overview.html:84
+msgid "Speichern"
+msgstr "Save"
+
+#: templates/application.html:252
 msgid "M\303\266chtest du einen Vortrag halten?"
 msgstr "Do you want to give a talk?"
 
-#: templates/application.html:245
+#: templates/application.html:254
 msgid "Ja"
 msgstr "Yes"
 
-#: templates/application.html:246
+#: templates/application.html:255
 msgid "Nein"
 msgstr "No"
 
-#: templates/application.html:251
+#: templates/application.html:260
 msgid "Vortragstitel:"
 msgstr "Topic"
 
-#: templates/application.html:262
+#: templates/application.html:274
 msgid "Unterbringungsuwnsch"
 msgstr "Accommodation wishes"
 
-#: templates/application.html:264 templates/application.html:272
+#: templates/application.html:276 templates/application.html:284
 msgid "egal"
 msgstr "any"
 
-#: templates/application.html:265
+#: templates/application.html:277
 msgid "m\303\244nnlicher Host"
 msgstr "male host"
 
-#: templates/application.html:266
+#: templates/application.html:278
 msgid "weiblicher Host"
 msgstr "female host"
 
-#: templates/application.html:270
+#: templates/application.html:282
 msgid "Verpflegungswunsch"
 msgstr "Food wish"
 
-#: templates/application.html:273
+#: templates/application.html:285
 msgid "vegetarisch"
 msgstr "vegetarian"
 

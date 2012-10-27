@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-10-27 20:17+CEST\n"
+"POT-Creation-Date: 2012-10-27 23:25+CEST\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,54 +35,60 @@ msgstr ""
 msgid "Voraussichtlicher Abschlusszeitpunkt"
 msgstr ""
 
-#: templates/application.html:213 templates/application.html:223
-#: templates/application.html:233
+#: templates/application.html:213 templates/application.html:226
+#: templates/application.html:239
 msgid "Titel:"
 msgstr ""
 
-#: templates/application.html:218 templates/application.html:228
-#: templates/application.html:238 templates/application.html:256
+#: templates/application.html:218 templates/application.html:231
+#: templates/application.html:244 templates/application.html:265
 #: templates/overview.html:81
 msgid "Bearbeiten"
 msgstr ""
 
-#: templates/application.html:243
+#: templates/application.html:221 templates/application.html:234
+#: templates/application.html:247 templates/application.html:268
+#: templates/overview.html:84
+msgid "Speichern"
+msgstr ""
+
+#: templates/application.html:252
 msgid "M\303\266chtest du einen Vortrag halten?"
 msgstr ""
 
-#: templates/application.html:245
+#: templates/application.html:254
 msgid "Ja"
 msgstr ""
 
-#: templates/application.html:246
+#: templates/application.html:255
 msgid "Nein"
 msgstr ""
 
-#: templates/application.html:251
+#: templates/application.html:260
 msgid "Vortragstitel:"
 msgstr ""
 
-#: templates/application.html:262
+#: templates/application.html:274
 msgid "Unterbringungsuwnsch"
 msgstr ""
 
-#: templates/application.html:264 templates/application.html:272
+#: templates/application.html:276 templates/application.html:284
 msgid "egal"
 msgstr ""
 
-#: templates/application.html:265
+#: templates/application.html:277
 msgid "m\303\244nnlicher Host"
 msgstr ""
 
-#: templates/application.html:266
+#: templates/application.html:278
 msgid "weiblicher Host"
 msgstr ""
 
-#: templates/application.html:270
+#: templates/application.html:282
 msgid "Verpflegungswunsch"
 msgstr ""
 
-#: templates/application.html:273
+#: templates/application.html:285
 msgid "vegetarisch"
 msgstr ""
 

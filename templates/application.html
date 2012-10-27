@@ -93,7 +93,7 @@
 				function(result)
 				{
 					result = parse_result( result )[0]
-					$('.application-input').each(
+					$('.application-input').add('.ems-entry').each(
 					function( i, field )
 					{
 						var field_name = get_field_name( field )
@@ -101,9 +101,9 @@
 						{
 							if( field_name in {"statement_id":0, "motivation_id":0, "motto_id":0, "abstract_id":0} )
 							{
-								if( field.parentNode.data ) field.parentNode.data["object_id"] = result[field_name]
-								else field.parentNode.data = { "object_id" : result[field_name] }
-								show_object( {id:result[field_name], dom_object:field.parentNode}, field.parentNode.parentNode )
+								if( field.data ) field.data["object_id"] = result[field_name]
+								else field.data = { "object_id" : result[field_name] }
+								show_object( {id:result[field_name], dom_object:field}, field.parentNode )
 							}
 							else field.value = result[field_name]
 						}
@@ -154,7 +154,7 @@
 					if( result && result[field_name] )
 					{
 						edit_entry( button )
-						unlight( button )
+						unlight( button.parentNode )
 					}
 					else if( result )
 					{
@@ -164,11 +164,11 @@
 						{
 							store_application( button )
 							edit_entry( button )
-							unlight( button )
+							unlight( button.parentNode )
 						}
-						else hilight( button )
+						else hilight( button.parentNode )
 					}
-					else hilight( button )
+					else hilight( button.parentNode )
 				})
 			}
 		</script>
@@ -214,8 +214,11 @@
 					<span class="entry-title">Statement</span>
 				</div>
 				<div class="entry-content"></div>
-				<button class="application-input" id="application-statement-input" onclick="create_or_edit_entry(this)">
+				<button class="entry-edit" id="application-statement-input" onclick="create_or_edit_entry(this)">
 					${_("Bearbeiten")}
+				</button>
+				<button class="entry-save" style="display:none" id="application-statement-save" onclick="save_entry_plain(this)">
+					${_("Speichern")}
 				</button>
 			</div>
 			<div class="ems-entry" id="application-motivation" >
@@ -224,8 +227,11 @@
 					<span class="entry-title">Motivation</span>
 				</div>
 				<div class="entry-content"></div>
-				<button class="application-input" id="application-motivation-input" onclick="create_or_edit_entry(this)">
+				<button class="entry-edit" id="application-motivation-input" onclick="create_or_edit_entry(this)">
 					${_("Bearbeiten")}
+				</button>
+				<button class="entry-save" style="display:none" id="application-motivatioin-save" onclick="save_entry_plain(this)">
+					${_("Speichern")}
 				</button>
 			</div>
 			<div class="ems-entry" id="application-motto" >
@@ -234,8 +240,11 @@
 					<span class="entry-title">Motto</span>
 				</div>
 				<div class="entry-content"></div>
-				<button class="application-input" id="application-motto-input" onclick="create_or_edit_entry(this)">
+				<button class="entry-edit" id="application-motto-input" onclick="create_or_edit_entry(this)">
 					${_("Bearbeiten")}
+				</button>
+				<button class="entry-save" style="display:none" id="application-motto-save" onclick="save_entry_plain(this)">
+					${_("Speichern")}
 				</button>
 			</div>
 			<div class="application-talk">
@@ -252,8 +261,11 @@
 						<span class="entry-title"></span>
 					</div>
 					<!--<div class="entry-content"></div>-->
-					<button class="application-input" id="application-abstract-input" onclick="create_or_edit_entry(this)">
+					<button class="entry-edit" id="application-abstract-input" onclick="create_or_edit_entry(this)">
 						${_("Bearbeiten")}
+					</button>
+					<button class="entry-save" style="display:none" id="application-abstract-save" onclick="save_entry_plain(this)">
+						${_("Speichern")}
 					</button>
 				</div>
 			</div>

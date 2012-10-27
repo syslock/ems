@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-10-27 23:25+CEST\n"
+"POT-Creation-Date: 2012-10-28 01:12+CEST\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -164,7 +164,7 @@ msgstr ""
 msgid "Sprache:"
 msgstr ""
 
-#: templates/elements/login_widget.html:2 templates/login.html:53
+#: templates/elements/login_widget.html:2 templates/login.html:61
 msgid "Anmelden"
 msgstr ""
 
@@ -244,47 +244,55 @@ msgstr ""
 msgid "ISWI - Anmeldung"
 msgstr ""
 
-#: templates/login.html:36
+#: templates/login.html:28
+msgid "'Die eingegebenen Passw\303\266rter m\303\274ssen \303\274bereinstimmen'"
+msgstr ""
+
+#: templates/login.html:32
+msgid "'Vielen Dank! Du solltest nun eine Best\303\244tigungsanfrage via E-Mail mit einem Best\303\244tigungslink erhalten. Beim Aufruf des Best\303\244tigungslinks wird dein Zugang aktiviert, sodass du dich einloggen kannst.'"
+msgstr ""
+
+#: templates/login.html:44
 msgid "Anmeldung"
 msgstr ""
 
-#: templates/login.html:42
+#: templates/login.html:50
 msgid "Benutzername:"
 msgstr ""
 
-#: templates/login.html:48
+#: templates/login.html:56
 msgid "Passwort:"
 msgstr ""
 
-#: templates/login.html:56
+#: templates/login.html:64
 msgid "Noch nicht registriert?"
 msgstr ""
 
-#: templates/login.html:62
+#: templates/login.html:70
 msgid "Passwort wiederholen:"
 msgstr ""
 
-#: templates/login.html:68
+#: templates/login.html:76
 msgid "E-Mail-Adresse:"
 msgstr ""
 
-#: templates/login.html:73
+#: templates/login.html:81
 msgid "Registrieren"
 msgstr ""
 
-#: templates/login.html:77
+#: templates/login.html:85
 msgid "Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert."
 msgstr ""
 
-#: templates/login.html:78
+#: templates/login.html:86
 msgid "Hast du eine Best\303\244tigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Best\303\244tigungslink geklickt?"
 msgstr ""
 
-#: templates/login.html:79
+#: templates/login.html:87
 msgid "Wenn du m\303\266chtest, kannst du die Best\303\244tigungsanfrage nochmal an die oben angegebene Adresse schicken lassen."
 msgstr ""
 
-#: templates/login.html:82
+#: templates/login.html:90
 msgid "Best\303\244tigungs-E-Mail nochmal schicken"
 msgstr ""
 

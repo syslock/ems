@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1\n"
 "POT-Creation-Date: 2012-10-27 11:43+CEST\n"
-"PO-Revision-Date: 2012-10-27 12:10:00\n"
+"PO-Revision-Date: 2012-10-28 01:00:00\n"
 "Last-Translator: syslock\n"
 "Language-Team: en\n"
 "MIME-Version: 1.0\n"
@@ -164,7 +164,7 @@ msgstr "Telephone no. (secondary)"
 msgid "Sprache:"
 msgstr "Language:"
 
-#: templates/elements/login_widget.html:2 templates/login.html:53
+#: templates/elements/login_widget.html:2 templates/login.html:63
 msgid "Anmelden"
 msgstr "Login"
 
@@ -244,47 +244,55 @@ msgstr "Notes"
 msgid "ISWI - Anmeldung"
 msgstr "ISWI - Login"
 
-#: templates/login.html:36
+#: templates/login.html:28
+msgid "'Die eingegebenen Passw\303\266rter m\303\274ssen \303\274bereinstimmen'"
+msgstr "'The passwords have to be the same'"
+
+#: templates/login.html:32
+msgid "'Vielen Dank! Du solltest nun eine Best\303\244tigungsanfrage via E-Mail mit einem Best\303\244tigungslink erhalten. Beim Aufruf des Best\303\244tigungslinks wird dein Zugang aktiviert, sodass du dich einloggen kannst.'"
+msgstr "'Thank you! Now you should receive a confirmation request email with a confirmation link. Following that link will activate your account, so you will be able to login.'"
+
+#: templates/login.html:44
 msgid "Anmeldung"
 msgstr "Login"
 
-#: templates/login.html:42
+#: templates/login.html:50
 msgid "Benutzername:"
 msgstr "User name:"
 
-#: templates/login.html:48
+#: templates/login.html:56
 msgid "Passwort:"
 msgstr "Password:"
 
-#: templates/login.html:56
+#: templates/login.html:64
 msgid "Noch nicht registriert?"
 msgstr "Not yet registered?"
 
-#: templates/login.html:62
+#: templates/login.html:70
 msgid "Passwort wiederholen:"
 msgstr "Password (repeated):"
 
-#: templates/login.html:68
+#: templates/login.html:76
 msgid "E-Mail-Adresse:"
 msgstr "Email address:"
 
-#: templates/login.html:73
+#: templates/login.html:81
 msgid "Registrieren"
 msgstr "Register"
 
-#: templates/login.html:77
+#: templates/login.html:85
 msgid "Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert."
 msgstr "Your login credentials are valid, but your account might not have been activated yet."
 
-#: templates/login.html:78
+#: templates/login.html:86
 msgid "Hast du eine Best\303\244tigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Best\303\244tigungslink geklickt?"
 msgstr "Did you receive a confirmation request email and followed the confirmation link mentioned therein?"
 
-#: templates/login.html:79
+#: templates/login.html:87
 msgid "Wenn du m\303\266chtest, kannst du die Best\303\244tigungsanfrage nochmal an die oben angegebene Adresse schicken lassen."
 msgstr "You may choose to get an additional confirmation request sent to the address given above."
 
-#: templates/login.html:82
+#: templates/login.html:90
 msgid "Best\303\244tigungs-E-Mail nochmal schicken"
 msgstr "Send additional confirmation request email"
 

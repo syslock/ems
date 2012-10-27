@@ -24,7 +24,7 @@ function login()
 		else
 		{
 			hilight_error_fields( result.error )
-			if( result.error && result.error.message=="Insufficient privileges" )
+			if( result.error && result.error.message.match(/insufficient privileges/i) )
 			{
 				show_register()
 				$(".register-password")[0].style.display="none"
@@ -44,7 +44,7 @@ function register()
 	if( $("input.login-password")[0].value
 		!= $("input.register-password")[0].value )
 	{
-		show_error( "Passwörter müssen übereinstimmen" )
+		show_register_password_match_message();
 		$("input.login-password")[0].value = ""
 		$("input.register-password")[0].value = ""
 		hilight( $("input.login-password")[0] )
@@ -62,8 +62,7 @@ function register()
 		{
 			hide_login()
 			hide_register()
-			show_message( "Vielen Dank! Du solltest nun eine Bestätigungsanfrage via E-Mail mit einem Bestätigungslink erhalten."+
-							" Beim Aufruf des Bestätigungslinks wird dein Zugang aktiviert, sodass du dich einloggen kannst." )
+			show_register_submit_message();
 		}
 		else { hilight_error_fields(result.error) }
 	})
@@ -84,8 +83,7 @@ function reconfirm()
 		{
 			hide_login()
 			hide_register()
-			show_message( "Vielen Dank! Du solltest nun eine Bestätigungsanfrage via E-Mail mit einem Bestätigungslink erhalten."+
-							" Beim Aufruf des Bestätigungslinks wird dein Zugang aktiviert, sodass du dich einloggen kannst." )
+			show_register_submit_message();
 		}
 		else { hilight_error_fields(result.error) }
 	})
@@ -95,23 +93,25 @@ function reconfirm()
 
 function hilight_error_fields( error )
 {
-	if( error && (error.message == "Invalid user name or password"
-				|| error.message == "Nick already in use") )
-	{
-		hilight( $(".login-nick")[0] )
+	if( error && (error.message.match(/user name/i)
+				|| error.message.match(/nutzername/i)
+				|| error.message.match(/nick/i)) ) {
+		hilight( $("input.login-nick")[0] );
 	}
-	else unlight( $(".login-nick")[0] )
-	if( error && (error.message == "Invalid user name or password"
-				|| error.message == "Password has to be at least 8 characters long") )
-	{
-		hilight( $(".login-password")[0] )
+	else unlight( $("input.login-nick")[0] );
+	if( error && (error.message.match(/password/i)
+				|| error.message.match(/passwort/i)) ) {
+		hilight( $("input.login-password")[0] );
 	}
-	else unlight( $(".login-password")[0] )
-	if( error && (error.message == "Insufficient privileges") )
-	{
-		hilight( $(".register-email")[0] )
+	else {
+		unlight( $("input.login-password")[0] );
+		unlight( $("input.register-password")[0] );
 	}
-	else unlight( $(".register-email")[0] )
+	if( error && (error.message.match(/insufficient privileges/i)) ) {
+		hilight( $("input.register-email")[0] );
+	}
+	else unlight( $("input.register-email")[0] );
+	if( error ) show_message( error.message );
 }
 
 function hide_login()

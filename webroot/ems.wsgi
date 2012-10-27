@@ -1,4 +1,4 @@
-import time, os, sys, imp, traceback
+import time, os, sys, imp, traceback, gettext
 
 def myapp( environ, start_response ):
 	"""Anfragebehandlung der Webanwendung"""
@@ -19,6 +19,16 @@ def myapp( environ, start_response ):
 	query = app.query
 	response = app.response
 	session = app.session
+	
+	if( "lang" in query.parms ):
+		lang = query.parms["lang"]
+	else:
+		lang = "en"
+	try:
+		translation = gettext.translation( "ems", localedir=os.path.join(script_dir,"locale"), languages=[lang], codeset="utf-8" )
+		translation.install()
+	except FileNotFoundError:
+		gettext.install( "ems", localedir=os.path.join(script_dir,"locale"), codeset="utf-8" )
 	
 	# Session-Cookies aktualisieren:
 	response.cookies.update( session.get_cookies() )

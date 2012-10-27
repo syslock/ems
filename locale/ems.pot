@@ -1,0 +1,304 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2012-10-27 20:17+CEST\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: templates/application.html:5
+msgid "ISWI - Bewerbung"
+msgstr ""
+
+#: templates/application.html:186 templates/overview.html:46
+msgid "Bewerbung"
+msgstr ""
+
+#: templates/application.html:192
+msgid "Deine Universit\303\244t"
+msgstr ""
+
+#: templates/application.html:196
+msgid "Dein Studienfach"
+msgstr ""
+
+#: templates/application.html:200
+msgid "Voraussichtlicher Abschlusszeitpunkt"
+msgstr ""
+
+#: templates/application.html:213 templates/application.html:223
+#: templates/application.html:233
+msgid "Titel:"
+msgstr ""
+
+#: templates/application.html:218 templates/application.html:228
+#: templates/application.html:238 templates/application.html:256
+#: templates/overview.html:81
+msgid "Bearbeiten"
+msgstr ""
+
+#: templates/application.html:243
+msgid "M\303\266chtest du einen Vortrag halten?"
+msgstr ""
+
+#: templates/application.html:245
+msgid "Ja"
+msgstr ""
+
+#: templates/application.html:246
+msgid "Nein"
+msgstr ""
+
+#: templates/application.html:251
+msgid "Vortragstitel:"
+msgstr ""
+
+#: templates/application.html:262
+msgid "Unterbringungsuwnsch"
+msgstr ""
+
+#: templates/application.html:264 templates/application.html:272
+msgid "egal"
+msgstr ""
+
+#: templates/application.html:265
+msgid "m\303\244nnlicher Host"
+msgstr ""
+
+#: templates/application.html:266
+msgid "weiblicher Host"
+msgstr ""
+
+#: templates/application.html:270
+msgid "Verpflegungswunsch"
+msgstr ""
+
+#: templates/application.html:273
+msgid "vegetarisch"
+msgstr ""
+
+#: templates/contact.html:5
+msgid "ISWI - Kontaktdaten"
+msgstr ""
+
+#: templates/contact.html:116 templates/overview.html:43
+msgid "Kontaktdaten"
+msgstr ""
+
+#: templates/contact.html:122
+msgid "Namenstitel"
+msgstr ""
+
+#: templates/contact.html:126
+msgid "Vorname"
+msgstr ""
+
+#: templates/contact.html:130
+msgid "Nachname"
+msgstr ""
+
+#: templates/contact.html:134
+msgid "Geburtsdatum"
+msgstr ""
+
+#: templates/contact.html:150
+msgid "Geschlecht"
+msgstr ""
+
+#: templates/contact.html:153
+msgid "weiblich"
+msgstr ""
+
+#: templates/contact.html:154
+msgid "m\303\244nnlich"
+msgstr ""
+
+#: templates/contact.html:158
+msgid "Nationalit\303\244t"
+msgstr ""
+
+#: templates/contact.html:164
+msgid "Staat"
+msgstr ""
+
+#: templates/contact.html:173
+msgid "Region"
+msgstr ""
+
+#: templates/contact.html:177
+msgid "Stadt"
+msgstr ""
+
+#: templates/contact.html:181
+msgid "Stra\303\237e und Hausnummer"
+msgstr ""
+
+#: templates/contact.html:185
+msgid "Postleitzahl"
+msgstr ""
+
+#: templates/contact.html:189
+msgid "Telefonnummer"
+msgstr ""
+
+#: templates/contact.html:193
+msgid "Telefonnummer (alternativ)"
+msgstr ""
+
+#: templates/elements/language_select.html:1
+msgid "Sprache:"
+msgstr ""
+
+#: templates/elements/login_widget.html:2 templates/login.html:53
+msgid "Anmelden"
+msgstr ""
+
+#: templates/elements/login_widget.html:5
+msgid "Zugang:"
+msgstr ""
+
+#: templates/elements/login_widget.html:9
+msgid "Abmelden"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "April"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "August"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "Dezember"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "Februar"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "Januar"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "Juli"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "Juni"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "Mai"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "M\303\244rz"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "November"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "Oktober"
+msgstr ""
+
+#: templates/elements/month_options.html:1
+msgid "September"
+msgstr ""
+
+#: templates/elements/overview_button.html:2 templates/overview.html:52
+msgid "\303\234bersicht"
+msgstr ""
+
+#: templates/elements/style_select.html:1
+msgid "Stil:"
+msgstr ""
+
+#: templates/elements/style_select.html:3
+msgid "Bubbles"
+msgstr ""
+
+#: templates/elements/style_select.html:4
+msgid "Notes"
+msgstr ""
+
+#: templates/login.html:5
+msgid "ISWI - Anmeldung"
+msgstr ""
+
+#: templates/login.html:36
+msgid "Anmeldung"
+msgstr ""
+
+#: templates/login.html:42
+msgid "Benutzername:"
+msgstr ""
+
+#: templates/login.html:48
+msgid "Passwort:"
+msgstr ""
+
+#: templates/login.html:56
+msgid "Noch nicht registriert?"
+msgstr ""
+
+#: templates/login.html:62
+msgid "Passwort wiederholen:"
+msgstr ""
+
+#: templates/login.html:68
+msgid "E-Mail-Adresse:"
+msgstr ""
+
+#: templates/login.html:73
+msgid "Registrieren"
+msgstr ""
+
+#: templates/login.html:77
+msgid "Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert."
+msgstr ""
+
+#: templates/login.html:78
+msgid "Hast du eine Best\303\244tigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Best\303\244tigungslink geklickt?"
+msgstr ""
+
+#: templates/login.html:79
+msgid "Wenn du m\303\266chtest, kannst du die Best\303\244tigungsanfrage nochmal an die oben angegebene Adresse schicken lassen."
+msgstr ""
+
+#: templates/login.html:82
+msgid "Best\303\244tigungs-E-Mail nochmal schicken"
+msgstr ""
+
+#: templates/overview.html:5
+msgid "ISWI - \303\234bersicht"
+msgstr ""
+
+#: templates/overview.html:49
+msgid "Beitrag erstellen"
+msgstr ""
+
+#: templates/overview.html:62
+msgid "Gruppe:"
+msgstr ""
+
+#: templates/overview.html:69
+msgid "Nutzer:"
+msgstr ""
+
+#: templates/overview.html:76
+msgid "Beitrag:"
+msgstr ""
+

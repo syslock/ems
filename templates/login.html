@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title></title>
+		<title>${_("ISWI - Anmeldung")}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="css/bubbles.css" />
 		<script data-main="js/main.js" src="js/require-jquery.js"></script>
 		<script>
@@ -27,66 +27,59 @@
 	</head>
 	<body>
 		<div class="ems-menu">
-			<span class="L" id="20120719003036">Sprache:</span>
-			<select class="menu-language" onchange="change_language(this.value)">
-				<option value="en">English</option>
-				<option value="de">Deutsch</option>
-			</select>
+			<%include file="/elements/language_select.html" />
+			<%include file="/elements/style_select.html" />
 		</div>
 		<div class="page-menu">
-			<button class="ems-index" onclick="open_tpl('overview.html')">
-				<span class="L" id="20120720192127">Übersicht</span>
-			</button>
+			<%include file="/elements/overview_button.html" />
 		</div>
-		<h1 class="ems-heading">
-			<span class="L" id="20120513154437">Anmeldung</span>
-		</h1>
+		<h1 class="ems-heading">${_("Anmeldung")}</h1>
 		<div class="ems-help"></div>
 		<div class="ems-content">
 			<div class="ems-login">
 				<div class="login-nick">
 					<span class="login-nick">
-						<span class="L" id="20120513154451">Benutzername:</span>
+						${_("Benutzername:")}
 					</span>
 					<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
 				</div>
 				<div class="login-password">
 					<span class="login-password">
-						<span class="L" id="20120513154515">Passwort:</span>
+						${_("Passwort:")}
 					</span>
 					<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
 				</div>
 				<button class="login-submit" onclick="login()">
-					<span class="L" id="20120513154532">Anmelden</span>
+					${_("Anmelden")}
 				</button>
 				<button class="login-register" onclick="show_register()">
-					<span class="L" id="20120513154545">Noch nicht registriert?</span>
+					${_("Noch nicht registriert?")}
 				</button>
 			</div>
 			<div class="ems-register" style="display:none">
 				<div class="register-password">
 					<span class="register-password">
-						<span class="L" id="20120513154559">Passwort wiederholen:</span>
+						${_("Passwort wiederholen:")}
 					</span>
 					<input type="password" class="register-password"/>
 				</div>
 				<div class="register-email">
 					<span class="register-email">
-						<span class="L" id="20120513154623">E-Mail-Adresse:</span>
+						${_("E-Mail-Adresse:")}
 					</span>
 					<input type="text" class="register-email"/>
 				</div>
 				<button class="register-submit" onclick="register()">
-					<span class="L" id="20120513154632">Registrieren</span>
+					${_("Registrieren")}
 				</button>
 				<div class="register-reconfirm" style="display:none" >
 					<div class="register-reconfirm-message">
-						Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert.<br/>
-						Hast du eine Bestätigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Bestätigungslink geklickt?<br/>
-						Wenn du möchtest, kannst du die Bestätigungsanfrage nochmal an die oben angegebene Adresse schicken lassen.<br/>
+						${_("Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert.")}<br/>
+						${_("Hast du eine Bestätigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Bestätigungslink geklickt?")}<br/>
+						${_("Wenn du möchtest, kannst du die Bestätigungsanfrage nochmal an die oben angegebene Adresse schicken lassen.")}<br/>
 					</div>
 					<button class="register-reconfirm-submit" onclick="reconfirm()">
-						Bestätigungs-E-Mail nochmal schicken
+						${_("Bestätigungs-E-Mail nochmal schicken")}
 					</button>
 				</div>
 			</div>

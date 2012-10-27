@@ -9,6 +9,10 @@ function open_tpl( tpl )
 	open_page( 'ems.wsgi?do=render&tpl='+tpl )
 }
 
+function reload_page() {
+	document.location.href = document.location.href
+}
+
 function parse_result( result )
 {
 	try

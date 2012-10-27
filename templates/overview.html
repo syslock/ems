@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title></title>
+		<title>${_("ISWI - Übersicht")}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="css/bubbles.css" />
 		<script data-main="js/main.js" src="js/require-jquery.js"></script>
 		<script>
@@ -34,41 +34,22 @@
 	</head>
 	<body>
 		<div class="ems-menu">
-			<span class="L" id="20120719003003">Sprache:</span>
-			<select class="menu-language" onchange="change_language(this.value)">
-				<option value="en">English</option>
-				<option value="de">Deutsch</option>
-			</select>
-			<span class="L" id="20120719184906">Stil:</span>
-			<select class="menu-style" onchange="change_style(this.value)">
-				<option value="bubbles">Bubbles</option>
-				<option value="notes">Notes</option>
-			</select>
-			<button class="menu-login" onclick="open_tpl('login.html')">
-				<span class="L" id="20120718195058">Anmelden</span>
-			</button>
-			<span class="menu-nick-caption">
-				<span class="L" id="20120719002628">Zugang:</span>
-				<span class="menu-nick"></span>
-			</span>
-			<button class="menu-logout" onclick="logout()">
-				<span class="L" id="20120513122714">Abmelden</span>
-			</button>
+			<%include file="/elements/language_select.html" />
+			<%include file="/elements/style_select.html" />
+			<%include file="/elements/login_widget.html" />
 		</div>
 		<div class="page-menu">
 			<button class="ems-contact" onclick="open_tpl('contact.html')">
-				<span class="L" id="20120720192225">Kontaktdaten</span>
+				${_("Kontaktdaten")}
 			</button>
 			<button class="ems-application" onclick="open_tpl('application.html')">
-				<span class="L" id="20120723105003">Bewerbung</span>
+				${_("Bewerbung")}
 			</button>
 			<button class="ems-new-entry" onclick="new_item({type:'application/x-obj.entry', dom_parent:$('.ems-content')[0]})">
-				<span class="L" id="20120513130151">Beitrag erstellen</span>
+				${_("Beitrag erstellen")}
 			</button>
 		</div>
-		<h1 class="ems-heading">
-			<span class="L" id="20120718165235">Übersicht</span>
-		</h1>
+		<h1 class="ems-heading">${_("Übersicht")}</h1>
 		<div class="ems-help"></div>
 		<div class="ems-content">
 		</div>
@@ -78,29 +59,28 @@
 		</div>
 			<div id="ems-group-template" class="ems-group" style="display:none">
 				<div class="group-heading">
-					<span class="L" id="20120719003625">Gruppe:</span>
+					<span>${_("Gruppe:")}</span>
 					<span class="group-name"></span>
 				</div>
 				<div class="group-content"></div>
 			</div>
 			<div id="ems-user-template" class="ems-user" style="display:none">
 				<div class="user-heading">
-					<span class="L" id="20120719003741">Nutzer:</span>
+					<span>${_("Nutzer:")}</span>
 					<span class="user-nick"></span>
 				</div>
 				<div class="user-content"></div>
 			</div>
 			<div id="ems-entry-template" class="ems-entry" style="display:none">
 				<div class="entry-heading">
-					<span class="L" id="20120719004857">Beitrag:</span>
+					<span>${_("Beitrag:")}</span>
 					<span class="entry-title"></span>
 				</div>
 				<div class="entry-content"></div>
 				<button class="entry-edit" onclick="edit_entry(this)">
-					<span class="L" id="20120513130201">Bearbeiten</span>
+					${_("Bearbeiten")}
 				</button>
 			</div>
 			<div id="entry-text-template" class="entry-text" style="display:none"></div>
 	</body>
 </html>
-

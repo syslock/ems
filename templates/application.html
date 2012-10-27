@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title></title>
+		<title>${_("ISWI - Bewerbung")}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="css/bubbles.css" />
 		<script data-main="js/main.js" src="js/require-jquery.js"></script>
 		<script>
@@ -175,133 +175,104 @@
 	</head>
 	<body>
 		<div class="ems-menu">
-			<span class="L" id="20120719003003">Sprache:</span>
-			<select class="menu-language" onchange="change_language(this.value)">
-				<option value="en">English</option>
-				<option value="de">Deutsch</option>
-			</select>
-			<span class="L" id="20120719184906">Stil:</span>
-			<select class="menu-style" onchange="change_style(this.value)">
-				<option value="bubbles">Bubbles</option>
-				<option value="notes">Notes</option>
-			</select>
-			<button class="menu-login" onclick="open_tpl('login.html')">
-				<span class="L" id="20120718195058">Anmelden</span>
-			</button>
-			<span class="menu-nick-caption">
-				<span class="L" id="20120719002628">Zugang:</span>
-				<span class="menu-nick"></span>
-			</span>
-			<button class="menu-logout" onclick="logout()">
-				<span class="L" id="20120513122714">Abmelden</span>
-			</button>
+			<%include file="/elements/language_select.html" />
+			<%include file="/elements/style_select.html" />
+			<%include file="/elements/login_widget.html" />
 		</div>
 		<div class="page-menu">
-			<button class="ems-index" onclick="open_tpl('overview.html')">
-				<span class="L" id="20120720192127">Übersicht</span>
-			</button>
+			<%include file="/elements/overview_button.html" />
 		</div>
 		<h2 class="ems-heading">
-			<span class="L" id="20120723095806">Bewerbung</span>
+			${_("Bewerbung")}
 		</h2>
 		<div class="ems-help"></div>
 		<div class="ems-content" style="display:none" >
 			<div class="application-study">
 				<div class="application-field" id="application-university-name">
-					<span class="application-label" id="application-university-name-label"><span class="L" id="20120723100550">Deine Universität</span></span>
+					<span class="application-label" id="application-university-name-label">${_("Deine Universität")}</span>
 					<input class="application-input" id="application-university-name-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
 				<div class="application-field" id="application-study-field">
-					<span class="application-label" id="application-study-field-label"><span class="L" id="20120723101117">Dein Studienfach</span></span>
+					<span class="application-label" id="application-study-field-label">${_("Dein Studienfach")}</span>
 					<input class="application-input" id="application-study-field-input" onchange="rs(this)" onkeyup="rs(this)" />
 				</div>
-				<!--<div class="application-field" id="application-study-years">
-					<span class="application-label" id="application-study-years-label"><span class="L" id="20120723101222">Absolvierte Studienjahre</span></span>
-					<input class="application-input" id="application-study-years-input" onchange="rs(this)" onkeyup="rs(this)" />
-				</div>-->
 				<div class="application-field" id="application-study-finish">
-					<span class="application-label" id="application-study-finish-label"><span class="L" id="20120723101321">Voraussichtlicher Abschlusszeitpunkt</span></span>
+					<span class="application-label" id="application-study-finish-label">${_("Voraussichtlicher Abschlusszeitpunkt")}</span>
 					<select class="application-input" id="application-study-finish-year-input" onchange="rs(this)" onkeyup="rs(this)">
 						% for year in range(2013,2021):
 							<option value="${year}">${year}</option>
 						% endfor
 					</select>
 					<select class="application-input" id="application-study-finish-month-input" onchange="rs(this)" onkeyup="rs(this)">
-						% for i, month in enumerate(["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"]):
-							<option value="${i+1}">${month}</option>
-						% endfor
+						<%include file="/elements/month_options.html" />
 					</select>
 				</div>
 			</div>
 			<div class="ems-entry" id="application-statement" >
 				<div class="entry-heading">
-					<span class="L" id="20120723110238">Titel:</span>
+					${_("Titel:")}
 					<span class="entry-title">Statement</span>
 				</div>
 				<div class="entry-content"></div>
 				<button class="application-input" id="application-statement-input" onclick="create_or_edit_entry(this)">
-					<span class="L" id="20120513130201">Bearbeiten</span>
+					${_("Bearbeiten")}
 				</button>
 			</div>
 			<div class="ems-entry" id="application-motivation" >
 				<div class="entry-heading">
-					<span class="L" id="20120723110238">Titel:</span>
+					${_("Titel:")}
 					<span class="entry-title">Motivation</span>
 				</div>
 				<div class="entry-content"></div>
 				<button class="application-input" id="application-motivation-input" onclick="create_or_edit_entry(this)">
-					<span class="L" id="20120513130201">Bearbeiten</span>
+					${_("Bearbeiten")}
 				</button>
 			</div>
 			<div class="ems-entry" id="application-motto" >
 				<div class="entry-heading">
-					<span class="L" id="20120723110238">Titel:</span>
+					${_("Titel:")}
 					<span class="entry-title">Motto</span>
 				</div>
 				<div class="entry-content"></div>
 				<button class="application-input" id="application-motto-input" onclick="create_or_edit_entry(this)">
-					<span class="L" id="20120513130201">Bearbeiten</span>
+					${_("Bearbeiten")}
 				</button>
 			</div>
 			<div class="application-talk">
 				<div class="application-field" id="application-talk-request">
-					<span class="application-label" id="application-talk-request-label"><span class="L" id="20120723103439">Möchtest du einen Vortrag halten?</span></span>
+					<span class="application-label" id="application-talk-request-label">${_("Möchtest du einen Vortrag halten?")}</span>
 					<span class="application-input" id="application-talk-request-input">
-						<input type="radio" name="application-talk-request-input" id="application-talk-request-true" value="true" onchange="toggle_abstract(this)" /><span class="L" id="20120723103726">Ja</span>
-						<input type="radio" name="application-talk-request-input" id="application-talk-request-false" value="false" onchange="toggle_abstract(this)" checked="true" /><span class="L" id="20120723103755">Nein</span>
+						<input type="radio" name="application-talk-request-input" id="application-talk-request-true" value="true" onchange="toggle_abstract(this)" />${_("Ja")}
+						<input type="radio" name="application-talk-request-input" id="application-talk-request-false" value="false" onchange="toggle_abstract(this)" checked="true" />${_("Nein")}
 					</span>
 				</div>
 				<div class="ems-entry" id="application-abstract" style="display:none">
 					<div class="entry-heading">
-						<span class="L" id="20120723111052">Vortragstitel:</span>
+						${_("Vortragstitel:")}
 						<span class="entry-title"></span>
 					</div>
 					<!--<div class="entry-content"></div>-->
 					<button class="application-input" id="application-abstract-input" onclick="create_or_edit_entry(this)">
-						<span class="L" id="20120513130201">Bearbeiten</span>
+						${_("Bearbeiten")}
 					</button>
 				</div>
 			</div>
 			<div class="application-wishes">
 				<div class="application-field" id="application-accommodation">
-					<span class="application-label" id="application-accommodation-label"><span class="L" id="20120723101419">Unterbringungsuwnsch</span></span>
+					<span class="application-label" id="application-accommodation-label">${_("Unterbringungsuwnsch")}</span>
 					<select class="application-input" id="application-accommodation-input" onchange="rs(this)" onkeyup="rs(this)">
-						<option value="any">egal</option>
-						<option value="male">männlicher Host</option>
-						<option value="female">weiblicher Host</option>
+						<option value="any">${_("egal")}</option>
+						<option value="male">${_("männlicher Host")}</option>
+						<option value="female">${_("weiblicher Host")}</option>
 					</select>
 				</div>
 				<div class="application-field" id="application-food">
-					<span class="application-label" id="application-food-label"><span class="L" id="20120723101519">Verpflegungswunsch</span></span>
+					<span class="application-label" id="application-food-label">${_("Verpflegungswunsch")}</span>
 					<select class="application-input" id="application-food-input" onchange="rs(this)" onkeyup="rs(this)">
-						<option value="any">egal</option>
-						<option value="vegetarian">vegetarisch</option>
+						<option value="any">${_("egal")}</option>
+						<option value="vegetarian">${_("vegetarisch")}</option>
 					</select>
 				</div>
-				<!--<div class="application-field" id="application-comment">
-					<span class="application-label" id="application-comment-label"><span class="L" id="20120723101616">Sonstige Anmerkung</span></span>
-					<input class="application-input" id="application-comment-input" onchange="rs(this)" onkeyup="rs(this)" />
-				</div>-->
 			</div>
 		</div>
 		<div id="entry-text-template" class="entry-text" style="display:none"></div>

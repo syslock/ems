@@ -100,30 +100,23 @@ function del_cookie( key, path )
     document.cookie = key + "=" + "; path=" + (path ? path : "/") + "; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
 }
 
-var min_store_period = 3000 //milliseconds
-var store_time = {};
+var store_latency = 2000 //milliseconds
+var store_request_time = {};
 var store_request_count = {};
-function scheduled_store( store_func, obj )
-{
-	if( store_request_count > 0 ) store_request_count -= 1;
-	request_store( store_func, obj )
+function scheduled_store( store_func, obj ) {
+	var curr_time = (new Date()).getTime();
+	var time_diff = curr_time - store_request_time[obj.id];
+	store_request_count[obj.id] -= 1;
+	if( (time_diff >= store_latency) || (store_request_count[obj.id] == 0) ) {
+		// Speicherlatenz erreicht oder vorerst letzte Chance -> Speichern!
+		store_func(obj);
+	}
 }
-function request_store( store_func, obj )
-{
-	var curr_time = (new Date()).getTime()
-	if ( !(obj in store_time) ) store_time[obj] = 0;
-	var time_diff = curr_time - store_time[obj];
-	if( time_diff >= min_store_period )
-	{
-		store_time[obj] = curr_time
-		store_func( obj )
-	}
-	else if( store_request_count[obj]<3 )
-	{
-		if( !(obj in store_request_count) ) store_request_count[obj] = 0;
-		store_request_count[obj] += 1
-		window.setTimeout( scheduled_store, min_store_period*store_request_count[obj], store_func, obj )
-	}
+function request_store( store_func, obj ) {
+	var curr_time = (new Date()).getTime();
+	store_request_time[obj.id] = curr_time;
+	store_request_count[obj.id] = ( store_request_count[obj.id]==undefined ? 1 : store_request_count[obj.id]+1 );
+	window.setTimeout( scheduled_store, store_latency, store_func, obj );
 }
 
 function hilight( field, color, width )

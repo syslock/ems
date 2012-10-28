@@ -24,6 +24,8 @@ def myapp( environ, start_response ):
 		lang = query.parms["lang"]
 	else:
 		lang = "en"
+	if not 'FileNotFoundError' in dir(__builtins__):
+		FileNotFoundError = IOError # pre Python-3.3 Fix
 	try:
 		translation = gettext.translation( "ems", localedir=os.path.join(script_dir,"locale"), languages=[lang], codeset="utf-8" )
 		translation.install()

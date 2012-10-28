@@ -27,6 +27,10 @@
 							result = parse_result( result )
 							global_user = result[0]
 							update_application()
+							$(".application-input").each(
+							function( i, field ) {
+								field.onchange = field.onkeyup = field.onblur = function() { rs(this); };
+							})
 						})
 					}
 					else
@@ -190,20 +194,20 @@
 			<div class="application-study">
 				<div class="application-field" id="application-university-name">
 					<span class="application-label" id="application-university-name-label">${_("Deine Universität")}</span>
-					<input class="application-input" id="application-university-name-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="application-input" id="application-university-name-input" />
 				</div>
 				<div class="application-field" id="application-study-field">
 					<span class="application-label" id="application-study-field-label">${_("Dein Studienfach")}</span>
-					<input class="application-input" id="application-study-field-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="application-input" id="application-study-field-input" />
 				</div>
 				<div class="application-field" id="application-study-finish">
 					<span class="application-label" id="application-study-finish-label">${_("Voraussichtlicher Abschlusszeitpunkt")}</span>
-					<select class="application-input" id="application-study-finish-year-input" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="application-input" id="application-study-finish-year-input">
 						% for year in range(2013,2021):
 							<option value="${year}">${year}</option>
 						% endfor
 					</select>
-					<select class="application-input" id="application-study-finish-month-input" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="application-input" id="application-study-finish-month-input">
 						<%include file="/elements/month_options.html" />
 					</select>
 				</div>
@@ -272,7 +276,7 @@
 			<div class="application-wishes">
 				<div class="application-field" id="application-accommodation">
 					<span class="application-label" id="application-accommodation-label">${_("Unterbringungsuwnsch")}</span>
-					<select class="application-input" id="application-accommodation-input" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="application-input" id="application-accommodation-input">
 						<option value="any">${_("egal")}</option>
 						<option value="male">${_("männlicher Host")}</option>
 						<option value="female">${_("weiblicher Host")}</option>
@@ -280,7 +284,7 @@
 				</div>
 				<div class="application-field" id="application-food">
 					<span class="application-label" id="application-food-label">${_("Verpflegungswunsch")}</span>
-					<select class="application-input" id="application-food-input" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="application-input" id="application-food-input">
 						<option value="any">${_("egal")}</option>
 						<option value="vegetarian">${_("vegetarisch")}</option>
 					</select>

@@ -25,11 +25,12 @@
 						function(result)
 						{
 							result = parse_result( result )
-							if( !result || !result[0] || !result[0].contact_id ) {
-								show_message( "${_("Gespeicherte Daten konnten nicht abgerufen werden")}" )
-							}
 							global_user = result[0]
 							update_contact()
+							$(".contact-input").each(
+							function( i, field ) {
+								field.onchange = field.onkeyup = field.onblur = function() { rs(this); };
+							})
 						})
 					}
 					else
@@ -120,27 +121,27 @@
 			<div class="contact-personal">
 				<div class="contact-field" id="contact-name-title">
 					<span class="contact-label" id="contact-name-title-label">${_("Namenstitel")}</span>
-					<input class="contact-input" id="contact-name-title-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-name-title-input" />
 				</div>
 				<div class="contact-field" id="contact-first-name">
 					<span class="contact-label" id="contact-first-name-label">${_("Vorname")}</span>
-					<input class="contact-input" id="contact-first-name-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-first-name-input" />
 				</div>
 				<div class="contact-field" id="contact-surname">
 					<span class="contact-label" id="contact-surname-label">${_("Nachname")}</span>
-					<input class="contact-input" id="contact-surname-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-surname-input" />
 				</div>
 				<div class="contact-field" id="contact-birth">
 					<span class="contact-label" id="contact-birth-label">${_("Geburtsdatum")}</span>
-					<select class="contact-input" id="contact-birth-year-input" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="contact-input" id="contact-birth-year-input">
 						% for year in range(1950,2000):
 							<option value="${year}">${year}</option>
 						% endfor
 					</select>
-					<select class="contact-input" id="contact-birth-month-input" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="contact-input" id="contact-birth-month-input">
 						<%include file="/elements/month_options.html" />
 					</select>
-					<select class="contact-input" id="contact-birth-day-input" onchange="rs(this)" onkeyup="rs(this)">
+					<select class="contact-input" id="contact-birth-day-input">
 						% for day in range(1,32):
 							<option value="${day}">${day}.</option>
 						% endfor
@@ -148,7 +149,7 @@
 				</div>
 				<div class="contact-field" id="contact-gender">
 					<span class="contact-label" id="contact-gender-label">${_("Geschlecht")}</span>
-					<select class="contact-input" id="contact-gender-input" onchange="rs(this)" >
+					<select class="contact-input" id="contact-gender-input">
 						<option value="undefined"></option>
 						<option value="female">${_("weiblich")}</option>
 						<option value="male">${_("männlich")}</option>
@@ -156,14 +157,14 @@
 				</div>
 				<div class="contact-field" id="contact-nationality">
 					<span class="contact-label" id="contact-nationality-label">${_("Nationalität")}</span>
-					<input class="contact-input" id="contact-nationality-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-nationality-input" />
 				</div>
 			</div>
 			<div class="contact-address">
 				<div class="contact-field" id="contact-country">
 					<span class="contact-label" id="contact-country-label">${_("Staat")}</span>
 					<% import os %>
-					<select class="contact-input" id="contact-country-input" onchange="rs(this)" onkeyup="rs(this)" >
+					<select class="contact-input" id="contact-country-input" >
 					% for line in [x.strip() for x in open(os.path.join(app.path,"country_en.txt"),"r")]:
 						<option value="${line}">${line[:40] + (len(line)>40 and "..." or "")}</option>
 					% endfor
@@ -171,27 +172,27 @@
 				</div>
 				<div class="contact-field" id="contact-region">
 					<span class="contact-label" id="contact-region-label">${_("Region")}</span>
-					<input class="contact-input" id="contact-region-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-region-input" />
 				</div>
 				<div class="contact-field" id="contact-city">
 					<span class="contact-label" id="contact-city-label">${_("Stadt")}</span>
-					<input class="contact-input" id="contact-city-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-city-input" />
 				</div>
 				<div class="contact-field" id="contact-street">
 					<span class="contact-label" id="contact-street-label">${_("Straße und Hausnummer")}</span>
-					<input class="contact-input" id="contact-street-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-street-input" />
 				</div>
 				<div class="contact-field" id="contact-postal-code">
 					<span class="contact-label" id="contact-postal-code-label">${_("Postleitzahl")}</span>
-					<input class="contact-input" id="contact-postal-code-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-postal-code-input" />
 				</div>
 				<div class="contact-field" id="contact-telephone1">
 					<span class="contact-label" id="contact-telephone1-label">${_("Telefonnummer")}</span>
-					<input class="contact-input" id="contact-telephone1-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-telephone1-input" />
 				</div>
 				<div class="contact-field" id="contact-telephone2">
 					<span class="contact-label" id="contact-telephone2-label">${_("Telefonnummer (alternativ)")}</span>
-					<input class="contact-input" id="contact-telephone2-input" onchange="rs(this)" onkeyup="rs(this)" />
+					<input class="contact-input" id="contact-telephone2-input" />
 				</div>
 			</div>
 		</div>

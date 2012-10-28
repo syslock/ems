@@ -49,7 +49,7 @@
 			
 			function rs( field )
 			{
-				hilight( field, "orange", 2 )
+				hilight( field, "blue", 2 )
 				request_store( store_application, field )
 			}
 			
@@ -69,7 +69,7 @@
 					{
 						hilight( field )
 					}
-					else unlight( field )
+					else hilight( field, "green", 2 )
 				})
 			}
 			

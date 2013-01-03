@@ -35,28 +35,25 @@ def process( app ):
 	# FIXME: Hier blacklisten wir kritische Objekttypen vor unautorisierter
 	# Erstellung (z.B. x-obj.user). Sicherer, aber im Prototyping unpraktischer 
 	# wär es unkritische Objekttypen zu whitelisten.
-	if media_type == user.User.media_type:
-		if "id" in query.parms:
-			raise NotImplementedError( "Missing feature" ) # TODO
+	if media_type == user.User.media_type and not "id" in query.parms:
+		raise NotImplementedError( "Missing feature" ) # TODO
+		c = app.db.cursor()
+		c.execute( """select count(*) from privileges 
+						where privilege=? and object_id=?""",
+					['create_user', usr.id] )
+		if( c.fetchone()!=1 ):
+			raise errors.PrivilegeError()
+		if "nick" in query.parms and "password" in query.parms \
+		and "email" in query.parms and "fullname" in query.parms:
+			usr = user.User( app = app,
+								nick = query.parms["nick"], 
+								plain_password = query.parms["password"],
+								email = query.parms["email"], 
+								fullname = query.parms["fullname"] )
+			response.output = str( {"succeeded" : True,
+									"object_id" : usr.id} )
 		else:
-			raise NotImplementedError( "Missing feature" ) # TODO
-			c = app.db.cursor()
-			c.execute( """select count(*) from privileges 
-							where privilege=? and object_id=?""",
-						['create_user', usr.id] )
-			if( c.fetchone()!=1 ):
-				raise errors.PrivilegeError()
-			if "nick" in query.parms and "password" in query.parms \
-			and "email" in query.parms and "fullname" in query.parms:
-				usr = user.User( app = app,
-								  nick = query.parms["nick"], 
-								  plain_password = query.parms["password"],
-								  email = query.parms["email"], 
-								  fullname = query.parms["fullname"] )
-				response.output = str( {"succeeded" : True,
-										"object_id" : usr.id} )
-			else:
-				raise errors.ParameterError()
+			raise errors.ParameterError()
 	else:
 		object_id = None
 		if "id" in query.parms:
@@ -85,6 +82,8 @@ def process( app ):
 		elif media_type == profile.Application.media_type:
 			obj = profile.Application( app, usr=usr, object_id=object_id, 
 										parent_id=parent_id )
+		elif media_type == user.User.media_type and object_id:
+			obj = user.User( app, user_id=object_id )
 		else:
 			obj = db_object.DBObject( app, usr=usr, object_id=object_id, 
 									  parent_id=parent_id, 

@@ -38,21 +38,32 @@ class User( db_object.DBObject ):
 		result["visible_objects"] = self.can_read()
 		return result
 	
-	def update( self, email=None, plain_password=None ):
-		if email or password:
-			c = self.app.db.cursor()
-			if email:
-				c.execute( """update users set email=? where object_id=?""", [email, self.id] )
-			if plain_password:
-				encrypted_password = password.encrypt( plain_password )
-				c.execute( """update users set password=? where object_id=?""", [encrypted_password, self.id] )
+	def update( self, **keyargs ):
+		c = self.app.db.cursor()
+		if "email" in keyargs:
+			email = keyargs["email"]
+			User.check_email( email )
+			c.execute( """update users set email=? where object_id=?""", [email, self.id] )
+			self.app.db.commit()
+		if "new_password" in keyargs:
+			new_password = keyargs["new_password"]
+			User.check_password( new_password )
+			encrypted_new_password = password.encrypt( new_password )
+			if not "user_id" in self.app.session.parms:
+				raise errors.AuthenticationNeeded()
+			user_id = int(self.app.session.parms["user_id"])
+			if user_id==self.id:
+				if not "old_password" in keyargs:
+					raise errors.PrivilegeError( "You need to authorize the change request with your old password" )
+				old_password = keyargs["old_password"]
+				encrypted_old_password = c.execute( """select password from users where object_id=?""", [self.id] ).fetchone()[0]
+				if not password.check( old_password, encrypted_old_password ):
+					raise errors.PrivilegeError( "Invalid old password" )
+			c.execute( """update users set password=? where object_id=?""", [encrypted_new_password, self.id] )
+			self.app.db.commit()
 	
 	@classmethod
-	def check( cls, app, nick, password, email ):
-		c = app.db.cursor()
-		c.execute( """select object_id from users where nick=?""", [nick] )
-		if c.fetchall():
-			raise Exception( "Nick already in use" )
+	def check_password( cls, password ):
 		if len(password)<8:
 			raise Exception( "Password has to be at least 8 characters long" )
 		#if not re.findall( "[a-zA-Z]", password ):
@@ -61,12 +72,24 @@ class User( db_object.DBObject ):
 		#	raise Exception( "Password must contain decimal digits" )
 		#if not re.findall( "[^a-zA-Z0-9]", password ):
 		#	raise Exception( "Password must contain special charactes" )
+	
+	@classmethod
+	def check_email( cls, email ):
 		if not "@" in email:
 			raise Exception( "Invalid email address" )
 		name, host = email.split("@")
 		if not name or not host:
 			raise Exception( "Invalid email address" )
 		socket.gethostbyname( host ) # Wirft Socket-Error bei unauflösbaren Hostnamen
+	
+	@classmethod
+	def check( cls, app, nick, password, email ):
+		c = app.db.cursor()
+		c.execute( """select object_id from users where nick=?""", [nick] )
+		if c.fetchall():
+			raise Exception( "Nick already in use" )
+		User.check_password( password )
+		User.check_email( email )
 		return True
 	
 	ACCESS_MASKS={ "read" : 1, "write" : 2 }

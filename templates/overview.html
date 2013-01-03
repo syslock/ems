@@ -6,19 +6,27 @@
 		<link id="main_style" rel="stylesheet" type="text/css" href="css/bubbles.css" />
 		<script data-main="js/main.js" src="js/require-jquery.js"></script>
 		<script>
-			var session = undefined;
+			var global_status = undefined;
+			var global_user = undefined;
 			function init()
 			{
 				$.get('ems.wsgi?do=status',
 				function(result)
 				{
 					result = parse_result( result )
+					global_status = result
 					if( result.login )
 					{
 						$(".menu-login")[0].style.display="none";
 						$(".menu-nick-caption")[0].style.display="";
 						$(".menu-nick")[0].innerHTML=result.login.nick;
 						$(".menu-logout")[0].style.display="";
+						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
+						function(result)
+						{
+							result = parse_result( result )
+							global_user = result[0]
+						})
 					}
 					else
 					{
@@ -29,6 +37,63 @@
 					}
 					load_visible_objects( result )
 				})
+			}
+			
+			function edit_password( user_element ) {
+				var user_id = user_element.data.object_id;
+				if( global_user.id == user_id ) {
+					// Bei Änderung des eigenen Passworts aus Sicherheitsgründen das alte abfragen:
+					// (serverseitige Berechtigungsprüfung übernimmt in jedem Fall der Store-Handler)
+					$('.user-old-password',user_element)[0].style.display='';
+				}
+				$('.user-new-password',user_element)[0].style.display='';
+				$('.user-new-password-2',user_element)[0].style.display='';
+			}
+			function change_password( user_element, old_password, new_password ) {
+				var user_id = user_element.data.object_id;
+				var old_password = $('.user-old-password-input',user_element)[0].value;
+				var new_password = $('.user-new-password-input',user_element)[0].value;
+				var new_password_2 = $('.user-new-password-input-2',user_element)[0].value;
+				hide_status();
+				unlight( $('.user-old-password-input',user_element)[0] );
+				unlight( $('.user-new-password-input',user_element)[0] );
+				unlight( $('.user-new-password-input-2',user_element)[0] );
+				if( new_password!=new_password_2 ) {
+					show_error( '${_("Das neue Passwort muss zwei mal identisch eingegeben werden!")}' );
+					$('.user-new-password-input',user_element)[0].value='';
+					$('.user-new-password-input-2',user_element)[0].value='';
+					hilight( $('.user-new-password-input',user_element)[0] );
+					hilight( $('.user-new-password-input-2',user_element)[0] );
+					return;
+				}
+				$.ajax({
+					url : "ems.wsgi?do=store&type=application/x-obj.user&id="+String(user_id),
+					type : "POST",
+					data : { old_password: old_password, new_password: new_password },
+					async : false,
+					success :
+				function( result )
+				{
+					result = parse_result( result )
+					if( result.succeeded ) {
+						$('.user-old-password-input',user_element)[0].value='';
+						$('.user-new-password-input',user_element)[0].value='';
+						$('.user-new-password-input-2',user_element)[0].value='';
+						$('.user-old-password',user_element)[0].style.display='none';
+						$('.user-new-password',user_element)[0].style.display='none';
+						$('.user-new-password-2',user_element)[0].style.display='none';
+					} else if( result && result.error ) {
+						if( result.error.message.match(/old password/i) ) {
+							$('.user-old-password-input',user_element)[0].value='';
+							hilight( $('.user-old-password-input',user_element)[0] );
+						} else if( result.error.message.match(/password/i) ) {
+							$('.user-new-password-input',user_element)[0].value='';
+							$('.user-new-password-input-2',user_element)[0].value='';
+							hilight( $('.user-new-password-input',user_element)[0] );
+							hilight( $('.user-new-password-input-2',user_element)[0] );
+						}
+					}
+				}})
 			}
 		</script>
 	</head>
@@ -68,6 +133,24 @@
 				<div class="user-heading">
 					<span>${_("Nutzer:")}</span>
 					<span class="user-nick"></span>
+					<button class="user-change-password" onclick="edit_password(this.parentNode.parentNode)">
+						${_("Passwort ändern")}
+					</button>
+					<div class="user-old-password" style="display:none" >
+						<label>${_("Altes Passwort:")}</label>
+						<input class="user-old-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
+					</div>
+					<div class="user-new-password" style="display:none" >
+						<label>${_("Neues Passwort:")}</label>
+						<input class="user-new-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
+					</div>
+					<div class="user-new-password-2" style="display:none" >
+						<label>${_("Neues Passwort (wiederholen):")}</label>
+						<input class="user-new-password-input-2" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
+						<button class="user-new-password-save" onclick="change_password(this.parentNode.parentNode.parentNode)">
+							${_("übernehmen")}
+						</button>
+					</div>
 				</div>
 				<div class="user-content"></div>
 			</div>

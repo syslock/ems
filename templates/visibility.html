@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<title>${app.config.sitename+_(" - Sichtbare Objekte")}</title>
+		<title>${app.config.sitename+_(" - Objektsichtbarkeit")}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="css/bubbles.css" />
 		<script data-main="js/main.js" src="js/require-jquery.js"></script>
 		<script>
@@ -104,6 +104,7 @@
 			<%include file="/elements/login_widget.html" />
 		</div>
 		<div class="page-menu">
+			<%include file="/elements/overview_button.html" />
 			<!--
 			<button class="ems-contact" onclick="open_tpl('contact.html')">
 				${_("Kontaktdaten")}
@@ -112,63 +113,15 @@
 				${_("Bewerbung")}
 			</button>
 			-->
-			<button class="ems-new-entry" onclick="new_item({type:'application/x-obj.entry', dom_parent:$('.ems-content')[0]})">
-				${_("Beitrag erstellen")}
-			</button>
 		</div>
-		<h1 class="ems-heading">${_("Sichtbare Objekte")}</h1>
+		<h1 class="ems-heading">${_("Objektsichtbarkeit")}</h1>
 		<div class="ems-help"></div>
 		<div class="ems-content">
 		</div>
-		<div class="ems-status">
-			<div class="ems-message"></div>
-			<pre class="ems-error"></pre>
-		</div>
-			<div id="ems-group-template" class="ems-group" style="display:none">
-				<div class="group-heading">
-					<span>${_("Gruppe:")}</span>
-					<span class="group-name"></span>
-				</div>
-				<div class="group-content"></div>
-			</div>
-			<div id="ems-user-template" class="ems-user" style="display:none">
-				<div class="user-heading">
-					<span>${_("Nutzer:")}</span>
-					<span class="user-nick"></span>
-					<button class="user-change-password" onclick="edit_password(this.parentNode.parentNode)">
-						${_("Passwort ändern")}
-					</button>
-					<div class="user-old-password" style="display:none" >
-						<label>${_("Altes Passwort:")}</label>
-						<input class="user-old-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
-					</div>
-					<div class="user-new-password" style="display:none" >
-						<label>${_("Neues Passwort:")}</label>
-						<input class="user-new-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
-					</div>
-					<div class="user-new-password-2" style="display:none" >
-						<label>${_("Neues Passwort (wiederholen):")}</label>
-						<input class="user-new-password-input-2" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
-						<button class="user-new-password-save" onclick="change_password(this.parentNode.parentNode.parentNode)">
-							${_("übernehmen")}
-						</button>
-					</div>
-				</div>
-				<div class="user-content"></div>
-			</div>
-			<div id="ems-entry-template" class="ems-entry" style="display:none">
-				<div class="entry-heading">
-					<span>${_("Beitrag:")}</span>
-					<span class="entry-title"></span>
-				</div>
-				<div class="entry-content"></div>
-				<button class="entry-edit" onclick="edit_entry(this)">
-					${_("Bearbeiten")}
-				</button>
-				<button class="entry-save" style="display:none" onclick="save_entry_plain(this)">
-					${_("Speichern")}
-				</button>
-			</div>
-			<div id="entry-text-template" class="entry-text" style="display:none"></div>
+		<%include file="/elements/status_box.html" />
+		<%include file="/elements/group_template.html" />
+		<%include file="/elements/user_template.html" />
+		<%include file="/elements/entry_template.html" />
+		<%include file="/elements/text_template.html" />
 	</body>
 </html>

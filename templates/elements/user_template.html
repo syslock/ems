@@ -1,0 +1,25 @@
+			<div id="ems-user-template" class="ems-user" style="display:none">
+				<div class="user-heading">
+					<span>${_("Nutzer:")}</span>
+					<span class="user-nick"></span>
+					<button class="user-change-password" onclick="edit_password(this.parentNode.parentNode)">
+						${_("Passwort ändern")}
+					</button>
+					<div class="user-old-password" style="display:none" >
+						<label>${_("Altes Passwort:")}</label>
+						<input class="user-old-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
+					</div>
+					<div class="user-new-password" style="display:none" >
+						<label>${_("Neues Passwort:")}</label>
+						<input class="user-new-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
+					</div>
+					<div class="user-new-password-2" style="display:none" >
+						<label>${_("Neues Passwort (wiederholen):")}</label>
+						<input class="user-new-password-input-2" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
+						<button class="user-new-password-save" onclick="change_password(this.parentNode.parentNode.parentNode)">
+							${_("übernehmen")}
+						</button>
+					</div>
+				</div>
+				<div class="user-content"></div>
+			</div>

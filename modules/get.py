@@ -11,15 +11,18 @@ profile = imp.reload( profile )
 def process( app ):
 	query = app.query
 	response = app.response
+	limit = None
+	if "limit" in query.parms:
+		limit = int(query.parms["limit"])
 	if "id" in query.parms:
 		object_id = int( query.parms["id"] )
-		result = get( app, [object_id] )
+		result = get( app, [object_id], limit=limit )
 	else:
-		result = get( app )
+		result = get( app, limit=limit )
 	if result != None:
 		response.output = str( result )
 
-def get( app, object_ids=[] ):
+def get( app, object_ids=[], limit=None ):
 	query = app.query
 	response = app.response
 	session = app.session
@@ -30,7 +33,7 @@ def get( app, object_ids=[] ):
 	if not usr:
 		raise errors.AuthenticationNeeded()
 	if not object_ids:
-		permissions = usr.can_read()
+		permissions = usr.can_read( limit=limit )
 		for permission in permissions:
 			object_ids.append( permission[1] )
 	view = "all"
@@ -60,13 +63,16 @@ def get( app, object_ids=[] ):
 		c.execute( """select child_id from membership m
 						inner join objects o on o.id=m.child_id
 						where parent_id=?
-						order by o.sequence, o.id""",
+						order by o.sequence, o.mtime desc""",
 					[object_id] )
 		children = []
-		for row in c:
-			children.append( row[0] )
+		for i, row in enumerate(c):
+			if not limit or i<limit:
+				children.append( row[0] )
+			else:
+				break
 		if children and recursive:
-			obj["children"] = get( app, children )
+			obj["children"] = get( app, children, limit=limit )
 		else:
 			obj["children"] = children
 		c.execute( """select data from titles where object_id=?""", 

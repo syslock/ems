@@ -78,7 +78,7 @@ function new_item( parms )
 			item = $("#ems-"+short_type+"-template").first().clone(true)[0];
 			item.id = "ems-"+short_type+"-"+String(parms.id)
 			item.style.display = ""
-			$(parms.dom_parent).first().prepend( item )
+			$(parms.dom_parent).last().append( item )
 			item.data = {
 				"object_id" : parms.id,
 			}
@@ -96,13 +96,13 @@ function new_item( parms )
 	}
 }
 
-function load_visible_objects( session )
+function load_visible_objects( session, limit )
 {
 	if( session )
 	{
 		$.ajax({
-			url : "ems.wsgi?do=get&view=all&recursive=true",
-			async : false,
+			url : "ems.wsgi?do=get&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
+			async : true,
 			success :
 		function( result )
 		{
@@ -115,11 +115,11 @@ function load_visible_objects( session )
 	}
 }
 
-function show_object( obj, dom_parent )
+function show_object( obj, dom_parent, limit )
 {
 	if( obj.id && !obj.type )
 	{
-		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true",
+		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
 		function( result )
 		{
 			result = parse_result( result )

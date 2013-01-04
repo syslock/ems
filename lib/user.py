@@ -93,25 +93,25 @@ class User( db_object.DBObject ):
 		return True
 	
 	ACCESS_MASKS={ "read" : 1, "write" : 2 }
-	def can_read( self, object_id=None ):
-		return self.can_access( object_id, "read" )
-	def can_write( self, object_id=None ):
-		return self.can_access( object_id, "write" )
-	def can_delete( self, object_id ):
+	def can_read( self, object_id=None, limit=None ):
+		return self.can_access( object_id, "read", limit=limit )
+	def can_write( self, object_id=None, limit=None ):
+		return self.can_access( object_id, "write", limit=limit )
+	def can_delete( self, object_id, limit=None ):
 		"""Ein Objekt ist löschbar, wenn es selbst und alle Eltern schreibbar sind."""
 		c = self.app.db.cursor()
 		c.execute( """select parent_id from membership where child_id=?""",
 					[object_id] )
-		deletable = self.can_write( object_id )
+		deletable = self.can_write( object_id, limit=limit )
 		has_parent = False
 		for row in c:
 			has_parent = True
 			if not deletable:
 				break
 			parent_id = row[0]
-			deletable = deletable and self.can_write( parent_id )
+			deletable = deletable and self.can_write( parent_id, limit=limit )
 		return deletable and has_parent
-	def can_access( self, object_id, access_type ):
+	def can_access( self, object_id, access_type, limit=None ):
 		if access_type not in self.ACCESS_MASKS:
 			raise NotImplementedError( "Unsupported access_type" )
 		access_mask = self.ACCESS_MASKS[ access_type ]
@@ -125,13 +125,23 @@ class User( db_object.DBObject ):
 				object_constraint = "object_id=%(object_id)d" % locals()
 			c.execute( """select subject_id, object_id, access_mask
 							from permissions
-							where %(object_constraint)s and %(subject_constraint)s""" \
+							inner join objects on permissions.object_id=objects.id
+							where %(object_constraint)s and %(subject_constraint)s
+							order by objects.mtime desc""" \
 						% locals() )
 			if object_id==None:
 				# Falls keine object_id übergeben wurde, geben wir die direkt
 				# entsprechend zugreifbaren Object-IDs, zusammen mit den dafür
 				# verantwortlichen Zugriffs-IDs zurück 
-				return c.fetchall()
+				result = []
+				for i, row in enumerate(c):
+					if not limit:
+						result.append( row )
+					elif i<limit:
+						result.append( row )
+					else:
+						break
+				return result
 			test_mask = None
 			for row in c:
 				if test_mask == None:

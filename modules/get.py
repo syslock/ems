@@ -25,7 +25,7 @@ def process( app ):
 	if result != None:
 		response.output = str( result )
 
-def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[] ):
+def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], access_errors=True ):
 	query = app.query
 	response = app.response
 	session = app.session
@@ -37,6 +37,9 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[] )
 		raise errors.AuthenticationNeeded()
 	c = app.db.cursor()
 	if not object_ids:
+		# Wildcardsuche nach lesbaren Objekten
+		# hierfür müssen wir Zugriffsfehler abschalten, wodurch im Zweifelsfall eine leere Liste zurückgegeben wird:
+		access_errors=False
 		if "type" in query.parms:
 			c.execute( """select id, type, sequence, mtime
 							from objects
@@ -49,8 +52,7 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[] )
 							order by sequence, mtime desc, id""" )
 		for i, row in enumerate(c):
 			if not limit or len(object_ids)<limit:
-				if usr.can_read( row[0] ):
-					object_ids.append( row[0] )
+				object_ids.append( row[0] )
 			else:
 				break
 	view = "all"
@@ -59,7 +61,10 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[] )
 	objects = []
 	for object_id in object_ids:
 		if not usr.can_read( object_id ):
-			raise errors.PrivilegeError()
+			if access_errors:
+				raise errors.PrivilegeError()
+			else:
+				continue
 		c.execute( """select type, sequence, mtime 
 						from objects where id=?""", 
 					[object_id] )
@@ -83,12 +88,12 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[] )
 		for row in c:
 			child_id = row[0]
 			if not limit or len(children)<limit:
-				if child_id not in exclude_relatives: 
+				if child_id not in exclude_relatives:
 					children.append( child_id )
 			else:
 				break
 		if children and recursive:
-			obj["children"] = get( app, children, limit=limit, recursive=recursive, exclude_relatives=exclude_relatives+[object_id] )
+			obj["children"] = get( app, children, limit=limit, recursive=recursive, exclude_relatives=exclude_relatives+[object_id], access_errors=False )
 		else:
 			obj["children"] = children
 		# Elternelemente ermitteln:
@@ -108,7 +113,7 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[] )
 		if parents and recursive:
 			# Elternelemente werden nie rekursiv abgefragt, sondern nur direkt aufgelöst, 
 			# um Endlosrekursion zu vermeiden:
-			obj["parents"] = get( app, parents, limit=limit, recursive=False, exclude_relatives=exclude_relatives+[object_id] )
+			obj["parents"] = get( app, parents, limit=limit, recursive=False, exclude_relatives=exclude_relatives+[object_id], access_errors=False )
 		else:
 			obj["parents"] = parents
 		c.execute( """select data from titles where object_id=?""", 

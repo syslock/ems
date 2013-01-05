@@ -1,5 +1,6 @@
 			<span id="ems-entry-template" class="ems-entry" style="display:none">
-				<span class="entry-connector"></span>
+				<span class="entry-decorator-left"></span>
+				<span class="entry-decorator-top"></span>
 				<span class="entry-data">
 					<span class="entry-heading">
 						<span class="entry-title-label">${_("Betreff:")}</span>
@@ -8,11 +9,19 @@
 					<span class="entry-content"></span>
 				</span>
 				<span class="entry-tools">
-					<button class="entry-edit" onclick="edit_entry(this)">
-						${_("Bearbeiten")}
-					</button>
-					<button class="entry-save" style="display:none" onclick="save_entry_plain(this)">
-						${_("Speichern")}
-					</button>
+					<span class="entry-tools-decorator-left"></span>
+					<span class="entry-tools-decorator-top"></span>
+					<span class="entry-tools-content">
+						<button class="entry-edit" onclick="edit_entry(this)">
+							${_("Bearbeiten")}
+						</button>
+						<button class="entry-save" style="display:none" onclick="save_entry_plain(this)">
+							${_("Speichern")}
+						</button>
+					</span>
+					<span class="entry-tools-decorator-bottom"></span>
+					<span class="entry-tools-decorator-right"></span>
 				</span>
+				<span class="entry-decorator-bottom"></span>
+				<span class="entry-decorator-right"></span>
 			</span>

@@ -14,15 +14,18 @@ def process( app ):
 	limit = None
 	if "limit" in query.parms:
 		limit = int(query.parms["limit"])
+	recursive = False
+	if "recursive" in query.parms:
+		recursive = query.parms["recursive"].lower()=="true"
 	if "id" in query.parms:
-		object_id = int( query.parms["id"] )
-		result = get( app, [object_id], limit=limit )
+		object_ids = [int(x) for x in query.parms["id"].split(",")]
+		result = get( app, object_ids, limit=limit, recursive=recursive )
 	else:
-		result = get( app, limit=limit )
+		result = get( app, limit=limit, recursive=recursive )
 	if result != None:
 		response.output = str( result )
 
-def get( app, object_ids=[], limit=None ):
+def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[] ):
 	query = app.query
 	response = app.response
 	session = app.session
@@ -32,14 +35,27 @@ def get( app, object_ids=[], limit=None ):
 		usr = user.get_anonymous_user( app )
 	if not usr:
 		raise errors.AuthenticationNeeded()
+	c = app.db.cursor()
 	if not object_ids:
-		permissions = usr.can_read( limit=limit )
-		for permission in permissions:
-			object_ids.append( permission[1] )
+		if "type" in query.parms:
+			c.execute( """select id, type, sequence, mtime
+							from objects
+							where type=?
+							order by sequence, mtime desc, id""",
+						[query.parms["type"]] )
+		else:
+			c.execute( """select id, type, sequence, mtime
+							from objects
+							order by sequence, mtime desc, id""" )
+		for i, row in enumerate(c):
+			if not limit or len(object_ids)<limit:
+				if usr.can_read( row[0] ):
+					object_ids.append( row[0] )
+			else:
+				break
 	view = "all"
 	if "view" in query.parms:
 		view = query.parms["view"]
-	c = app.db.cursor()
 	objects = []
 	for object_id in object_ids:
 		if not usr.can_read( object_id ):
@@ -57,24 +73,44 @@ def get( app, object_ids=[], limit=None ):
 			"sequence" : result[1],
 			"mtime" : result[2],
 			}
-		recursive = False
-		if "recursive" in query.parms:
-			recursive = query.parms["recursive"].lower()=="true"
+		# Kindelemente ermitteln:
 		c.execute( """select child_id from membership m
 						inner join objects o on o.id=m.child_id
 						where parent_id=?
-						order by o.sequence, o.mtime desc""",
+						order by o.sequence, o.mtime desc, o.id""",
 					[object_id] )
 		children = []
-		for i, row in enumerate(c):
-			if not limit or i<limit:
-				children.append( row[0] )
+		for row in c:
+			child_id = row[0]
+			if not limit or len(children)<limit:
+				if child_id not in exclude_relatives: 
+					children.append( child_id )
 			else:
 				break
 		if children and recursive:
-			obj["children"] = get( app, children, limit=limit )
+			obj["children"] = get( app, children, limit=limit, recursive=recursive, exclude_relatives=exclude_relatives+[object_id] )
 		else:
 			obj["children"] = children
+		# Elternelemente ermitteln:
+		c.execute( """select parent_id from membership m
+						inner join objects o on o.id=m.parent_id
+						where child_id=?
+						order by o.sequence, o.mtime desc, o.id""",
+					[object_id] )
+		parents = []
+		for row in c:
+			parent_id = row[0]
+			if not limit or len(parents)<limit:
+				if parent_id not in exclude_relatives:
+					parents.append( parent_id )
+			else:
+				break
+		if parents and recursive:
+			# Elternelemente werden nie rekursiv abgefragt, sondern nur direkt aufgelöst, 
+			# um Endlosrekursion zu vermeiden:
+			obj["parents"] = get( app, parents, limit=limit, recursive=False, exclude_relatives=exclude_relatives+[object_id] )
+		else:
+			obj["parents"] = parents
 		c.execute( """select data from titles where object_id=?""", 
 			[object_id] )
 		result = c.fetchone()

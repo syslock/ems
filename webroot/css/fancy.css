@@ -1,0 +1,57 @@
+.ems-content {
+}
+
+.ems-entry {
+}
+.entry-connector {
+	display: inline-block;
+	vertical-align: top;
+	margin-top: 5px;
+	margin-right: -13px;
+	width: 45px;
+	height: 114px;
+	background:url(../images/speech-connector.svg) no-repeat 0 0;
+}
+.entry-data {
+	display: inline-block;
+	vertical-align: top;
+	margin-bottom: 10px;
+	border-radius: 20px;
+	border: 3px solid grey;
+	border-left: none;
+	padding: 10px;
+	min-height: 110px;
+	width: 60%;
+}
+.entry-title-label {
+	display: none;
+}
+.entry-heading {
+	font-weight: bold;
+	text-decoration: underline;
+	margin-bottom: 10px;
+}
+.entry-tools {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.ems-user {
+	display:block;
+}
+.user-image {
+	display: block;
+	width: 100px;
+	height: 100px;
+	background-color: lightblue;
+}
+.user-heading {
+	display: inline-block;
+}
+.user-nick-label {
+	display: none;
+}
+
+.group-heading {
+	display: none;
+}

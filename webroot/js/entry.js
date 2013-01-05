@@ -15,7 +15,7 @@ function new_text_part( entry_id, data )
 		{
 			div.id = "entry-text-"+String(result.object_id)
 			div.style.display = ""
-			div.innerHTML = data
+			$(div).html( data )
 		}
 		else
 		{
@@ -69,7 +69,7 @@ function new_item( parms )
 	else
 	{
 		var item = parms.dom_object;
-		if( !item )
+		if( !item && !parms.duplicates )
 		{
 			item = $("#ems-"+short_type+"-"+String(parms.id))[0]
 		}
@@ -78,7 +78,12 @@ function new_item( parms )
 			item = $("#ems-"+short_type+"-template").first().clone(true)[0];
 			item.id = "ems-"+short_type+"-"+String(parms.id)
 			item.style.display = ""
-			$(parms.dom_parent).last().append( item )
+			if( parms.dom_parent ) {
+				$(parms.dom_parent).first().append( item );
+			} else if( parms.dom_child ) {
+				$(parms.dom_child).first().before( item );
+				$("."+short_type+"-content",item).append( parms.dom_child );
+			}
 			item.data = {
 				"object_id" : parms.id,
 			}
@@ -89,34 +94,34 @@ function new_item( parms )
 		if( parms.name ) field_name = "name";
 		if( field_name )
 		{
-			var item_field = $( "."+short_type+"-"+field_name, item )[0]
-			if( item_field ) item_field.innerHTML = parms[ field_name ]
+			var item_field = $( "."+short_type+"-"+field_name, item ).first().html( parms[field_name] )
 		}
 		return item;
 	}
 }
 
-function load_visible_objects( session, limit )
-{
-	if( session )
-	{
-		$.ajax({
-			url : "ems.wsgi?do=get&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
-			async : true,
-			success :
-		function( result )
-		{
-			result = parse_result( result )
-			for( i in result )
-			{
-				show_object( result[i], $(".ems-content")[0] )
-			}
-		}})
-	}
+function load_visible_objects( parms ) {
+	var limit = (parms.limit ? "&limit="+parms.limit : "");
+	var type = (parms.type ? "&type="+parms.type : "");
+	$.ajax({
+		url : "ems.wsgi?do=get&view=all&recursive=true"+limit+type,
+		async : true,
+		success :
+	function( result ) {
+		result = parse_result( result )
+		for( i in result ) {
+			show_object( {obj: result[i], dom_parent: $(".ems-content")[0], limit: limit} )
+		}
+	}})
 }
 
-function show_object( obj, dom_parent, limit )
+function show_object( parms )
 {
+	var obj = parms.obj;
+	var dom_parent = parms.dom_parent;
+	var dom_child = parms.dom_child;
+	var limit = parms.limit;
+	var duplicates = parms.duplicates;
 	if( obj.id && !obj.type )
 	{
 		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
@@ -130,33 +135,44 @@ function show_object( obj, dom_parent, limit )
 					var merged_obj = {}
 					for( key in obj ) merged_obj[key] = obj[key];
 					for( key in result[i] ) merged_obj[key] = result[i][key];
-					show_object( merged_obj, $(".ems-content")[0] )
+					show_object( {obj:merged_obj, dom_parent:$(".ems-content")[0], limit:limit} )
 				}
 			}
 		})
 	}
 	if( obj.type == "application/x-obj.group" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_object:obj.dom_object, dom_parent:dom_parent} )
-		for( var i in obj.children )
-		{
-			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
+		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates} )
+		if( dom_parent ) {
+			for( var i in obj.children ) {
+				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
+			}
 		}
 	}
 	if( obj.type == "application/x-obj.user" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_object:obj.dom_object, dom_parent:dom_parent} )
-		for( var i in obj.children )
-		{
-			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
+		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates} )
+		if( dom_parent ) {
+			for( var i in obj.children ) {
+				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
+			}
 		}
 	}
 	if( obj.type == "application/x-obj.entry" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_object:obj.dom_object, dom_parent:dom_parent} )
-		for( var i in obj.children )
-		{
-			show_object( obj.children[i], $("."+get_short_type(obj.type)+"-content",item)[0] )
+		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates} )
+		if( dom_parent ) {
+			for( var i in obj.children ) {
+				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
+			}
+			for( var i in obj.parents ) {
+				parent = obj.parents[i];
+				if( parent.type == "application/x-obj.group" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true} );
+			}
+			for( var i in obj.parents ) {
+				parent = obj.parents[i];
+				if( parent.type == "application/x-obj.user" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true} );
+			}
 		}
 	}
 	if( obj.type == "text/plain" )
@@ -169,7 +185,7 @@ function show_object( obj, dom_parent, limit )
 			if( dom_parent ) dom_parent.appendChild( div );
 		}
 		div.style.display = ""
-		div.innerHTML = obj.data.replace(/\r?\n$/,"").replace(/\r?\n/g,"<br/>")
+		$(div).html( obj.data.replace(/\r?\n$/,"").replace(/\r?\n/g,"<br/>") );
 	}
 }
 

@@ -201,6 +201,7 @@ html {
 }
 
 .ems-entry {
+	display: block;
 	background-color: #ffffd0;
 	padding-top: 10px;
 	padding-left: 10px;	

@@ -105,6 +105,9 @@
 		</div>
 		<div class="page-menu">
 			<%include file="/elements/overview_button.html" />
+			<button class="ems-contact" onclick="$('.user-change-password').each( function(i, elem){ elem.style.display=''; } );">
+				${_("Passwörter ändern")}
+			</button>
 			<!--
 			<button class="ems-contact" onclick="open_tpl('contact.html')">
 				${_("Kontaktdaten")}

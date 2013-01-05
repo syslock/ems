@@ -191,20 +191,18 @@ function show_object( parms )
 
 function edit_entry( button )
 {
-	var title = $(".entry-title",button.parentNode)[0]
-	var content = $(".entry-content",button.parentNode)[0]
-	if( title ) 
-	{
+	var title = $(".entry-title",$(button).closest(".ems-entry"))[0]
+	var content = $(".entry-content",$(button).closest(".ems-entry"))[0]
+	if( title ) {
 		title.contentEditable = true
 		if( title.innerHTML.length==0 || !content ) title.focus()
 	}
-	if( content )
-	{
+	if( content ) {
 		content.contentEditable = true
 		if( title.innerHTML.length>0 ) content.focus()
 	}
 	button.style.display="none"
-	$(".entry-save",button.parentNode)[0].style.display=""
+	$(".entry-save",$(button).closest(".ems-entry"))[0].style.display=""
 }
 
 function get_plain_text( element )
@@ -228,9 +226,9 @@ function get_plain_text( element )
 
 function save_entry_plain( button )
 {
-	var entry_id = button.parentNode.data.object_id
-	var title = $(".entry-title",button.parentNode)[0]
-	var content = $(".entry-content",button.parentNode)[0]
+	var entry_id = $(button).closest(".ems-entry")[0].data.object_id
+	var title = $(".entry-title",$(button).closest(".ems-entry"))[0]
+	var content = $(".entry-content",$(button).closest(".ems-entry"))[0]
 	if( title ) 
 	{
 		title.contentEditable = false
@@ -278,6 +276,6 @@ function save_entry_plain( button )
 		}})
 	}
 	button.style.display="none"
-	$(".entry-edit",button.parentNode)[0].style.display=""
+	$(".entry-edit",$(button).closest(".ems-entry"))[0].style.display=""
 }
 

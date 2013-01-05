@@ -3,21 +3,21 @@
 					<span class="user-image"></span>
 					<span class="user-nick-label">${_("Nutzer:")}</span>
 					<span class="user-nick"></span>
-					<button class="user-change-password" style="display:none" onclick="edit_password(this.parentNode.parentNode)">
+					<button class="user-change-password" style="display:none" onclick="edit_password($(this).closest('.ems-user'))">
 						${_("Passwort ändern")}
 					</button>
 					<span class="user-old-password" style="display:none" >
 						<label>${_("Altes Passwort:")}</label>
-						<input class="user-old-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
+						<input class="user-old-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password($(my).closest('.ems-user'))})"></input>
 					</span>
 					<span class="user-new-password" style="display:none" >
 						<label>${_("Neues Passwort:")}</label>
-						<input class="user-new-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
+						<input class="user-new-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password($(my).closest('.ems-user'))})"></input>
 					</span>
 					<span class="user-new-password-2" style="display:none" >
 						<label>${_("Neues Passwort (wiederholen):")}</label>
-						<input class="user-new-password-input-2" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my.parentNode.parentNode.parentNode)})"></input>
-						<button class="user-new-password-save" onclick="change_password(this.parentNode.parentNode.parentNode)">
+						<input class="user-new-password-input-2" type="password" onkeypress="var my=this; onenter(event,function(){change_password($(my).closest('.ems-user'))})"></input>
+						<button class="user-new-password-save" onclick="change_password($(this).closest('.ems-user'))">
 							${_("übernehmen")}
 						</button>
 					</span>

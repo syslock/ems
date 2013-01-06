@@ -65,7 +65,7 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 				raise errors.PrivilegeError()
 			else:
 				continue
-		c.execute( """select type, sequence, mtime 
+		c.execute( """select type, sequence, mtime, ctime
 						from objects where id=?""", 
 					[object_id] )
 		result = c.fetchone()
@@ -77,6 +77,7 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 			"type" : object_type,
 			"sequence" : result[1],
 			"mtime" : result[2],
+			"ctime" : result[3],
 			}
 		# Kindelemente ermitteln:
 		c.execute( """select child_id from membership m

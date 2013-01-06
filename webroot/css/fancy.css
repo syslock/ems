@@ -30,36 +30,62 @@
 	min-height: 110px;
 	width: 60%;
 }
-.entry-heading {
-	font-weight: bold;
-	text-decoration: underline;
-	margin-bottom: 10px;
-}
 .entry-title-label {
 	display: none;
 }
 .entry-title {
 	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
+	font-weight: bold;
+	text-decoration: underline;
+	padding: 2px;
+	padding-bottom: 10px;
+	border: 2px solid transparent;
 }
 .entry-title:focus {
 	border: 2px solid orange;
-	padding: 2px;
 }
+.entry-time {
+	position: absolute;
+	margin-top: 80px;
+	margin-left: -130px;
+}
+.entry-mtime {
+	display: block;
+	padding-left: 20px;
+	padding-bottom: 5px;
+	background:url(../silk_icons/date_edit.png) no-repeat 0 0;
+	font-size: small;
+	text-align: center;
+}
+.entry-mtime-label {
+	display: none;
+}
+.entry-mtime-day {
+	display: block;
+}
+.entry-mtime-time {
+	display: block;
+}
+.entry-ctime {
+	display: none;
+}
+
 .entry-content {
 	/* Anklicken des Inhalts beim Editieren vereinfachen, indem er die ganze Breite und eine Mindeshöhe einnimmt: */
 	display: block;
 	min-height: 100px;
+	padding: 2px;
+	border: 2px solid transparent;
 }
 .entry-content:focus {
 	border: 2px solid orange;
-	padding: 2px;
 }
 .entry-tools {
 	display: none;
 	position: absolute;
 	margin-left: 5px;
 }
-.ems-entry:hover .entry-tools {
+.ems-item:hover .entry-tools {
 	display: inline-block;
 }
 .entry-tools-decorator-left {
@@ -121,40 +147,36 @@
 	min-height: 110px;
 	width: 60%;
 }
-.new-entry-heading {
-	font-weight: bold;
-	text-decoration: underline;
-	margin-bottom: 10px;
-}
 .new-entry-title-label {
 	display: none;
 }
 .new-entry-title {
 	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
+	font-weight: bold;
+	text-decoration: underline;
+	padding: 2px;
+	padding-bottom: 10px;
+	border: 2px solid transparent;
 }
 .new-entry-title:focus {
 	border: 2px solid orange;
-	padding: 2px;
 }
 .new-entry-content {
 	/* Anklicken des Inhalts beim Editieren vereinfachen, indem er die ganze Breite und eine Mindeshöhe einnimmt: */
 	display: block;
 	min-height: 100px;
+	padding: 2px;
+	border: 2px solid transparent;
 }
 .new-entry-content:focus {
 	border: 2px solid orange;
-	padding: 2px;
 }
 .new-entry-tools {
 	display: none;
 	position: absolute;
 	margin-left: 10px;
 }
-.ems-new-entry:hover .new-entry-tools {
-	display: inline-block;
-}
-.ems-entry:hover .new-entry-tools {
-	/* Beim Editieren werden new-entry-tools auch in normale ems-entry geklont... */
+.ems-item:hover .new-entry-tools {
 	display: inline-block;
 }
 .new-entry-tools-decorator-left {
@@ -202,6 +224,7 @@
 .user-heading {
 	display: inline-block;
 	vertical-align: top;
+	text-align: center;
 }
 .user-nick-label {
 	display: none;

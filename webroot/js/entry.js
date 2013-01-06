@@ -99,13 +99,21 @@ function new_item( parms )
 				"object_id" : parms.id,
 			}
 		}
-		var field_name = undefined
-		if( parms.title ) field_name = "title";
-		if( parms.nick ) field_name = "nick";
-		if( parms.name ) field_name = "name";
-		if( field_name )
-		{
-			var item_field = $( "."+short_type+"-"+field_name, item ).first().html( parms[field_name] )
+		for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
+			var value = parms[ field_name ];
+			if( field_name in {"ctime":1, "mtime":1} ) {
+				var date = new Date(value*1000);
+				var day = date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear()
+				var hours = date.getHours();
+				hours = (hours<10) ? "0"+String(hours) : String(hours);
+				var minutes = date.getMinutes();
+				minutes = (minutes<10) ? "0"+String(minutes) : String(minutes);
+				var time = hours+":"+minutes;
+				$( "."+short_type+"-"+field_name+"-day", item ).first().text( day );
+				$( "."+short_type+"-"+field_name+"-time", item ).first().text( time );
+			} else {
+				$( "."+short_type+"-"+field_name, item ).first().text( value )
+			}
 		}
 		return item;
 	}
@@ -155,7 +163,7 @@ function show_object( parms )
 	}
 	if( obj.type == "application/x-obj.group" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
+		var item = new_item( $.extend({dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update}, obj) )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
@@ -164,7 +172,7 @@ function show_object( parms )
 	}
 	if( obj.type == "application/x-obj.user" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
+		var item = new_item( $.extend({dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update}, obj) )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
@@ -173,7 +181,7 @@ function show_object( parms )
 	}
 	if( obj.type == "application/x-obj.entry" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
+		var item = new_item( $.extend({dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update}, obj) )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )

@@ -35,9 +35,9 @@ class DBObject:
 			if not media_type:
 				raise errors.ParameterError( "Missing media type" )
 			self.media_type = media_type
-			c.execute( """insert into objects (type,sequence,mtime) 
-							values(?,?,?)""",
-						[self.media_type, sequence, time.time()] )
+			c.execute( """insert into objects (type,sequence,ctime,mtime) 
+							values(?,?,?,?)""",
+						[self.media_type, sequence, time.time(), time.time()] )
 			self.id = c.lastrowid
 			if parent_id == None:
 				# Objekte ohne explizites Elternobjekt werden dem Wurzelobjekt untergeordnet:

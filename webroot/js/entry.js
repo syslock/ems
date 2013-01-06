@@ -79,7 +79,11 @@ function new_item( parms )
 			item.id = "ems-"+short_type+"-"+String(parms.id)
 			item.style.display = ""
 			if( parms.dom_parent ) {
-				$(parms.dom_parent).first().append( item );
+				if( parms.prepend ) {
+					$(parms.dom_parent).first().prepend( item );
+				} else {
+					$(parms.dom_parent).first().append( item );
+				}
 				// Im DOM eingehängte Objekte kapseln wir auf der obersten Ebene mit .ems-item
 				$(item).wrap( '<span class="ems-item"></span>' );
 			} else if( parms.dom_child ) {
@@ -124,6 +128,7 @@ function show_object( parms )
 	var dom_child = parms.dom_child;
 	var limit = parms.limit;
 	var duplicates = parms.duplicates;
+	var prepend = parms.prepend;
 	if( obj.id && !obj.type )
 	{
 		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
@@ -137,14 +142,14 @@ function show_object( parms )
 					var merged_obj = {}
 					for( key in obj ) merged_obj[key] = obj[key];
 					for( key in result[i] ) merged_obj[key] = result[i][key];
-					show_object( {obj:merged_obj, dom_parent:$(".ems-content")[0], limit:limit} )
+					show_object( {obj:merged_obj, dom_parent:$(".ems-content")[0], limit:limit, prepend:prepend} )
 				}
 			}
 		})
 	}
 	if( obj.type == "application/x-obj.group" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates} )
+		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
@@ -153,7 +158,7 @@ function show_object( parms )
 	}
 	if( obj.type == "application/x-obj.user" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates} )
+		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
@@ -162,7 +167,7 @@ function show_object( parms )
 	}
 	if( obj.type == "application/x-obj.entry" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates} )
+		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
@@ -236,19 +241,16 @@ function get_plain_text( element )
 
 function save_entry_plain( button ) {
 	var typemod = "";
-	var entry_id = undefined;
 	var entry = $(button).closest(".ems-entry")[0];
-	if( entry ) {
-		entry_id = entry.data.object_id;
-	} else {
+	if( !entry ) {
 		typemod = "new-";
 		entry = $(button).closest(".ems-"+typemod+"entry")[0];
+		// new-entry-Objekt mit einem neuen DB-Objekt assoziieren:
+		new_item( {type: "application/x-obj.entry", dom_object: entry} );
 	}
+	var entry_id = entry.data.object_id;
 	var title = $( "."+typemod+"entry-title", entry )[0]
 	var content = $( "."+typemod+"entry-content", entry )[0]
-	if( !entry_id ) {
-		alert( "Kernel Panic ;) | Hier müssen wir wohl new_item aufrufen und so modifzieren, dass es unseren new-entry versteht...?" );
-	}
 	if( title ) {
 		title.contentEditable = false
 		var title_text = get_plain_text( title )
@@ -301,7 +303,13 @@ function save_entry_plain( button ) {
 		}
 	}
 	else {
-		alert( "Kernel Panic ;) | Hier müssen wir den new_entry wohl in einen regulären entry transformieren...?" );
+		// new-entry-Objekt weg legen, Pseudo-Item löschen und neues reguläres Entry-Objekt abrufen:
+		var item = $(entry).closest(".ems-item")[0];
+		entry.style.display = "none";
+		$(".ems-content").first().after( entry );
+		entry.data = {};
+		$(item).remove();
+		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry_id}, prepend: true} );
 	}
 }
 
@@ -324,4 +332,17 @@ function new_response( user, button ) {
 	new_entry.style.display="";
 	var new_user_obj = $.extend( {duplicates: true, dom_child: new_entry}, user );
 	new_item( new_user_obj );
+}
+
+function delete_entry( button ) {
+	var entry = $(button).closest(".ems-entry")[0];
+	$.ajax({
+		url : "ems.wsgi?do=delete&id="+String(entry.data.object_id),
+		success :
+	function( result ) {
+		result = parse_result( result );
+		if( result.succeeded ) {
+			var item = $(entry).closest(".ems-item").remove();
+		}
+	}})
 }

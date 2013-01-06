@@ -242,10 +242,13 @@ function save_entry_plain( button ) {
 		entry_id = entry.data.object_id;
 	} else {
 		typemod = "new-";
-		entry = $(button).closest("."+typemod+"ems-entry")[0];
+		entry = $(button).closest(".ems-"+typemod+"entry")[0];
 	}
 	var title = $( "."+typemod+"entry-title", entry )[0]
 	var content = $( "."+typemod+"entry-content", entry )[0]
+	if( !entry_id ) {
+		alert( "Kernel Panic ;) | Hier müssen wir wohl new_item aufrufen und so modifzieren, dass es unseren new-entry versteht...?" );
+	}
 	if( title ) {
 		title.contentEditable = false
 		var title_text = get_plain_text( title )
@@ -298,7 +301,7 @@ function save_entry_plain( button ) {
 		}
 	}
 	else {
-		alert( "Kernel Panic ;)" )
+		alert( "Kernel Panic ;) | Hier müssen wir den new_entry wohl in einen regulären entry transformieren...?" );
 	}
 }
 

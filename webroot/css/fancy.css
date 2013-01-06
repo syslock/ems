@@ -153,6 +153,10 @@
 .ems-new-entry:hover .new-entry-tools {
 	display: inline-block;
 }
+.ems-entry:hover .new-entry-tools {
+	/* Beim Editieren werden new-entry-tools auch in normale ems-entry geklont... */
+	display: inline-block;
+}
 .new-entry-tools-decorator-left {
 	position: absolute;
 	margin-top: 13px;

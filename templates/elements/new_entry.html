@@ -12,16 +12,15 @@
 					<span class="new-entry-tools-decorator-left"></span>
 					<span class="new-entry-tools-decorator-top"></span>
 					<span class="new-entry-tools-content">
-						<button class="new-entry-write-button" onclick="">
-							${_("Schreiben")}
+						<button class="new-entry-font-button" onclick="change_font(this)" disabled>
+							${_("Schrift einstellen")}
 						</button>
-						<button class="new-entry-write-button" onclick="">
-							${_("Emotion ausdrücken")}
+						<button class="new-entry-emotion-button" onclick="add_emotion(this)" disabled>
+							${_("Gefühl zeigen")}
 						</button>
-						<button class="new-entry-write-button" onclick="">
-							${_("Datei anhängen")}
+						<button class="new-entry-file-button" onclick="add_file(this)" disabled>
+							${_("Datei einfügen")}
 						</button>
-						<hl/>
 						<button class="new-entry-send-button" onclick="save_entry_plain(this)">
 							${_("Abschicken")}
 						</button>

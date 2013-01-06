@@ -193,8 +193,9 @@ function show_object( parms )
 
 function edit_entry( button )
 {
-	var title = $(".entry-title",$(button).closest(".ems-entry"))[0]
-	var content = $(".entry-content",$(button).closest(".ems-entry"))[0]
+	var entry = $(button).closest(".ems-entry")[0];
+	var title = $( ".entry-title", entry )[0]
+	var content = $( ".entry-content", entry )[0]
 	if( title ) {
 		title.contentEditable = true
 		if( title.innerHTML.length==0 || !content ) title.focus()
@@ -203,8 +204,15 @@ function edit_entry( button )
 		content.contentEditable = true
 		if( title.innerHTML.length>0 ) content.focus()
 	}
-	button.style.display="none"
-	$(".entry-save",$(button).closest(".ems-entry"))[0].style.display=""
+	// Standard-Toolbox verbergen und temporären Klon der Editieren-Toolbox für diesen Beitrag erzeugen:
+	var std_tools = $( ".entry-tools", entry )[0];
+	if( std_tools ) {
+		std_tools.style.display="none";
+	}
+	var edit_tools = $( ".new-entry-tools", $("#ems-new-entry") )[0];
+	if( edit_tools ) {
+		$(std_tools).after( $(edit_tools).clone() )
+	}
 }
 
 function get_plain_text( element )
@@ -226,13 +234,19 @@ function get_plain_text( element )
 	return current_plain_text;
 }
 
-function save_entry_plain( button )
-{
-	var entry_id = $(button).closest(".ems-entry")[0].data.object_id
-	var title = $(".entry-title",$(button).closest(".ems-entry"))[0]
-	var content = $(".entry-content",$(button).closest(".ems-entry"))[0]
-	if( title ) 
-	{
+function save_entry_plain( button ) {
+	var typemod = "";
+	var entry_id = undefined;
+	var entry = $(button).closest(".ems-entry")[0];
+	if( entry ) {
+		entry_id = entry.data.object_id;
+	} else {
+		typemod = "new-";
+		entry = $(button).closest("."+typemod+"ems-entry")[0];
+	}
+	var title = $( "."+typemod+"entry-title", entry )[0]
+	var content = $( "."+typemod+"entry-content", entry )[0]
+	if( title ) {
 		title.contentEditable = false
 		var title_text = get_plain_text( title )
 		$.ajax({
@@ -241,13 +255,11 @@ function save_entry_plain( button )
 			data : { title: title_text },
 			async : false,
 			success :
-		function( result )
-		{
+		function( result ) {
 			result = parse_result( result )
 		}})
 	}
-	if( content )
-	{
+	if( content ) {
 		content.contentEditable = false
 		var content_text = get_plain_text( content )
 		// Inhalt speichern:
@@ -258,11 +270,9 @@ function save_entry_plain( button )
 			data : { data: content_text },
 			async : false,
 			success :
-		function( result )
-		{
+		function( result ) {
 			result = parse_result( result )
-			if( result.succeeded )
-			{
+			if( result.succeeded ) {
 				part_id_list.push( result.object_id )
 			}
 		}})
@@ -272,13 +282,24 @@ function save_entry_plain( button )
 				+"&child_not_in="+part_id_list.join(","),
 			async : false,
 			success :
-		function( result )
-		{
+		function( result ) {
 			result = parse_result( result )
 		}})
 	}
-	button.style.display="none"
-	$(".entry-edit",$(button).closest(".ems-entry"))[0].style.display=""
+	if( entry.id!="ems-new-entry" ) {
+		// temporären Klon der Editieren-Toolbox wieder aus diesem Beitrag löschen und Standard-Toolbox wieder anzeigen:
+		var edit_tools = $( ".new-entry-tools", entry )[0];
+		if( edit_tools ) {
+			$(edit_tools).remove();
+		}
+		var std_tools = $( ".entry-tools", entry )[0];
+		if( std_tools ) {
+			std_tools.style.display="";
+		}
+	}
+	else {
+		alert( "Kernel Panic ;)" )
+	}
 }
 
 function new_response( user, button ) {

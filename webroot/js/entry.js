@@ -69,12 +69,17 @@ function new_item( parms )
 	else
 	{
 		var item = parms.dom_object;
-		if( !item && !parms.duplicates )
-		{
+		if( !item && parms.update ) {
+			if( parms.dom_parent ) {
+				item = $(".ems-"+short_type, parms.dom_parent)[0]
+			} else if( parms.dom_child ) {
+				item = $(parms.dom_child).closest(".ems-"+short_type)[0]
+			}
+		}
+		if( !item && !parms.duplicates ) {
 			item = $("#ems-"+short_type+"-"+String(parms.id))[0]
 		}
-		if( !item )
-		{
+		if( !item ) {
 			item = $("#ems-"+short_type+"-template").first().clone(true)[0];
 			item.id = "ems-"+short_type+"-"+String(parms.id)
 			item.style.display = ""
@@ -129,6 +134,7 @@ function show_object( parms )
 	var limit = parms.limit;
 	var duplicates = parms.duplicates;
 	var prepend = parms.prepend;
+	var update = parms.update;
 	if( obj.id && !obj.type )
 	{
 		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
@@ -142,43 +148,43 @@ function show_object( parms )
 					var merged_obj = {}
 					for( key in obj ) merged_obj[key] = obj[key];
 					for( key in result[i] ) merged_obj[key] = result[i][key];
-					show_object( {obj:merged_obj, dom_parent:$(".ems-content")[0], limit:limit, prepend:prepend} )
+					show_object( {obj:merged_obj, dom_parent:$(".ems-content")[0], limit:limit, prepend:prepend, update:update} )
 				}
 			}
 		})
 	}
 	if( obj.type == "application/x-obj.group" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend} )
+		var item = new_item( {type:obj.type, id:obj.id, name:obj.name, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
+				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
 			}
 		}
 	}
 	if( obj.type == "application/x-obj.user" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend} )
+		var item = new_item( {type:obj.type, id:obj.id, nick:obj.nick, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
+				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
 			}
 		}
 	}
 	if( obj.type == "application/x-obj.entry" )
 	{
-		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend} )
+		var item = new_item( {type:obj.type, id:obj.id, title:obj.title, dom_object:obj.dom_object, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit} )
+				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
 			}
 			for( var i in obj.parents ) {
 				parent = obj.parents[i];
-				if( parent.type == "application/x-obj.group" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true} );
+				if( parent.type == "application/x-obj.group" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
 			for( var i in obj.parents ) {
 				parent = obj.parents[i];
-				if( parent.type == "application/x-obj.user" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true} );
+				if( parent.type == "application/x-obj.user" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
 		}
 	}
@@ -198,9 +204,14 @@ function show_object( parms )
 
 function edit_entry( button )
 {
+	var typemod = "";
 	var entry = $(button).closest(".ems-entry")[0];
-	var title = $( ".entry-title", entry )[0]
-	var content = $( ".entry-content", entry )[0]
+	if( !entry ) {
+		typemod = "new-";
+		entry = $(button).closest(".ems-"+typemod+"entry")[0];
+	}
+	var title = $( "."+typemod+"entry-title", entry )[0]
+	var content = $( "."+typemod+"entry-content", entry )[0]
 	if( title ) {
 		title.contentEditable = true
 		if( title.innerHTML.length==0 || !content ) title.focus()
@@ -213,10 +224,10 @@ function edit_entry( button )
 	var std_tools = $( ".entry-tools", entry )[0];
 	if( std_tools ) {
 		std_tools.style.display="none";
-	}
-	var edit_tools = $( ".new-entry-tools", $("#ems-new-entry") )[0];
-	if( edit_tools ) {
-		$(std_tools).after( $(edit_tools).clone() )
+		var edit_tools = $( ".new-entry-tools", $("#ems-new-entry") )[0];
+		if( edit_tools ) {
+			$(std_tools).after( $(edit_tools).clone() )
+		}
 	}
 }
 
@@ -237,6 +248,27 @@ function get_plain_text( element )
 		else current_plain_text += child.textContent;
 	}
 	return current_plain_text;
+}
+
+function restore_standard_tools( entry ) {
+	// temporären Klon der Editieren-Toolbox wieder aus diesem Beitrag löschen und Standard-Toolbox wieder anzeigen:
+	var edit_tools = $( ".new-entry-tools", entry )[0];
+	if( edit_tools ) {
+		$(edit_tools).remove();
+	}
+	var std_tools = $( ".entry-tools", entry )[0];
+	if( std_tools ) {
+		std_tools.style.display="";
+	}
+}
+
+function remove_new_entry_item( entry ) {
+	// new-entry-Objekt weg legen, Pseudo-Item löschen und neues reguläres Entry-Objekt abrufen:
+	var item = $(entry).closest(".ems-item")[0];
+	entry.style.display = "none";
+	$(".ems-content").first().after( entry );
+	entry.data = {};
+	$(item).remove();
 }
 
 function save_entry_plain( button ) {
@@ -292,23 +324,10 @@ function save_entry_plain( button ) {
 		}})
 	}
 	if( entry.id!="ems-new-entry" ) {
-		// temporären Klon der Editieren-Toolbox wieder aus diesem Beitrag löschen und Standard-Toolbox wieder anzeigen:
-		var edit_tools = $( ".new-entry-tools", entry )[0];
-		if( edit_tools ) {
-			$(edit_tools).remove();
-		}
-		var std_tools = $( ".entry-tools", entry )[0];
-		if( std_tools ) {
-			std_tools.style.display="";
-		}
+		restore_standard_tools( entry );
 	}
 	else {
-		// new-entry-Objekt weg legen, Pseudo-Item löschen und neues reguläres Entry-Objekt abrufen:
-		var item = $(entry).closest(".ems-item")[0];
-		entry.style.display = "none";
-		$(".ems-content").first().after( entry );
-		entry.data = {};
-		$(item).remove();
+		remove_new_entry_item( entry );
 		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry_id}, prepend: true} );
 	}
 }
@@ -327,11 +346,19 @@ function new_response( user, button ) {
 	}
 	if( old_item ) $(old_item).remove();
 	$(new_entry).wrap( '<span class="ems-item"></span>' )
-	$("new-entry-title", new_entry).empty();
-	$("new-entry-content", new_entry).empty();
+	$(".new-entry-title", new_entry).empty();
+	$(".new-entry-content", new_entry).empty();
+	if( reference_item ) {
+		reference_title = $(".entry-title", reference_item).first().text();
+		if( !reference_title.match(/^Re:/i) ) {
+			reference_title = "Re: "+reference_title;
+		}
+		$(".new-entry-title", new_entry).text( reference_title );
+	}
 	new_entry.style.display="";
 	var new_user_obj = $.extend( {duplicates: true, dom_child: new_entry}, user );
 	new_item( new_user_obj );
+	edit_entry( new_entry );
 }
 
 function delete_entry( button ) {
@@ -345,4 +372,27 @@ function delete_entry( button ) {
 			var item = $(entry).closest(".ems-item").remove();
 		}
 	}})
+}
+
+function discard_response( button ) {
+	var typemod = "";
+	var entry = $(button).closest(".ems-entry")[0];
+	if( !entry ) {
+		typemod = "new-";
+		entry = $(button).closest(".ems-"+typemod+"entry")[0];
+		remove_new_entry_item( entry );
+	}
+	else {
+		restore_standard_tools( entry );
+		var title = $( "."+typemod+"entry-title", entry )[0]
+		var content = $( "."+typemod+"entry-content", entry )[0]
+		if( title ) {
+			title.contentEditable = false;
+		}
+		if( content ) {
+			content.contentEditable = false;
+		}
+		// Daten neu laden, um lokale Änderungen zu beseitigen:
+		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry.data.object_id, dom_object: entry}, update: true} );
+	}
 }

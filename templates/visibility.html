@@ -39,7 +39,8 @@
 				})
 			}
 			
-			function edit_password( user_element ) {
+			function edit_password( button ) {
+				var user_element = $(button).closest(".ems-user")[0];
 				var user_id = user_element.data.object_id;
 				if( global_user.id == user_id ) {
 					// Bei Änderung des eigenen Passworts aus Sicherheitsgründen das alte abfragen:
@@ -49,7 +50,8 @@
 				$('.user-new-password',user_element)[0].style.display='';
 				$('.user-new-password-2',user_element)[0].style.display='';
 			}
-			function change_password( user_element, old_password, new_password ) {
+			function change_password( button, old_password, new_password ) {
+				var user_element = $(button).closest(".ems-user")[0];
 				var user_id = user_element.data.object_id;
 				var old_password = $('.user-old-password-input',user_element)[0].value;
 				var new_password = $('.user-new-password-input',user_element)[0].value;

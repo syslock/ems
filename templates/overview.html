@@ -47,10 +47,10 @@
 			<%include file="/elements/login_widget.html" />
 		</div>
 		<div class="page-menu">
-			<button class="ems-visibility" onclick="open_tpl('visibility.html')">
+			<button class="ems-visibility-button" onclick="open_tpl('visibility.html')">
 				${_("Objektsichtbarkeit")}
 			</button>
-			<button class="ems-new-entry" onclick="new_item({type:'application/x-obj.entry', dom_parent:$('.ems-content')[0]})">
+			<button class="ems-new-entry-button" onclick="new_response(global_user)">
 				${_("Beitrag erstellen")}
 			</button>
 		</div>
@@ -63,5 +63,6 @@
 		<%include file="/elements/user_template.html" />
 		<%include file="/elements/entry_template.html" />
 		<%include file="/elements/text_template.html" />
+		<%include file="/elements/new_entry.html" />
 	</body>
 </html>

@@ -80,6 +80,8 @@ function new_item( parms )
 			item.style.display = ""
 			if( parms.dom_parent ) {
 				$(parms.dom_parent).first().append( item );
+				// Im DOM eingehängte Objekte kapseln wir auf der obersten Ebene mit .ems-item
+				$(item).wrap( '<span class="ems-item"></span>' );
 			} else if( parms.dom_child ) {
 				$(parms.dom_child).first().before( item );
 				$("."+short_type+"-content",item).append( parms.dom_child );
@@ -279,3 +281,23 @@ function save_entry_plain( button )
 	$(".entry-edit",$(button).closest(".ems-entry"))[0].style.display=""
 }
 
+function new_response( user, button ) {
+	var reference_item = undefined;
+	if( button ) {
+		reference_item = $(button).closest(".ems-item")[0];
+	}
+	var new_entry = $("#ems-new-entry")[0];
+	var old_item = $(new_entry).closest('.ems-item')[0];
+	if( reference_item ) {
+		$(reference_item).before( new_entry );
+	} else {
+		$(".ems-content").first().prepend( new_entry );
+	}
+	if( old_item ) $(old_item).remove();
+	$(new_entry).wrap( '<span class="ems-item"></span>' )
+	$("new-entry-title", new_entry).empty();
+	$("new-entry-content", new_entry).empty();
+	new_entry.style.display="";
+	var new_user_obj = $.extend( {duplicates: true, dom_child: new_entry}, user );
+	new_item( new_user_obj );
+}

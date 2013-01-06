@@ -1,6 +1,13 @@
 .ems-content {
 }
 
+.ems-item {
+	display: block;
+}
+
+/* ------------------------------------------------------------------------- */
+/* --------------------------------- Entries ------------------------------- */
+/* ------------------------------------------------------------------------- */
 .ems-entry {
 	display: inline;
 }
@@ -18,74 +25,175 @@
 	margin-left: 17px;
 	margin-bottom: 10px;
 	border-radius: 20px;
-	border: 2px solid grey;
+	border: 2px solid lightblue;
 	padding: 10px;
 	min-height: 110px;
 	width: 60%;
-}
-.entry-title-label {
-	display: none;
 }
 .entry-heading {
 	font-weight: bold;
 	text-decoration: underline;
 	margin-bottom: 10px;
 }
-
+.entry-title-label {
+	display: none;
+}
+.entry-title {
+	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
+}
+.entry-title:focus {
+	border: 2px solid orange;
+	padding: 2px;
+}
+.entry-content {
+	/* Anklicken des Inhalts beim Editieren vereinfachen, indem er die ganze Breite und eine Mindeshöhe einnimmt: */
+	display: block;
+	min-height: 100px;
+}
+.entry-content:focus {
+	border: 2px solid orange;
+	padding: 2px;
+}
 .entry-tools {
 	display: none;
 	position: absolute;
-	margin-left: 10px;
+	margin-left: 5px;
 }
 .ems-entry:hover .entry-tools {
 	display: inline-block;
 }
 .entry-tools-decorator-left {
 	position: absolute;
-	margin-left: -40px;
+	margin-top: 13px;
+	margin-left: -29px;
 	width: 0px;
 	height: 0px;
-	border-right: 40px solid orange;
+	border-right: 30px solid orange;
 	border-top: 60px solid transparent;
 	border-bottom: 60px solid transparent;
 }
 .entry-tools-content {
 	position: absolute;
-	margin-top: 30px;
-	width: 150px;
-	height: 60px;
-	background-color: orange;
+	min-height: 126px;
+	min-width: 200px;
+	border-radius: 20px;
+	border-left: 3px solid orange;
+	padding: 10px;
+	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
-.entry-tools-decorator-top {
-	position: absolute;
-	margin-top: 0px;
-	width: 150px;
-	height: 30px;
-	background-color: transparent;
-}
-.entry-tools-decorator-bottom {
-	position: absolute;
-	margin-top: 90px;
-	width: 150px;
-	height: 30px;
-	background-color: transparent;
+.entry-tools-content button {
+	display: block;
 }
 .entry-tools-decorator-right {
+	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
 	position: absolute;
-	margin-left: 150px;
-	width: 30px;
-	height: 120px;
+	margin-left: -30px;
+	margin-top: -40px;
+	width: 200px;
+	height: 230px;
 	background-color: transparent;
 }
 
-.ems-user {
+/* ------------------------------------------------------------------------- */
+/* ------------------------------- New Entries ----------------------------- */
+/* ------------------------------------------------------------------------- */
+.ems-new-entry {
+	display: inline;
+}
+.new-entry-decorator-left {
+	position: absolute;
+	margin-top: 30px;
+	margin-left: -16px;
+	width: 20px;
+	height: 20px;
+	background-color: white;
+	border: 2px solid orange;
+	border-radius: 50%;
+}
+.new-entry-data {
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 17px;
+	margin-bottom: 10px;
+	border-radius: 20px;
+	border: 2px solid orange;
+	padding: 10px;
+	min-height: 110px;
+	width: 60%;
+}
+.new-entry-heading {
+	font-weight: bold;
+	text-decoration: underline;
+	margin-bottom: 10px;
+}
+.new-entry-title-label {
+	display: none;
+}
+.new-entry-title {
+	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
+}
+.new-entry-title:focus {
+	border: 2px solid orange;
+	padding: 2px;
+}
+.new-entry-content {
+	/* Anklicken des Inhalts beim Editieren vereinfachen, indem er die ganze Breite und eine Mindeshöhe einnimmt: */
+	display: block;
+	min-height: 100px;
+}
+.new-entry-content:focus {
+	border: 2px solid orange;
+	padding: 2px;
+}
+.new-entry-tools {
+	display: none;
+	position: absolute;
+	margin-left: 10px;
+}
+.ems-new-entry:hover .new-entry-tools {
+	display: inline-block;
+}
+.new-entry-tools-decorator-left {
+	position: absolute;
+	margin-top: 13px;
+	margin-left: -29px;
+	width: 0px;
+	height: 0px;
+	border-right: 30px solid blue;
+	border-top: 60px solid transparent;
+	border-bottom: 60px solid transparent;
+}
+.new-entry-tools-content {
+	position: absolute;
+	min-height: 126px;
+	min-width: 200px;
+	border-radius: 20px;
+	border-left: 3px solid blue;
+	padding: 10px;
+	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.new-entry-tools-content button {
 	display: block;
 }
+.new-entry-tools-decorator-right {
+	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
+	position: absolute;
+	margin-left: -30px;
+	margin-top: -40px;
+	width: 200px;
+	height: 230px;
+	background-color: transparent;
+}
+
+
+/* ------------------------------------------------------------------------- */
+/* ---------------------------------- Users -------------------------------- */
+/* ------------------------------------------------------------------------- */
 .user-image {
 	display: block;
 	width: 100px;
 	height: 100px;
-	background-color: lightblue;
+	background-color: lightgrey;
 }
 .user-heading {
 	display: inline-block;
@@ -95,9 +203,9 @@
 	display: none;
 }
 
-.ems-group {
-	display: block;
-}
+/* ------------------------------------------------------------------------- */
+/* --------------------------------- Groups -------------------------------- */
+/* ------------------------------------------------------------------------- */
 .group-heading {
 	display: none;
 }

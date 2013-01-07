@@ -258,8 +258,9 @@
 	/* sollte einen konfortablen Fokus-Schutz-Bereich um die Toolbox herum abdecken, damit sie nicht ungewollte verschwindet */
 	min-width: 250px;
 	min-height: 200px;
-	margin-top: -75px;
-	margin-left: -20px;
+	border-radius: 50%;
+	margin-top: -100px;
+	margin-left: -40px;
 	z-index: 1; /* sollte über anderen standardmäßig sichtbaren Elementen, außer der Toolbox liegen */
 }
 .user-tools-content {

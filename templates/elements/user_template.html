@@ -3,24 +3,37 @@
 					<span class="user-image"></span>
 					<span class="user-nick-label">${_("Nutzer:")}</span>
 					<span class="user-nick"></span>
-					<button class="user-change-password" style="display:none" onclick="edit_password(this)">
-						${_("Passwort ändern")}
-					</button>
-					<span class="user-old-password" style="display:none" >
+				</span>
+				<span class="user-tools">
+					<span class="user-tools-decorator-left"></span>
+					<span class="user-tools-decorator-top"></span>
+					<span class="user-tools-content">
+						<button class="user-change-password" onclick="edit_password(this)">
+							${_("Passwort ändern")}
+						</button>
+					</span>
+					<span class="user-tools-decorator-bottom"></span>
+					<span class="user-tools-decorator-right"></span>
+				</span>
+				<span class="user-password-dialog" style="display:none">
+					<span class="user-old-password">
 						<label>${_("Altes Passwort:")}</label>
 						<input class="user-old-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my)})"></input>
 					</span>
-					<span class="user-new-password" style="display:none" >
+					<span class="user-new-password">
 						<label>${_("Neues Passwort:")}</label>
 						<input class="user-new-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my)})"></input>
 					</span>
-					<span class="user-new-password-2" style="display:none" >
+					<span class="user-new-password-2">
 						<label>${_("Neues Passwort (wiederholen):")}</label>
 						<input class="user-new-password-input-2" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my)})"></input>
-						<button class="user-new-password-save" onclick="change_password(this)">
-							${_("übernehmen")}
-						</button>
 					</span>
+					<button class="user-new-password-save" onclick="change_password(this)">
+						${_("Passwort ändern")}
+					</button>
+					<button class="user-new-password-cancel" onclick="$(this).closest('.user-password-dialog')[0].style.display='none';">
+						${_("Abbrechen")}
+					</button>
 				</span>
 				<span class="user-content"></span>
 			</span>

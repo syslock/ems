@@ -1,4 +1,4 @@
-require( ["jquery","util","login","entry","localization"], 
+require( ["jquery","util","login","entry","localization","user"], 
 	function($) {
 		if( init )
 		{

@@ -106,7 +106,7 @@ body {
 .entry-tools-content {
 	position: absolute;
 	min-height: 126px;
-	min-width: 200px;
+	min-width: 140px;
 	border-radius: 20px;
 	border: 1px solid orange;
 	border-left: 3px solid orange;
@@ -200,7 +200,7 @@ body {
 .new-entry-tools-content {
 	position: absolute;
 	min-height: 126px;
-	min-width: 200px;
+	min-width: 140px;
 	border-radius: 20px;
 	border: 1px solid blue;
 	border-left: 3px solid blue;
@@ -277,7 +277,7 @@ body {
 }
 .user-tools-content {
 	position: absolute;
-	min-width: 126px;
+	min-width: 140px;
 	border-radius: 20px;
 	border: 1px solid green;
 	border-top: 3px solid green;

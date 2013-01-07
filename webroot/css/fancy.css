@@ -1,3 +1,7 @@
+body {
+	background-color: #f0f0f0;
+}
+
 .ems-content {
 }
 
@@ -26,6 +30,7 @@
 	margin-bottom: 10px;
 	border-radius: 20px;
 	border: 2px solid lightblue;
+	background-color: white;
 	padding: 10px;
 	min-height: 110px;
 	width: 60%;
@@ -103,7 +108,9 @@
 	min-height: 126px;
 	min-width: 200px;
 	border-radius: 20px;
+	border: 1px solid orange;
 	border-left: 3px solid orange;
+	background-color: white;
 	padding: 10px;
 	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
@@ -143,6 +150,7 @@
 	margin-bottom: 10px;
 	border-radius: 20px;
 	border: 2px solid orange;
+	background-color: white;
 	padding: 10px;
 	min-height: 110px;
 	width: 60%;
@@ -194,7 +202,9 @@
 	min-height: 126px;
 	min-width: 200px;
 	border-radius: 20px;
+	border: 1px solid blue;
 	border-left: 3px solid blue;
+	background-color: white;
 	padding: 10px;
 	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
@@ -219,7 +229,9 @@
 	display: block;
 	width: 100px;
 	height: 100px;
-	background-color: lightgrey;
+	background-color: white;
+	border: 1px solid green;
+	border-radius: 10px;
 }
 .user-heading {
 	display: inline-block;

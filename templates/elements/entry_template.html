@@ -27,12 +27,16 @@
 						<button class="entry-response-button" onclick="new_response(global_user, this)">
 							${_("Antworten")}
 						</button>
-						<button class="entry-edit-button" onclick="edit_entry(this)">
-							${_("Bearbeiten")}
-						</button>
-						<button class="entry-delete-button" onclick="delete_entry(this)">
-							${_("Löschen")}
-						</button>
+						<span class="require-permission-write-entry">
+							<button class="entry-edit-button" onclick="edit_entry(this)">
+								${_("Bearbeiten")}
+							</button>
+						</span>
+						<span class="require-permission-delete-entry">
+							<button class="entry-delete-button" onclick="delete_entry(this)">
+								${_("Löschen")}
+							</button>
+						</span>
 					</span>
 					<span class="entry-tools-decorator-bottom"></span>
 					<span class="entry-tools-decorator-right"></span>

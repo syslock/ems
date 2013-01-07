@@ -28,8 +28,7 @@ function new_text_part( entry_id, data )
 function get_short_type( type ) {
 	return type.match(/.*\.([^.]*)/)[1]
 }
-function new_item( parms )
-{
+function new_item( parms ) {
 	if( !parms.obj ) {
 		show_error( "new_item ohne Objektdefinition" )
 		return;
@@ -40,8 +39,7 @@ function new_item( parms )
 		return;
 	}
 	var short_type = get_short_type( obj.type )
-	if( obj.id==undefined )
-	{
+	if( obj.id==undefined ) {
 		// Neues Objekt auf dem Server anlegen:
 		var url = "ems.wsgi?do=store&type="+obj.type;
 		// optionale Zusatzparameter:
@@ -52,31 +50,25 @@ function new_item( parms )
 			url : url,
 			async : false,
 			success :
-		function( result )
-		{
+		function( result ) {
 			result = parse_result( result )
-			if( result.succeeded && result.object_id!=undefined )
-			{
+			if( result.succeeded && result.object_id!=undefined ) {
 				obj.id = result.object_id
-				if( !parms.dom_object )
-				{
+				if( !parms.dom_object ) {
 					// Neues Element im Browser anlegen:
 					var item = new_item( parms )
 					var button = $("."+short_type+"-edit",item)[0]
 					if( button ) edit_entry( button )
 				}
-				else
-				{
+				else {
 					parms.dom_object.data = {
-						"object_id" : parms.id,
+						"object_id" : obj.id,
 					}
 				}
 			}
 		}})
 		return undefined;
-	}
-	else
-	{
+	} else {
 		var item = parms.dom_object;
 		if( !item && parms.update ) {
 			if( parms.dom_parent ) {
@@ -122,6 +114,13 @@ function new_item( parms )
 				$( "."+short_type+"-"+field_name+"-time", item ).first().text( time );
 			} else {
 				$( "."+short_type+"-"+field_name, item ).first().text( value )
+			}
+		}
+		for( permission in {"read":1,"write":1,"delete":1,"insert":1} ) {
+			if( $.inArray(permission, obj.permissions)==-1 ) {
+				$( ".require-permission-"+permission+"-"+short_type, item ).each( function(i, elem) {
+					elem.style.display="none";
+				})
 			}
 		}
 		return item;

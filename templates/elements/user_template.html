@@ -8,9 +8,11 @@
 					<span class="user-tools-decorator-left"></span>
 					<span class="user-tools-decorator-top"></span>
 					<span class="user-tools-content">
-						<button class="user-change-password" onclick="edit_password(this)">
-							${_("Passwort ändern")}
-						</button>
+						<span class="require-permission-write-user">
+							<button class="user-change-password" onclick="edit_password(this)">
+								${_("Passwort ändern")}
+							</button>
+						</span>
 					</span>
 					<span class="user-tools-decorator-bottom"></span>
 					<span class="user-tools-decorator-right"></span>

@@ -78,7 +78,12 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 			"sequence" : result[1],
 			"mtime" : result[2],
 			"ctime" : result[3],
+			"permissions" : ["read"]
 			}
+		if usr.can_write(object_id):
+			obj["permissions"].append("write")
+		if usr.can_delete(object_id):
+			obj["permissions"].append("delete")
 		# Kindelemente ermitteln:
 		c.execute( """select child_id from membership m
 						inner join objects o on o.id=m.child_id

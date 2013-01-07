@@ -30,15 +30,24 @@ function get_short_type( type ) {
 }
 function new_item( parms )
 {
-	var short_type = get_short_type( parms.type )
-	if( parms.id==undefined )
+	if( !parms.obj ) {
+		show_error( "new_item ohne Objektdefinition" )
+		return;
+	}
+	var obj = parms.obj;
+	if( !obj.type ) {
+		show_error( "new_item ohne Objekt-Typ-Definition" )
+		return;
+	}
+	var short_type = get_short_type( obj.type )
+	if( obj.id==undefined )
 	{
 		// Neues Objekt auf dem Server anlegen:
-		var url = "ems.wsgi?do=store&type="+parms.type;
+		var url = "ems.wsgi?do=store&type="+obj.type;
 		// optionale Zusatzparameter:
-		if( parms.title ) url += "&title="+parms.title
-		if( parms.nick ) url += "&nick="+parms.nick
-		if( parms.name ) url += "&name="+parms.name
+		if( obj.title ) url += "&title="+obj.title
+		if( obj.nick ) url += "&nick="+obj.nick
+		if( obj.name ) url += "&name="+obj.name
 		$.ajax({
 			url : url,
 			async : false,
@@ -48,7 +57,7 @@ function new_item( parms )
 			result = parse_result( result )
 			if( result.succeeded && result.object_id!=undefined )
 			{
-				parms.id = result.object_id
+				obj.id = result.object_id
 				if( !parms.dom_object )
 				{
 					// Neues Element im Browser anlegen:
@@ -77,11 +86,11 @@ function new_item( parms )
 			}
 		}
 		if( !item && !parms.duplicates ) {
-			item = $("#ems-"+short_type+"-"+String(parms.id))[0]
+			item = $("#ems-"+short_type+"-"+String(obj.id))[0]
 		}
 		if( !item ) {
 			item = $("#ems-"+short_type+"-template").first().clone(true)[0];
-			item.id = "ems-"+short_type+"-"+String(parms.id)
+			item.id = "ems-"+short_type+"-"+String(obj.id)
 			item.style.display = ""
 			if( parms.dom_parent ) {
 				if( parms.prepend ) {
@@ -96,11 +105,11 @@ function new_item( parms )
 				$("."+short_type+"-content",item).append( parms.dom_child );
 			}
 			item.data = {
-				"object_id" : parms.id,
+				"object_id" : obj.id,
 			}
 		}
 		for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
-			var value = parms[ field_name ];
+			var value = obj[ field_name ];
 			if( field_name in {"ctime":1, "mtime":1} ) {
 				var date = new Date(value*1000);
 				var day = date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear()
@@ -163,7 +172,7 @@ function show_object( parms )
 	}
 	if( obj.type == "application/x-obj.group" )
 	{
-		var item = new_item( $.extend({dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update}, obj) )
+		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
@@ -172,7 +181,7 @@ function show_object( parms )
 	}
 	if( obj.type == "application/x-obj.user" )
 	{
-		var item = new_item( $.extend({dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update}, obj) )
+		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
@@ -181,7 +190,7 @@ function show_object( parms )
 	}
 	if( obj.type == "application/x-obj.entry" )
 	{
-		var item = new_item( $.extend({dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update}, obj) )
+		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
@@ -286,7 +295,7 @@ function save_entry_plain( button ) {
 		typemod = "new-";
 		entry = $(button).closest(".ems-"+typemod+"entry")[0];
 		// new-entry-Objekt mit einem neuen DB-Objekt assoziieren:
-		new_item( {type: "application/x-obj.entry", dom_object: entry} );
+		new_item( {obj:{type: "application/x-obj.entry"}, dom_object: entry} );
 	}
 	var entry_id = entry.data.object_id;
 	var title = $( "."+typemod+"entry-title", entry )[0]
@@ -364,8 +373,7 @@ function new_response( user, button ) {
 		$(".new-entry-title", new_entry).text( reference_title );
 	}
 	new_entry.style.display="";
-	var new_user_obj = $.extend( {duplicates: true, dom_child: new_entry}, user );
-	new_item( new_user_obj );
+	new_item( {obj:user, duplicates: true, dom_child: new_entry} );
 	edit_entry( new_entry );
 }
 

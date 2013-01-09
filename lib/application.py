@@ -3,6 +3,8 @@ from urllib.parse import parse_qs
 import config
 config = imp.reload( config ) # DEBUG? 
 # Es muss einen Weg geben die Konfiguration auf Befehl neu einzulesen...
+from lib import errors
+errors = imp.reload( errors ) # DEBUG?
 
 class Request:
 	"""Implementiert Parameterübergabe an die Webanwendung"""
@@ -15,11 +17,13 @@ class Request:
 			self.merge_parms( self.environ["QUERY_STRING"] ) # Parms überschreiben Cookies
 		self.content = None
 		self.content_type = "CONTENT_TYPE" in self.environ and self.environ["CONTENT_TYPE"] or None
+		self.content_media_type = None
 		self.content_length = "CONTENT_LENGTH" in self.environ and int(self.environ["CONTENT_LENGTH"]) or 0
 		if self.content_type and self.content_length:
 			ct_parts = [x.split("=") for x in [x.strip() for x in self.content_type.split(";")]]
+			self.content_media_type = ct_parts[0][0]
 			# read and decode url-encoded form data from POST content if present:
-			if ct_parts and ct_parts[0][0] in ["application/x-www-form-urlencoded"]:
+			if self.content_media_type in ["application/x-www-form-urlencoded"]:
 				self.content = self.environ["wsgi.input"].read()
 				if len(ct_parts)>1 and ct_parts[1][0]=="charset":
 					charset = ct_parts[1][1]
@@ -30,6 +34,8 @@ class Request:
 					except UnicodeDecodeError:
 						self.content = self.content.decode("latin1")
 				self.merge_parms( self.content ) # Post-Parameter überschreiben URL-Parameter
+			elif self.content_media_type in ["multipart/form-data"]:
+				pass # hier machen wir erst mal nichts damit, das Parsen übernehmen modules/store.py etc.
 		self.xml_fix_parms() # XML-Kontrollzeichen ersetzen
 		
 	def xml_fix_parm( self, parm ):

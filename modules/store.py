@@ -1,4 +1,4 @@
-import time, imp, itertools
+import time, imp, itertools, cgi
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -29,9 +29,37 @@ def process( app ):
 		usr = user.get_anonymous_user( app )
 	if not usr:
 		raise errors.AuthenticationNeeded()
+	if query.content_media_type in ["multipart/form-data"]:
+		# Speichern eines oder mehrerer Objekte aus einem multipart/form-data-Streams:
+		# FIXME: FieldStorage speichert die aus dem Stream geparsten Objekte an unbekannter Stelle zwischen.
+		#        Um Kontrolle über Speicherort und den Fortschritt größer Datentransfers zu haben, sollten
+		#        wir den Stream vielleicht selbst parsen oder entsprechende Option von FieldStorage suchen!
+		fs = cgi.FieldStorage( fp=query.environ['wsgi.input'], environ=query.environ )
+		for i, form_key in enumerate(fs.keys()):
+			item = fs[ form_key ]
+			if type(item)==cgi.FieldStorage and item.file:
+				store_object( app, usr, item )
+	else:
+		# Speichern eines einzelnen Objektes aus Request-Parametern:
+		store_object( app, usr )
+				
+def store_object( app, usr, file_item=None ):
+	query = app.query
+	response = app.response
+	session = app.session
 	media_type = None
 	if "type" in query.parms:
 		media_type = query.parms["type"]
+	title = None
+	if "title" in query.parms:
+		title = query.parms["title"]
+	data = None
+	if "data" in query.parms:
+		data = query.parms["data"]
+	if file_item!=None:
+		media_type = file_item.type
+		title = file_item.filename
+		data = file_item.file
 	# FIXME: Hier blacklisten wir kritische Objekttypen vor unautorisierter
 	# Erstellung (z.B. x-obj.user). Sicherer, aber im Prototyping unpraktischer 
 	# wär es unkritische Objekttypen zu whitelisten.
@@ -63,27 +91,22 @@ def process( app ):
 		parent_id = None
 		if "parent_id" in query.parms:
 			parent_id = int( query.parms["parent_id"] )
-		data = None
-		if "data" in query.parms:
-			data = query.parms["data"]
-		title = None
-		if "title" in query.parms:
-			title = query.parms["title"]
 		sequence = 0
 		if "sequence" in query.parms:
 			sequence = int( query.parms["sequence"] )
 		obj = None
 		if media_type == db_object.Text.media_type:
-			obj = db_object.Text( app, usr=usr, object_id=object_id,
-								  parent_id=parent_id )
+			obj = db_object.Text( app, usr=usr, object_id=object_id, parent_id=parent_id )
 		elif media_type == profile.Contact.media_type:
-			obj = profile.Contact( app, usr=usr, object_id=object_id, 
-									parent_id=parent_id )
+			obj = profile.Contact( app, usr=usr, object_id=object_id, parent_id=parent_id )
 		elif media_type == profile.Application.media_type:
-			obj = profile.Application( app, usr=usr, object_id=object_id, 
-										parent_id=parent_id )
+			obj = profile.Application( app, usr=usr, object_id=object_id, parent_id=parent_id )
 		elif media_type == user.User.media_type and object_id:
 			obj = user.User( app, user_id=object_id )
+		elif file_item!=None:
+			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
+			# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
+			obj = db_object.File( app, usr=usr, object_id=object_id, parent_id=parent_id, media_type=media_type )
 		else:
 			obj = db_object.DBObject( app, usr=usr, object_id=object_id, 
 									  parent_id=parent_id, 

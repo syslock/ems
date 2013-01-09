@@ -1,4 +1,4 @@
-import time, imp
+import time, imp, os, shutil
 from lib import errors
 errors = imp.reload( errors )
 
@@ -216,3 +216,16 @@ class UserAttributes( DBObject ):
 			obj[ requested_fields[i] ] = result[i]
 		return obj
 
+class File( DBObject ):
+	def __init__( self, app, **keyargs ):
+		super().__init__( app, **keyargs )
+		upload_path = "upload"
+		if hasattr(self.app.config,"upload_path"):
+			upload_path = self.app.config.upload_path
+		self.storage_path = os.path.join( self.app.path, upload_path, "%d" % (self.id) )
+	def update( self, **keyargs ):
+		super().update( **keyargs )
+		if "data" in keyargs:
+			f = open( self.storage_path, "wb" )
+			shutil.copyfileobj( keyargs["data"], f )
+			f.close()

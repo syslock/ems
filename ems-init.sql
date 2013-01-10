@@ -9,6 +9,7 @@ CREATE TABLE titles (object_id NUMBER, data TEXT);
 CREATE TABLE applications (object_id NUMERIC, user_id NUMERIC, statement_id NUMERIC, motivation_id NUMERIC, motto_id NUMERIC, university_name TEXT, study_field TEXT, study_finish_year NUMERIC, study_finish_month NUMERIC, accommodation TEXT, food TEXT, abstract_id NUMERIC);
 CREATE TABLE contacts (object_id NUMERIC, user_id NUMERIC, name_title TEXT, first_name TEXT, surname TEXT, birth_year NUMERIC, birth_month NUMERIC, birth_day NUMERIC, gender TEXT, nationality TEXT, country TEXT, region TEXT, city TEXT, postal_code TEXT, street TEXT, telephone1 TEXT, telephone2 TEXT);
 CREATE TABLE permissions (subject_id NUMERIC, access_mask NUMERIC, object_id NUMERIC);
+CREATE TABLE type_hierarchy (base_type TEXT, derived_type TEXT, UNIQUE (base_type, derived_type) ON CONFLICT REPLACE);
 
 INSERT INTO objects (id,type) VALUES(1,'application/x-obj.group');
 INSERT INTO groups (object_id,name,description) VALUES(1,'root','Root object for everything else');

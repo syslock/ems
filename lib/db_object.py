@@ -217,15 +217,45 @@ class UserAttributes( DBObject ):
 		return obj
 
 class File( DBObject ):
+	base_type = "application/octet-stream" # https://www.rfc-editor.org/rfc/rfc2046.txt
 	def __init__( self, app, **keyargs ):
 		super().__init__( app, **keyargs )
 		upload_path = "upload"
 		if hasattr(self.app.config,"upload_path"):
 			upload_path = self.app.config.upload_path
 		self.storage_path = os.path.join( self.app.path, upload_path, "%d" % (self.id) )
+		if not File.supports( self.app, self.media_type ):
+			c = self.app.db.cursor()
+			c.execute( """insert into type_hierarchy (base_type, derived_type) values(?, ?)""", [self.base_type, self.media_type] )
+			self.app.db.commit()
+	@classmethod
+	def supports( cls, app, file_type ):
+		if file_type==cls.base_type:
+			return True
+		else:
+			c = app.db.cursor()
+			c.execute( """select base_type, derived_type from type_hierarchy where base_type=? and derived_type=?""", [cls.base_type, file_type] )
+			result = c.fetchone()
+			return result!=None
 	def update( self, **keyargs ):
 		super().update( **keyargs )
 		if "data" in keyargs:
 			f = open( self.storage_path, "wb" )
 			shutil.copyfileobj( keyargs["data"], f )
-			f.close()
+			f.close
+	def get_size( self ):
+		return os.stat( self.storage_path ).st_size
+	def get_data( self, meta_obj=None, attachment=False, type_override=None ):
+		if type_override and type_override==self.base_type:
+			# Anfrage-Override des Content-Types auf den Klassen-Basistypen, z.b. octet-stream für erzwungende Download-Dialoge, erlauben:
+			self.app.response.media_type = self.base_type
+		else:
+			# sonst gespeicherten Objekt-Typ angeben
+			self.app.response.media_type = self.media_type
+		self.app.response.content_length = self.get_size()
+		self.app.response.encoding = None
+		if meta_obj and "title" in meta_obj:
+			disposition_type = attachment and "attachment" or "inline"
+			# http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1
+			self.app.response.content_disposition = '%s; filename="%s"' % ( disposition_type, meta_obj["title"].replace('"','\\"') )
+		return open( self.storage_path, "rb" )

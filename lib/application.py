@@ -94,29 +94,47 @@ class Response:
 		self.output = ""
 		self.media_type = "text/plain"
 		self.encoding = "utf-8"
-		self.encoded_output = b""
 		self.start_response = start_response
 		self.response_headers = []
 		self.caching = False
 		self.cookies = {}
+		self.content_length = None
+		self.buffer_size = 4096
+		self.content_disposition = None
+	def encode_chunk( self, data ):
+		if type(data)==str and self.encoding:
+			return data.encode( self.encoding )
+		else:
+			return data
 	def finalize( self ):
-		"""Sendet Header und liefert korrekt kodierten Ausgabestrom zurück"""
+		"""Sendet Header und liefert ggf. korrekt kodierten Ausgabestrom zurück"""
+		streaming = hasattr( self.output, "read" )
 		if self.encoding:
-			self.encoded_output = self.output.encode( self.encoding )
-			self.response_headers.append(
-				('Content-Type', '%s; charset=%s' % (self.media_type,self.encoding.upper())) )
+			self.response_headers.append( ('Content-Type', '%s; charset=%s' % (self.media_type,self.encoding.upper())) )
 		else:
 			self.response_headers.append( ('Content-Type', self.media_type) )
-		self.response_headers.append(
-			('Content-Length', str(len(self.encoded_output))) )
+		if not streaming:
+			encoded_output = self.encode_chunk( self.output )
+			self.content_length = len(encoded_output)
+		if self.content_length != None:
+			self.response_headers.append( ('Content-Length',  str(self.content_length)) )
 		cookie_objects = map( lambda key: Cookie(key, self.cookies[key]), self.cookies.keys() )
 		for cookie in cookie_objects:
 			self.response_headers.append( cookie.get_header() )
 		if not self.caching:
-			self.response_headers.append(
-				('Cache-Control', 'no-cache') )
+			self.response_headers.append( ('Cache-Control', 'no-cache') )
+		if self.content_disposition:
+			sys.stderr.write( self.content_disposition+"\n" )
+			self.response_headers.append( ('Content-Disposition', self.content_disposition) )
 		self.start_response( self.status, self.response_headers )
-		return [self.encoded_output,]
+		if not streaming:
+			yield encoded_output
+		else:
+			buffer = self.output.read( self.buffer_size )
+			while len(buffer)>0:
+				yield self.encode_chunk(buffer)
+				buffer = self.output.read( self.buffer_size )
+			self.output.close()
 
 # CREATE TABLE session_parms (sid TEXT, key TEXT, value TEXT, mtime NUMERIC, UNIQUE (sid, key) ON CONFLICT REPLACE)
 class Session:

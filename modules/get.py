@@ -23,7 +23,10 @@ def process( app ):
 	else:
 		result = get( app, limit=limit, recursive=recursive )
 	if result != None:
-		response.output = str( result )
+		if hasattr(result,"read"):
+			response.output = result # Stream-lesbare File-Objekte durchreichen
+		else:
+			response.output = str( result )
 
 def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], access_errors=True ):
 	query = app.query
@@ -141,28 +144,36 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 				elif view=="all":
 					obj["data"] = str( data )
 			if object_type == user.User.media_type:
-				c.execute( """select u.nick, c.object_id, a.object_id from users u 
-								left join contacts c on u.object_id=c.user_id
-								left join applications a on u.object_id=a.user_id
-								where u.object_id=?""", 
-					[object_id] )
-				result = c.fetchone()
-				if not result:
-					raise errors.ObjectError( "Missing object data" )
-				nick, contact_id, application_id = result
 				if view=="all":
+					c.execute( """select u.nick, c.object_id, a.object_id from users u 
+									left join contacts c on u.object_id=c.user_id
+									left join applications a on u.object_id=a.user_id
+									where u.object_id=?""", 
+						[object_id] )
+					result = c.fetchone()
+					if not result:
+						raise errors.ObjectError( "Missing object data" )
+					nick, contact_id, application_id = result
 					obj["nick"] = str( nick )
 					obj["contact_id"] = contact_id
 					obj["application_id"] = application_id
 			if object_type == db_object.Group.media_type:
-				c.execute( """select name from groups where object_id=?""", 
-					[object_id] )
-				result = c.fetchone()
-				if not result:
-					raise errors.ObjectError( "Missing object data" )
-				name = result[0]
 				if view=="all":
+					c.execute( """select name from groups where object_id=?""", 
+						[object_id] )
+					result = c.fetchone()
+					if not result:
+						raise errors.ObjectError( "Missing object data" )
+					name = result[0]
 					obj["name"] = str( name )
+			if db_object.File.supports( app, object_type ):
+				file_obj = db_object.File( app, usr=usr, object_id=object_id )
+				if view=="data":
+					# FIXME: Rückgabe mehrerer File-Objekte in Downstream-Analogon zu multipart/form-data möglich?
+					return file_obj.get_data( obj, attachment=("attachment" in query.parms and True or False),
+												type_override=("type" in query.parms and query.parms["type"] or None) )
+				if view=="all":
+					obj["size"] = file_obj.get_size()
 			if object_type == profile.Contact.media_type:
 				contact = profile.Contact( app, usr=usr, object_id=object_id )
 				contact.get( query, obj )

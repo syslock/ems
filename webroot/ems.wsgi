@@ -55,7 +55,7 @@ def application( environ, start_response ):
 		debugger = pdb.Pdb()
 		debugger.use_rawinput = 0
 		debugger.reset()
-		sys.settrace( debugger.trace_dispatch)
+		sys.settrace( debugger.trace_dispatch )
 	try:
 		return myapp( environ, start_response )
 	except Exception as e:

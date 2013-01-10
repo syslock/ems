@@ -8,9 +8,20 @@
 					<span class="user-tools-decorator-left"></span>
 					<span class="user-tools-decorator-top"></span>
 					<span class="user-tools-content">
+						<button class="user-send-message" onlick="send_message(this" disabled="true">
+							${_("Nachricht senden")}
+						</button>
 						<span class="require-permission-write-user">
+							<button class="user-change-image" onclick="change_user_image(this)">
+								${_("Bild ändern")}
+							</button>
 							<button class="user-change-password" onclick="edit_password(this)">
 								${_("Passwort ändern")}
+							</button>
+						</span>
+						<span class="require-permission-delete-user">
+							<button class="user-delete" onclick="" disabled="true" >
+								${_("Benutzer löschen")}
 							</button>
 						</span>
 					</span>
@@ -34,6 +45,24 @@
 						${_("Passwort ändern")}
 					</button>
 					<button class="user-new-password-cancel" onclick="$(this).closest('.user-password-dialog')[0].style.display='none';">
+						${_("Abbrechen")}
+					</button>
+				</span>
+				<span class="user-image-dialog" style="display:none">
+					<span class="user-image-manual">
+						${_("Ziehe ein Bild auf den markierten Bereich!")}
+					</span>
+					<span class="user-image-preview">
+					</span>
+					<span class="user-image-info">
+						<span class="user-image-title"></span>
+						<span class="user-image-type"></span>
+						<span class="user-image-size"></span>
+					</span>
+					<button class="user-image-save" onclick="confirm_image(this)">
+						${_("Bild verwenden")}
+					</button>
+					<button class="user-image-cancel" onclick="$(this).closest('.user-image-dialog')[0].style.display='none';">
 						${_("Abbrechen")}
 					</button>
 				</span>

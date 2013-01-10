@@ -56,3 +56,70 @@ function change_password( button, old_password, new_password ) {
 		}
 	}})
 }
+
+function prettyprint_size( size ) {
+	var value = size;
+	var two_powers = 0;
+	while( value>1000 ) {
+		value /= 1024;
+		two_powers += 10;
+	}
+	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+({10:"KiB", 20:"MiB", 30:"GiB", 40:"TiB"})[two_powers];
+}
+
+function change_user_image( button ) {
+	var user_element = $(button).closest(".ems-user")[0];
+	var user_id = user_element.data.object_id;
+	$('.user-image-dialog',user_element)[0].style.display='';
+	var preview_area = $('.user-image-preview',user_element)[0];
+	$(preview_area).bind( "dragover", function(event) {
+		return false;
+	});
+	$(preview_area).bind( "dragenter", function(event) {
+		$(event.delegateTarget).addClass('user-image-preview-over');
+		return false;
+	});
+	$(preview_area).bind( "dragleave", function(event) {
+		$(event.delegateTarget).removeClass('user-image-preview-over');
+		return false;
+	});
+	$(preview_area).bind( "drop", function(event) {
+		var dt = event.originalEvent.dataTransfer;
+		try {
+			form_data = new FormData()
+			for( var i=0; i<dt.files.length; i++ ) {
+				var file = dt.files[i];
+				form_data.append( "file-"+String(i), file )
+			}
+			$.ajax({
+				url : "ems.wsgi?do=store",
+				type : "POST",
+				data : form_data,
+				contentType: false, /*form_data den Content-Type bestimmen lassen*/
+				processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
+				success :
+			function( result ) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					var image_id = result.object_id;
+					$.ajax({
+						url : "ems.wsgi?do=get&view=all&id="+String(image_id),
+						success :
+					function( result ) {
+						result = parse_result( result );
+						if( result && result.length ) {
+							var meta = result[0];
+							if( meta.title ) $('.user-image-title',user_element).text( meta.title );
+							if( meta.type ) $('.user-image-type',user_element).text( "["+meta.type+"]" );
+							if( meta.size ) $('.user-image-size',user_element).text( prettyprint_size(meta.size) );
+						}
+					}});
+					$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(image_id)+'" class="user-image-preview-content" />');
+				}
+			}});
+		} catch(foo) {
+			debugger;
+		}
+		return false;
+	});
+}

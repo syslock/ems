@@ -297,7 +297,7 @@ body {
 }
 .user-password-dialog span {
 	display: block;
-	padding-bottom: 15px;
+	margin-bottom: 15px;
 }
 .user-password-dialog input {
 	float: right;
@@ -305,6 +305,55 @@ body {
 .user-password-dialog button {
 	float: right;
 }
+.user-image-dialog {
+	display: inline-block;
+	position: absolute;
+	text-align: center;
+	min-width: 400px;
+	background-color: white;
+	border: 3px solid green;
+	border-radius: 20px;
+	padding: 10px;
+	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
+}
+.user-image-dialog span {
+	display: block;
+	margin-bottom: 15px;
+}
+.user-image-preview {
+	text-align: center;
+	border: 2px dashed red;
+	width: 200px;
+	height: 200px;
+	margin-left: 25%;
+	border-radius: 10%;
+}
+.user-image-preview-over {
+	background-color: lightblue;
+}
+.user-image-preview-content {
+	width: 200px;
+	height: 200px;
+}
+.user-image-info {
+	display: block;
+	clear: both;
+}
+.user-image-title {
+	display: inline;
+	font-weight: bold;
+}
+.user-image-type {
+	display: inline;
+	font-size: small;
+}
+.user-image-size {
+	display: inline;
+}
+.user-image-dialog>button {
+	float: right;
+}
+
 
 /* ------------------------------------------------------------------------- */
 /* --------------------------------- Groups -------------------------------- */

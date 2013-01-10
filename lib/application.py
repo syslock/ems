@@ -124,7 +124,6 @@ class Response:
 		if not self.caching:
 			self.response_headers.append( ('Cache-Control', 'no-cache') )
 		if self.content_disposition:
-			sys.stderr.write( self.content_disposition+"\n" )
 			self.response_headers.append( ('Content-Disposition', self.content_disposition) )
 		self.start_response( self.status, self.response_headers )
 		if not streaming:

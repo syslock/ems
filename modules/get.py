@@ -5,8 +5,6 @@ from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
-from iswi import profile
-profile = imp.reload( profile )
 
 def process( app ):
 	query = app.query
@@ -145,18 +143,14 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 					obj["data"] = str( data )
 			if object_type == user.User.media_type:
 				if view=="all":
-					c.execute( """select u.nick, c.object_id, a.object_id from users u 
-									left join contacts c on u.object_id=c.user_id
-									left join applications a on u.object_id=a.user_id
+					c.execute( """select u.nick from users u 
 									where u.object_id=?""", 
 						[object_id] )
 					result = c.fetchone()
 					if not result:
 						raise errors.ObjectError( "Missing object data" )
-					nick, contact_id, application_id = result
+					nick = result[0]
 					obj["nick"] = str( nick )
-					obj["contact_id"] = contact_id
-					obj["application_id"] = application_id
 			if object_type == db_object.Group.media_type:
 				if view=="all":
 					c.execute( """select name from groups where object_id=?""", 
@@ -174,12 +168,6 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 												type_override=("type" in query.parms and query.parms["type"] or None) )
 				if view=="all":
 					obj["size"] = file_obj.get_size()
-			if object_type == profile.Contact.media_type:
-				contact = profile.Contact( app, usr=usr, object_id=object_id )
-				contact.get( query, obj )
-			if object_type == profile.Application.media_type:
-				application = profile.Application( app, usr=usr, object_id=object_id )
-				application.get( query, obj )
 		if view in ["meta", "all"]:
 			objects.append( obj )
 	if view in ["meta", "all"]:

@@ -5,8 +5,6 @@ from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
-from iswi import profile
-profile = imp.reload( profile )
 
 def process( app ):
 	"""Speichert neue Datenobjekte (Texte bzw. Textbestandteile, später evtl. 
@@ -97,10 +95,6 @@ def store_object( app, usr, file_item=None ):
 		obj = None
 		if media_type == db_object.Text.media_type:
 			obj = db_object.Text( app, usr=usr, object_id=object_id, parent_id=parent_id )
-		elif media_type == profile.Contact.media_type:
-			obj = profile.Contact( app, usr=usr, object_id=object_id, parent_id=parent_id )
-		elif media_type == profile.Application.media_type:
-			obj = profile.Application( app, usr=usr, object_id=object_id, parent_id=parent_id )
 		elif media_type == user.User.media_type and object_id:
 			obj = user.User( app, user_id=object_id )
 		elif file_item!=None:

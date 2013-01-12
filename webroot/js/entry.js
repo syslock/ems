@@ -62,7 +62,7 @@ function new_item( parms ) {
 				}
 				else {
 					parms.dom_object.data = {
-						"object_id" : obj.id,
+						"object_id" : obj.id
 					}
 				}
 			}
@@ -97,7 +97,7 @@ function new_item( parms ) {
 				$("."+short_type+"-content",item).append( parms.dom_child );
 			}
 			item.data = {
-				"object_id" : obj.id,
+				"object_id" : obj.id
 			}
 		}
 		for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
@@ -198,11 +198,11 @@ function show_object( parms )
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
 			}
 			for( var i in obj.parents ) {
-				parent = obj.parents[i];
+				var parent = obj.parents[i];
 				if( parent.type == "application/x-obj.group" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
 			for( var i in obj.parents ) {
-				parent = obj.parents[i];
+				var parent = obj.parents[i];
 				if( parent.type == "application/x-obj.user" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
 		}

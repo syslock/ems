@@ -143,7 +143,7 @@ function confirm_user_image( button ) {
 		var avatar_id = preview_image.data.object_id;
 		$.ajax({
 			url : "ems.wsgi",
-			data : {do:'store', type:'application/x-obj.user', id:user_id, avatar_id:avatar_id},
+			data : {'do':'store', 'type':'application/x-obj.user', 'id':user_id, 'avatar_id':avatar_id},
 			success :
 		function( result ) {
 			result = parse_result( result );

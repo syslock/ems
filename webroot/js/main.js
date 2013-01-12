@@ -1,9 +1,12 @@
 require( ["jquery","util","login","entry","localization","user"], 
 	function($) {
-		if( init )
-		{
-			$(document).ready( init() )
-		}
+		$(document).ready( function(){ 
+			try {
+				init(); 
+			} catch( error ) {
+				show_error( String(error) );
+			}
+		});
 		var lang = get_cookie( "lang" )
 		var menu_language = $(".menu-language")[0]
 		if( !lang && menu_language ) lang = menu_language.value;

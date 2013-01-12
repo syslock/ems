@@ -75,7 +75,7 @@ function get_cookie( key )
 {
 	var cookies = {}
 	var _cookies = document.cookie.match( /([^=; ]*)=(?:"([^"]*)"|([^;]*))/g )
-	for( i in _cookies )
+	for( var i=0; i<_cookies.length; i++ )
 	{
 		var _cookie = _cookies[i].match( /([^=; ]*)=(?:"([^"]*)"|([^;]*))/ )
 		cookies[ _cookie[1] ] = _cookie[2] ? _cookie[2] : _cookie[3]

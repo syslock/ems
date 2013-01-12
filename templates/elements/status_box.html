@@ -1,4 +1,13 @@
-		<div class="ems-status">
-			<div class="ems-message"></div>
-			<pre class="ems-error"></pre>
-		</div>
+		<span class="ems-status">
+			<span class="ems-status-box">
+				<span class="ems-message">
+					<span class="ems-message-label">${_("Meldung:")}</span>
+					<span class="ems-message-content"></span>
+				</span>
+				<span class="ems-error">
+					<span class="ems-error-label">${_("Fehler:")}</span>
+					<span class="ems-error-content"></span>
+				</span>
+				<button class="ems-status-hide-button" onclick="hide_status();" >${_("Ausblenden")}</button>
+			</span>
+		</span>

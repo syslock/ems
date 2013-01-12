@@ -25,11 +25,13 @@ function parse_result( result )
 	}
 	catch( e )
 	{
-		show_error( "Error parsing response: "+e+"\nwithin:\n\n("+result+")" );
+		show_message( "Error parsing response: " )
+		show_error( e+"\nwithin:\n\n("+result+")" );
 		throw e;
 	}
 	if( result.error )
 	{
+		show_message( result.error.message );
 		show_error( result.error.trace.join("") );
 	}
 	return result;
@@ -37,30 +39,30 @@ function parse_result( result )
 
 function show_message( text )
 {
-	$(".ems-message")[0].innerHTML += text
-	$(".ems-message")[0].style.display = "block"
+	$(".ems-message-content")[0].innerHTML += text
+	$(".ems-message").addClass("ems-message-active");
 	show_status()
 }
 
 function show_error( text )
 {
-	$(".ems-error")[0].innerHTML += text
-	$(".ems-error")[0].style.display = "block"
+	$(".ems-error-content")[0].innerHTML += text
+	$(".ems-error").addClass("ems-error-active");
 	show_status()
 }
 
 function show_status()
 {
-	$(".ems-status")[0].style.display = "block"
+	$(".ems-status").addClass("ems-status-active");
 }
 
 function hide_status()
 {
-	$(".ems-status")[0].style.display = "none"
-	$(".ems-message")[0].style.display = "none"
-	$(".ems-error")[0].style.display = "none"
-	$(".ems-message")[0].innerHTML = ""
-	$(".ems-error")[0].innerHTML = ""
+	$(".ems-status").removeClass("ems-status-active");
+	$(".ems-message").removeClass("ems-message-active");
+	$(".ems-error").removeClass("ems-error-active");
+	$(".ems-message-content").html("");
+	$(".ems-error-content").html("");
 }
 
 function change_style( style )

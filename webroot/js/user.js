@@ -115,6 +115,8 @@ function change_user_image( button ) {
 						}
 					}});
 					$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(image_id)+'" class="user-image-preview-content" />');
+					var preview_image = $('.user-image-preview-content', preview_area)[0];
+					preview_image.data = { object_id: image_id };
 				}
 			}});
 		} catch(foo) {
@@ -122,4 +124,33 @@ function change_user_image( button ) {
 		}
 		return false;
 	});
+}
+
+function close_user_image_dialog( button ) {
+	var user_element = $(button).closest(".ems-user")[0];
+	$('.user-image-dialog',user_element)[0].style.display='none';
+}
+
+function replace_user_image( user_element, avatar_id ) {
+	$('.user-image',user_element).html('<img src="ems.wsgi?do=get&view=data&id='+String(avatar_id)+'" class="user-image-content" />');
+}
+
+function confirm_user_image( button ) {
+	var user_element = $(button).closest(".ems-user")[0];
+	var user_id = user_element.data.object_id;
+	var preview_image = $('.user-image-preview img',user_element)[0];
+	if( preview_image && preview_image.data && preview_image.data.object_id ) {
+		var avatar_id = preview_image.data.object_id;
+		$.ajax({
+			url : "ems.wsgi",
+			data : {do:'store', type:'application/x-obj.user', id:user_id, avatar_id:avatar_id},
+			success :
+		function( result ) {
+			result = parse_result( result );
+			if( result.succeeded ) {
+				replace_user_image( user_element, avatar_id );
+				close_user_image_dialog( button );
+			}
+		}});
+	}
 }

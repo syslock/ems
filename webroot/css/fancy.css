@@ -231,7 +231,12 @@ body {
 	height: 100px;
 	background-color: white;
 	border: 1px solid green;
-	border-radius: 10px;
+	border-radius: 10%;
+}
+.user-image-content {
+	width: 100px;
+	height: 100px;
+	border-radius: 10%;
 }
 .user-heading {
 	display: inline-block;
@@ -334,6 +339,7 @@ body {
 .user-image-preview-content {
 	width: 200px;
 	height: 200px;
+	border-radius: 10%;
 }
 .user-image-info {
 	display: block;

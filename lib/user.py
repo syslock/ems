@@ -61,6 +61,22 @@ class User( db_object.DBObject ):
 					raise errors.PrivilegeError( "Invalid old password" )
 			c.execute( """update users set password=? where object_id=?""", [encrypted_new_password, self.id] )
 			self.app.db.commit()
+		if "avatar_id" in keyargs:
+			avatar_id = int( keyargs["avatar_id"] )
+			if self.can_read( avatar_id ):
+				obj = db_object.DBObject( self.app, object_id=avatar_id )
+				if db_object.File.supports(self.app, obj.media_type) and obj.media_type.startswith("image/"):
+					file_obj = db_object.File( self.app, object_id=obj.id )
+					size_limit = 100*2**10
+					if file_obj.get_size() <= size_limit:
+						c.execute( """update users set avatar_id=? where object_id=?""", [avatar_id, self.id] )
+						self.app.db.commit()
+					else:
+						raise errors.ParameterError( "Avatar object exeeds size limit of %d bytes" % (size_limit) )
+				else:
+					raise errors.ParameterError( "Unsupported media type for user avatars" )
+			else:
+				raise errors.PrivilegeError()
 	
 	@classmethod
 	def check_password( cls, password ):

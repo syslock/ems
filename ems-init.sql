@@ -1,6 +1,6 @@
 -- REFERENCES objects(id) ON UPDATE CASCADE ON DELETE CASCADE
 CREATE TABLE session_parms (sid TEXT, key TEXT, value TEXT, mtime NUMERIC, UNIQUE (sid, key) ON CONFLICT REPLACE);
-CREATE TABLE users (object_id NUMERIC, nick TEXT UNIQUE, email TEXT, password TEXT);
+CREATE TABLE users (object_id NUMERIC, nick TEXT UNIQUE, email TEXT, password TEXT, avatar_id NUMERIC);
 CREATE TABLE groups (object_id NUMERIC, name TEXT UNIQUE, description TEXT);
 CREATE TABLE text (object_id NUMERIC, data TEXT);
 CREATE TABLE membership (parent_id NUMERIC, child_id NUMERIC );

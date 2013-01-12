@@ -181,6 +181,9 @@ function show_object( parms )
 	if( obj.type == "application/x-obj.user" )
 	{
 		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
+		if( obj.avatar_id ) {
+			replace_user_image( item, obj.avatar_id );
+		}
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )

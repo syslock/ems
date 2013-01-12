@@ -59,10 +59,10 @@
 						<span class="user-image-type"></span>
 						<span class="user-image-size"></span>
 					</span>
-					<button class="user-image-save" onclick="confirm_image(this)">
+					<button class="user-image-save" onclick="confirm_user_image(this);">
 						${_("Bild verwenden")}
 					</button>
-					<button class="user-image-cancel" onclick="$(this).closest('.user-image-dialog')[0].style.display='none';">
+					<button class="user-image-cancel" onclick="close_user_image_dialog(this);">
 						${_("Abbrechen")}
 					</button>
 				</span>

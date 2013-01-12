@@ -137,20 +137,20 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 					raise errors.ObjectError( "Missing object data" )
 				data = result[0]
 				if view=="data":
-					response.output += str( data )
+					response.output += data
 					response.media_type = object_type
 				elif view=="all":
-					obj["data"] = str( data )
+					obj["data"] = data
 			if object_type == user.User.media_type:
 				if view=="all":
-					c.execute( """select u.nick from users u 
+					c.execute( """select u.nick, u.avatar_id from users u 
 									where u.object_id=?""", 
 						[object_id] )
 					result = c.fetchone()
 					if not result:
 						raise errors.ObjectError( "Missing object data" )
-					nick = result[0]
-					obj["nick"] = str( nick )
+					obj["nick"] = result[0]
+					obj["avatar_id"] = result[1]
 			if object_type == db_object.Group.media_type:
 				if view=="all":
 					c.execute( """select name from groups where object_id=?""", 
@@ -158,8 +158,7 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 					result = c.fetchone()
 					if not result:
 						raise errors.ObjectError( "Missing object data" )
-					name = result[0]
-					obj["name"] = str( name )
+					obj["name"] = result[0]
 			if db_object.File.supports( app, object_type ):
 				file_obj = db_object.File( app, usr=usr, object_id=object_id )
 				if view=="data":

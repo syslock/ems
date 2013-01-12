@@ -375,7 +375,10 @@ function new_response( user, button ) {
 		$(".new-entry-title", new_entry).text( reference_title );
 	}
 	new_entry.style.display="";
-	new_item( {obj:user, duplicates: true, dom_child: new_entry} );
+	user_element = new_item( {obj:user, duplicates: true, dom_child: new_entry} );
+	if( user_element && user.avatar_id ) {
+		replace_user_image( user_element, user.avatar_id );
+	}
 	edit_entry( new_entry );
 }
 

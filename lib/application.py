@@ -122,7 +122,7 @@ class Response:
 		for cookie in cookie_objects:
 			self.response_headers.append( cookie.get_header() )
 		if not self.caching:
-			self.response_headers.append( ('Cache-Control', 'no-cache') )
+			self.response_headers.append( ('Cache-Control', 'no-store') )
 		if self.content_disposition:
 			self.response_headers.append( ('Content-Disposition', self.content_disposition) )
 		self.start_response( self.status, self.response_headers )

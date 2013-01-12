@@ -246,6 +246,8 @@ class File( DBObject ):
 	def get_size( self ):
 		return os.stat( self.storage_path ).st_size
 	def get_data( self, meta_obj=None, attachment=False, type_override=None ):
+		# Caching für Dateien erlauben:
+		self.app.response.caching = True
 		if type_override and type_override==self.base_type:
 			# Anfrage-Override des Content-Types auf den Klassen-Basistypen, z.b. octet-stream für erzwungende Download-Dialoge, erlauben:
 			self.app.response.media_type = self.base_type

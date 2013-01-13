@@ -472,3 +472,55 @@ body {
 	font-family: monospace;
 	white-space: pre;
 }
+
+
+/* ------------------------------------------------------------------------- */
+/* --------------------------------- Upload -------------------------------- */
+/* ------------------------------------------------------------------------- */
+.upload-dialog {
+	display: inline-block;
+	text-align: center;
+	min-width: 400px;
+	background-color: white;
+	border: 1px dashed orange;
+	padding: 10px;
+	margin: 10px;
+	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
+}
+.upload-dialog span {
+	display: block;
+	margin-bottom: 15px;
+}
+.upload-preview {
+	text-align: center;
+	border: 2px dashed red;
+	width: 200px;
+	height: 200px;
+	margin-left: 25%;
+}
+.upload-preview-over {
+	background-color: lightblue;
+}
+.upload-preview-content {
+	width: 200px;
+	height: 200px;
+	border-radius: 10%;
+}
+.upload-info {
+	display: block;
+	clear: both;
+}
+.upload-title {
+	display: inline;
+	font-weight: bold;
+}
+.upload-type {
+	display: inline;
+	font-size: small;
+}
+.upload-size {
+	display: inline;
+}
+.upload-dialog>button {
+	float: right;
+}

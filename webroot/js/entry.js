@@ -417,3 +417,19 @@ function discard_response( button ) {
 		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry.data.object_id, dom_object: entry}, update: true} );
 	}
 }
+
+function add_file( button ) {
+	var typemod = "";
+	var entry = $(button).closest(".ems-entry")[0];
+	if( !entry ) {
+		typemod = "new-";
+		entry = $(button).closest(".ems-"+typemod+"entry")[0];
+	}
+	var content = $("."+typemod+"entry-content", entry)[0];
+	var range = window.getSelection().getRangeAt(0);
+	var new_node = $(".upload-dialog-template").clone()[0];
+	new_node.className = "upload-dialog";
+	new_node.style.display="";
+	range.insertNode( new_node );
+	new_node.contentEditable = false;
+}

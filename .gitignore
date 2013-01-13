@@ -1,0 +1,7 @@
+upload/
+webroot/silk_icons/
+.buildpath
+.kdev4/
+.project
+config.py
+ems.db

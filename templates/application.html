@@ -178,18 +178,12 @@
 		</script>
 	</head>
 	<body>
-		<div class="ems-menu">
-			<%include file="/elements/language_select.html" />
-			<%include file="/elements/style_select.html" />
-			<%include file="/elements/login_widget.html" />
-		</div>
-		<div class="page-menu">
-			<%include file="/elements/overview_button.html" />
-		</div>
-		<h2 class="ems-heading">
-			${_("Bewerbung")}
-		</h2>
-		<div class="ems-help"></div>
+		<span class="page-menu">
+			<%include file="/elements/global_menu.html" args="title=app.config.sitename+' - '+_('Bewerbung')" />
+			<span class="page-widgets">
+				<%include file="/elements/overview_button.html" />
+			</span>
+		</span>
 		<div class="ems-content" style="display:none" >
 			<div class="application-study">
 				<div class="application-field" id="application-university-name">

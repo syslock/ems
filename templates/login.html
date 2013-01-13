@@ -34,15 +34,12 @@
 		</script>
 	</head>
 	<body>
-		<div class="ems-menu">
-			<%include file="/elements/language_select.html" />
-			<%include file="/elements/style_select.html" />
-		</div>
-		<div class="page-menu">
-			<%include file="/elements/overview_button.html" />
-		</div>
-		<h1 class="ems-heading">${_("Anmeldung")}</h1>
-		<div class="ems-help"></div>
+		<span class="page-menu">
+			<%include file="/elements/global_menu.html" args="title=app.config.sitename+' - '+_('Anmeldung')" />
+			<span class="page-widgets">
+				<%include file="/elements/overview_button.html" />
+			</span>
+		</span>
 		<div class="ems-content">
 			<div class="ems-login">
 				<div class="login-nick">

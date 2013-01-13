@@ -2,8 +2,39 @@ body {
 	background-color: #f0f0f0;
 }
 
-.ems-content {
+
+.page-menu {
+	position: absolute;
+	display: block;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	background-color: #dfdfdf;
+	border-bottom: 1px solid black;
+	padding: 10px;
+	z-index: 50;
 }
+.ems-menu {
+	display: block;
+	margin-bottom: 10px;
+}
+.menu-title {
+	font-weight: bold;
+}
+.menu-widgets {
+	float: right;
+	margin-right: 20px;
+	font-size: small;
+}
+.menu-nick {
+	font-weight: bold;
+}
+
+
+.ems-content {
+	margin-top: 8em;
+}
+
 
 .ems-item {
 	display: block;

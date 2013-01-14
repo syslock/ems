@@ -57,16 +57,6 @@ function change_password( button, old_password, new_password ) {
 	}})
 }
 
-function prettyprint_size( size ) {
-	var value = size;
-	var two_powers = 0;
-	while( value>1000 ) {
-		value /= 1024;
-		two_powers += 10;
-	}
-	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+({10:"KiB", 20:"MiB", 30:"GiB", 40:"TiB"})[two_powers];
-}
-
 function change_user_image( button ) {
 	var user_element = $(button).closest(".ems-user")[0];
 	var user_id = user_element.data.object_id;
@@ -84,6 +74,7 @@ function change_user_image( button ) {
 		return false;
 	});
 	$(preview_area).bind( "drop", function(event) {
+		$(event.delegateTarget).removeClass('user-image-preview-over');
 		var dt = event.originalEvent.dataTransfer;
 		try {
 			form_data = new FormData()
@@ -119,8 +110,9 @@ function change_user_image( button ) {
 					preview_image.data = { object_id: image_id };
 				}
 			}});
-		} catch(foo) {
-			debugger;
+		} catch( error ) {
+			show_message( "Beim Hochladen der Datei ist ein Fehler aufgetreten. Eventuell unterstützt dein Browser die verwendeten Schnittstellen noch nicht." );
+			show_error( error );
 		}
 		return false;
 	});

@@ -146,3 +146,13 @@ function onenter( event, dostuff )
 	if( event.keyCode==13 ) dostuff();
 }
 
+function prettyprint_size( size ) {
+	var value = size;
+	var two_powers = 0;
+	while( value>1000 ) {
+		value /= 1024;
+		two_powers += 10;
+	}
+	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+({10:"KiB", 20:"MiB", 30:"GiB", 40:"TiB"})[two_powers];
+}
+

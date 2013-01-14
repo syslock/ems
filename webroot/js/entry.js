@@ -426,10 +426,87 @@ function add_file( button ) {
 		entry = $(button).closest(".ems-"+typemod+"entry")[0];
 	}
 	var content = $("."+typemod+"entry-content", entry)[0];
-	var range = window.getSelection().getRangeAt(0);
-	var new_node = $(".upload-dialog-template").clone()[0];
-	new_node.className = "upload-dialog";
-	new_node.style.display="";
-	range.insertNode( new_node );
-	new_node.contentEditable = false;
+	var selection = window.getSelection();
+	var range = selection.getRangeAt(0);
+	var upload_dialog = $(".upload-dialog-template").clone()[0];
+	upload_dialog.className = "upload-dialog";
+	upload_dialog.style.display="";
+	range.insertNode( upload_dialog );
+	selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
+	upload_dialog.contentEditable = false; // verhindert Editierbarkeit des Dialogfeldes
+	var preview_area = $(".upload-preview", upload_dialog)[0];
+	$(preview_area).bind( "dragover", function(event) {
+		return false;
+	});
+	$(preview_area).bind( "dragenter", function(event) {
+		$(event.delegateTarget).addClass('upload-preview-over');
+		return false;
+	});
+	$(preview_area).bind( "dragleave", function(event) {
+		$(event.delegateTarget).removeClass('upload-preview-over');
+		return false;
+	});
+	$(preview_area).bind( "drop", function(event) {
+		$(event.delegateTarget).removeClass('upload-preview-over');
+		var dt = event.originalEvent.dataTransfer;
+		try {
+			form_data = new FormData()
+			for( var i=0; i<dt.files.length; i++ ) {
+				var file = dt.files[i];
+				form_data.append( "file-"+String(i), file )
+			}
+			$.ajax({
+				url : "ems.wsgi?do=store",
+				type : "POST",
+				data : form_data,
+				contentType: false, /*form_data den Content-Type bestimmen lassen*/
+				processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
+				success :
+			function( result ) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					var upload_id = result.object_id;
+					$.ajax({
+						url : "ems.wsgi?do=get&view=all&id="+String(upload_id),
+						success :
+					function( result ) {
+						result = parse_result( result );
+						if( result && result.length ) {
+							var meta = result[0];
+							if( meta.title ) $('.upload-title',upload_dialog).text( meta.title );
+							if( meta.type ) $('.upload-type',upload_dialog).text( "["+meta.type+"]" );
+							if( meta.size ) $('.upload-size',upload_dialog).text( prettyprint_size(meta.size) );
+							if( meta.type.match(/^image\//) ) {
+								$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(upload_id)+'" class="upload-object upload-preview-content" />');
+								var preview_image = $('img', preview_area)[0];
+								preview_image.data = { object_id: upload_id, obj: meta };
+							} else {
+								$(preview_area).html('<a href="ems.wsgi?do=get&view=data&id='+String(upload_id)+'&attachement=true" class="upload-object download-link" ><img src="tango-scalable/actions/document-save.svg" class="download-icon" /></a>');
+								var preview_link = $('a', preview_area)[0];
+								$(preview_link).append( '<span class="download-title">'+meta.title+'</span><span class="download-size">('+prettyprint_size(meta.size)+')</span>' );
+								preview_link.data = { object_id: upload_id, obj: meta };
+							}
+						}
+					}});
+				}
+			}});
+		} catch( error ) {
+			show_message( "Beim Hochladen der Datei ist ein Fehler aufgetreten. Eventuell unterstützt dein Browser die verwendeten Schnittstellen noch nicht." )
+			show_error( error );
+		}
+		return false;
+	});
+}
+
+function close_upload_dialog( button ) {
+	$(button).closest(".upload-dialog").remove();
+}
+
+function confirm_upload( button ) {
+	var upload_dialog = $(button).closest(".upload-dialog")[0];
+	var upload_object = $('.upload-object', upload_dialog)[0];
+	$(upload_dialog).after( upload_object );
+	upload_object.contentEditable = false; // verhindert Editierbarkeit des Links
+	$(upload_object).after( '<br />' ); // Leerzeile wird insbesondere für Links benötigt, wieso auch immer...
+	close_upload_dialog( button );
 }

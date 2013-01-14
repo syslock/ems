@@ -480,34 +480,57 @@ body {
 .upload-dialog {
 	display: inline-block;
 	text-align: center;
-	min-width: 400px;
+	max-width: 90%;
 	background-color: white;
 	border: 1px dashed orange;
 	padding: 10px;
 	margin: 10px;
 	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
 }
-.upload-dialog span {
+.upload-manual {
 	display: block;
 	margin-bottom: 15px;
 }
 .upload-preview {
-	text-align: center;
+	display: block;
+	margin-bottom: 15px;
 	border: 2px dashed red;
-	width: 200px;
-	height: 200px;
-	margin-left: 25%;
+	min-width: 200px;
+	min-height: 200px;
+	padding: 10px;
 }
 .upload-preview-over {
 	background-color: lightblue;
 }
 .upload-preview-content {
-	width: 200px;
-	height: 200px;
-	border-radius: 10%;
+	max-width: 100%;
+}
+.download-icon {
+	width: 50px;
+	height: 50px;
+}
+.download-link {
+	padding: 5px;
+	background-color: lightblue;
+	border-radius: 20px;
+	border: 1px solid black;
+	color: black;
+	text-decoration: none;
+}
+.upload-preview>.download-link {
+	margin-top: 73px;
+}
+.download-title {
+	font-weight: bold;
+	padding-left: 10px;
+}
+.download-size {
+	font-size: small;
+	padding-left: 10px;
 }
 .upload-info {
 	display: block;
+	margin-bottom: 15px;
 	clear: both;
 }
 .upload-title {

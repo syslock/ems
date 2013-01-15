@@ -11,9 +11,9 @@ function new_text_part( entry_id, data )
 	function( result )
 	{
 		result = parse_result( result )
-		if( result.succeeded && result.object_id!=undefined )
+		if( result.succeeded && result.id!=undefined )
 		{
-			div.id = "entry-text-"+String(result.object_id)
+			div.id = "entry-text-"+String(result.id)
 			div.style.display = ""
 			$(div).html( data )
 		}
@@ -52,8 +52,8 @@ function new_item( parms ) {
 			success :
 		function( result ) {
 			result = parse_result( result )
-			if( result.succeeded && result.object_id!=undefined ) {
-				obj.id = result.object_id
+			if( result.succeeded && result.id!=undefined ) {
+				obj.id = result.id
 				if( !parms.dom_object ) {
 					// Neues Element im Browser anlegen:
 					var item = new_item( parms )
@@ -62,7 +62,7 @@ function new_item( parms ) {
 				}
 				else {
 					parms.dom_object.data = {
-						"object_id" : obj.id
+						obj: obj
 					}
 				}
 			}
@@ -97,7 +97,7 @@ function new_item( parms ) {
 				$("."+short_type+"-content",item).append( parms.dom_child );
 			}
 			item.data = {
-				"object_id" : obj.id
+				obj: obj
 			}
 		}
 		for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
@@ -250,18 +250,14 @@ function edit_entry( button )
 	}
 }
 
-function get_plain_text( element )
-{
-	var current_plain_text = ""
-	for( var i=0; i<element.childNodes.length; i++ )
-	{
-		var child = element.childNodes[i]
-		if( child.nodeName!="#text" )
-		{
-			current_plain_text += get_plain_text( child )
-			if( child.nodeName=="BR" || child.nodeName=="DIV" )
-			{
-				current_plain_text += "\n"
+function get_plain_text( element ) {
+	var current_plain_text = "";
+	for( var i=0; i<element.childNodes.length; i++ ) {
+		var child = element.childNodes[i];
+		if( child.nodeName!="#text" ) {
+			current_plain_text += get_plain_text( child );
+			if( child.nodeName=="BR" || child.nodeName=="DIV" ) {
+				current_plain_text += "\n";
 			}
 		}
 		else current_plain_text += child.textContent;
@@ -299,7 +295,7 @@ function save_entry_plain( button ) {
 		// new-entry-Objekt mit einem neuen DB-Objekt assoziieren:
 		new_item( {obj:{type: "application/x-obj.entry"}, dom_object: entry} );
 	}
-	var entry_id = entry.data.object_id;
+	var entry_id = entry.data.obj.id;
 	var title = $( "."+typemod+"entry-title", entry )[0]
 	var content = $( "."+typemod+"entry-content", entry )[0]
 	if( title ) {
@@ -329,7 +325,7 @@ function save_entry_plain( button ) {
 		function( result ) {
 			result = parse_result( result )
 			if( result.succeeded ) {
-				part_id_list.push( result.object_id )
+				part_id_list.push( result.id )
 			}
 		}})
 		// serverseitige Bereinigung alter Daten:
@@ -385,7 +381,7 @@ function new_response( user, button ) {
 function delete_entry( button ) {
 	var entry = $(button).closest(".ems-entry")[0];
 	$.ajax({
-		url : "ems.wsgi?do=delete&id="+String(entry.data.object_id),
+		url : "ems.wsgi?do=delete&id="+String(entry.data.obj.id),
 		success :
 	function( result ) {
 		result = parse_result( result );
@@ -414,7 +410,7 @@ function discard_response( button ) {
 			content.contentEditable = false;
 		}
 		// Daten neu laden, um lokale Änderungen zu beseitigen:
-		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry.data.object_id, dom_object: entry}, update: true} );
+		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry.data.obj.id, dom_object: entry}, update: true} );
 	}
 }
 
@@ -465,7 +461,7 @@ function add_file( button ) {
 			function( result ) {
 				result = parse_result( result );
 				if( result.succeeded ) {
-					var upload_id = result.object_id;
+					var upload_id = result.id;
 					$.ajax({
 						url : "ems.wsgi?do=get&view=all&id="+String(upload_id),
 						success :
@@ -479,12 +475,12 @@ function add_file( button ) {
 							if( meta.type.match(/^image\//) ) {
 								$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(upload_id)+'" class="upload-object upload-preview-content" />');
 								var preview_image = $('img', preview_area)[0];
-								preview_image.data = { object_id: upload_id, obj: meta };
+								preview_image.data = { obj: meta };
 							} else {
 								$(preview_area).html('<a href="ems.wsgi?do=get&view=data&id='+String(upload_id)+'&attachement=true" class="upload-object download-link" ><img src="tango-scalable/actions/document-save.svg" class="download-icon" /></a>');
 								var preview_link = $('a', preview_area)[0];
 								$(preview_link).append( '<span class="download-title">'+meta.title+'</span><span class="download-size">('+prettyprint_size(meta.size)+')</span>' );
-								preview_link.data = { object_id: upload_id, obj: meta };
+								preview_link.data = { obj: meta };
 							}
 						}
 					}});

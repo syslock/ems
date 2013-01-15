@@ -63,7 +63,7 @@
 				var value = field.value;
 				if( field_name in {"statement_id":0, "motivation_id":0, "motto_id":0, "abstract_id":0} )
 				{
-					value = field.parentNode.data.object_id
+					value = field.parentNode.data.obj.id
 				}
 				$.get( 'ems.wsgi?do=store&type=application/x-obj.iswi.application&'+field_name+'='+value, 
 				function(result)
@@ -105,8 +105,8 @@
 						{
 							if( field_name in {"statement_id":0, "motivation_id":0, "motto_id":0, "abstract_id":0} )
 							{
-								if( field.data ) field.data["object_id"] = result[field_name]
-								else field.data = { "object_id" : result[field_name] }
+								if( field.data ) field.data.obj = { id: result[field_name] };
+								else field.data = { obj: {id : result[field_name]} }
 								show_object( {id:result[field_name], dom_object:field}, field.parentNode )
 							}
 							else field.value = result[field_name]
@@ -135,13 +135,13 @@
 				else
 				{
 					abstract.style.display='none'
-					if( abstract.data && abstract.data.object_id )
+					if( abstract.data && abstract.data.obj && abstract.data.obj.id )
 					{
-						$.get( 'ems.wsgi?do=delete&id='+String(abstract.data.object_id),
+						$.get( 'ems.wsgi?do=delete&id='+String(abstract.data.obj.id),
 						function( result )
 						{
 							result = parse_result( result )
-							abstract.data.object_id = 0
+							abstract.data.obj = undefined;
 							rs( $("#application-abstract-input")[0] )
 						})
 					}

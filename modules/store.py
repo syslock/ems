@@ -77,7 +77,7 @@ def store_object( app, usr, file_item=None ):
 								email = query.parms["email"], 
 								fullname = query.parms["fullname"] )
 			response.output = str( {"succeeded" : True,
-									"object_id" : usr.id} )
+									"id" : usr.id} )
 		else:
 			raise errors.ParameterError()
 	else:
@@ -111,5 +111,5 @@ def store_object( app, usr, file_item=None ):
 							"sequence":sequence}.items()
 						 )) )
 		response.output = str( {"succeeded" : True, 
-								"object_id" : obj.id} )
+								"id" : obj.id} )
 

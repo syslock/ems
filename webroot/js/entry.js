@@ -1,30 +1,3 @@
-function new_text_part( entry_id, data )
-{
-	// neuese Textsegment auf Server und im Browser anlegen:
-	var div = $("#entry-text-template").first().clone()[0]
-	$.ajax({
-		url : "ems.wsgi?do=store&type=text/plain&parent_id="+String(entry_id),
-		type : "POST",
-		data : { data : data },
-		async : false,
-		success :
-	function( result )
-	{
-		result = parse_result( result )
-		if( result.succeeded && result.id!=undefined )
-		{
-			div.id = "entry-text-"+String(result.id)
-			div.style.display = ""
-			$(div).html( data )
-		}
-		else
-		{
-			div = undefined
-		}
-	}})
-	return div
-}
-
 function get_short_type( type ) {
 	return type.match(/.*\.([^.]*)/)[1]
 }
@@ -127,6 +100,15 @@ function new_item( parms ) {
 	}
 }
 
+function create_download( obj ) {
+	var link = $( '<a href="ems.wsgi?do=get&view=data&id='+String(obj.id)+'&attachement=true" class="download-link" ><img src="tango-scalable/actions/document-save.svg" class="download-icon" /></a>' );
+	link.append( '<span class="download-title">'+obj.title+'</span><span class="download-size">('+prettyprint_size(obj.size)+')</span>' );
+	link = link[0];
+	link.data = { obj: obj };
+	obj.dom_object = link;
+	return link;
+}
+
 function load_visible_objects( parms ) {
 	var limit = (parms.limit ? "&limit="+parms.limit : "");
 	var type = (parms.type ? "&type="+parms.type : "");
@@ -151,8 +133,7 @@ function show_object( parms )
 	var duplicates = parms.duplicates;
 	var prepend = parms.prepend;
 	var update = parms.update;
-	if( obj.id && !obj.type )
-	{
+	if( obj.id && !obj.type ) {
 		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
 		function( result )
 		{
@@ -168,18 +149,14 @@ function show_object( parms )
 				}
 			}
 		})
-	}
-	if( obj.type == "application/x-obj.group" )
-	{
+	} else if( obj.type == "application/x-obj.group" ) {
 		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
 			}
 		}
-	}
-	if( obj.type == "application/x-obj.user" )
-	{
+	} else if( obj.type == "application/x-obj.user" ) {
 		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( obj.avatar_id ) {
 			replace_user_image( item, obj.avatar_id );
@@ -189,9 +166,7 @@ function show_object( parms )
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
 			}
 		}
-	}
-	if( obj.type == "application/x-obj.entry" )
-	{
+	} else if( obj.type == "application/x-obj.entry" ) {
 		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
@@ -206,18 +181,28 @@ function show_object( parms )
 				if( parent.type == "application/x-obj.user" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
 		}
-	}
-	if( obj.type == "text/plain" )
-	{
-		var div = $( "#entry-text-"+String(obj.id) )[0]
-		if( !div )
-		{
-			div = $("#entry-text-template").first().clone()[0]
-			div.id = "entry-text-"+String(obj.id)
-			if( dom_parent ) dom_parent.appendChild( div );
+	} else if( obj.type == "text/plain" && obj.data ) {
+		if( dom_parent ) {
+			obj.dom_object = $('<span>').attr( {class: 'entry-text'} )[0];
+			$(obj.dom_object).text( obj.data );
+			obj.dom_object.data = {obj: obj};
+			$(dom_parent).append( obj.dom_object );
 		}
-		div.style.display = ""
-		$(div).html( obj.data.replace(/\r?\n$/,"").replace(/\r?\n/g,"<br/>") );
+	} else if( obj.type == "text/html" && obj.data ) {
+		if( dom_parent ) {
+			obj.dom_object = $( obj.data )[0];
+			obj.dom_object.data = {obj: obj};
+			$(dom_parent).append( obj.dom_object );
+		}
+	} else if( obj.type && obj.type.match(/^image\//) && obj.id ) {
+		if( dom_parent ) {
+			obj.dom_object = $('<img>').attr( {src: 'ems.wsgi?do=get&id='+obj.id+'&view=data', class: 'entry-media'} )[0];
+			obj.dom_object.data = {obj: obj};
+			$(dom_parent).append( obj.dom_object );
+		}
+	} else if( dom_parent && obj.id ) {
+		var download_link = create_download( obj );
+		$(dom_parent).append( download_link );
 	}
 }
 
@@ -265,6 +250,38 @@ function get_plain_text( element ) {
 	return current_plain_text;
 }
 
+function get_object_list( element, text_obj ) {
+	var current_list = [];
+	if( element.nodeName=="#text" ) {
+		var obj = { 'type': 'text/plain', 'data': element.textContent };
+		if( text_obj && text_obj.unassigned ) {
+			obj.id = text_obj.id;
+			text_obj.unassigned = false;
+		}
+		current_list.push( obj );
+	} else if( element.nodeName=="BR" ) {
+		if( element.data && element.data.obj ) {
+			current_list.push( element.data.obj );
+		} else {
+			var obj = { 'type': 'text/html', 'data': element.outerHTML };
+			current_list.push( obj );
+		}
+	} else if( element.data && element.data.obj ) {
+		current_list.push( element.data.obj );
+	}
+	if( !element.data || !element.data.obj || element.data.obj.type=="text/plain" ) {
+		if( element.data && element.data.obj && element.data.obj.type=="text/plain" ) {
+			text_obj = element.data.obj;
+			text_obj.unassigned = true;
+		}
+		for( var i=0; i<element.childNodes.length; i++ ) {
+			var child = element.childNodes[i];
+			current_list = current_list.concat( get_object_list(child, text_obj) );
+		}
+	}
+	return current_list;
+}
+
 function restore_standard_tools( entry ) {
 	// temporären Klon der Editieren-Toolbox wieder aus diesem Beitrag löschen und Standard-Toolbox wieder anzeigen:
 	var edit_tools = $( ".new-entry-tools", entry )[0];
@@ -286,7 +303,7 @@ function remove_new_entry_item( entry ) {
 	$(item).remove();
 }
 
-function save_entry_plain( button ) {
+function save_entry( button ) {
 	var typemod = "";
 	var entry = $(button).closest(".ems-entry")[0];
 	if( !entry ) {
@@ -313,22 +330,47 @@ function save_entry_plain( button ) {
 	}
 	if( content ) {
 		content.contentEditable = false
-		var content_text = get_plain_text( content )
+		//var content_text = get_plain_text( content )
+		var content_list = get_object_list( content );
 		// Inhalt speichern:
 		var part_id_list = []
-		$.ajax({
-			url : "ems.wsgi?do=store&type=text/plain&parent_id="+String(entry_id),
-			type : "POST",
-			data : { data: content_text },
-			async : false,
-			success :
-		function( result ) {
-			result = parse_result( result )
-			if( result.succeeded ) {
-				part_id_list.push( result.id )
+		for( var i in content_list ) {
+			var obj = content_list[i];
+			if( obj.id==undefined && obj.type && obj.data ) {
+				// neu zu speichernde Objekte mit Inhalt, ohne bestehende ID-Zuordnung:
+				// (bisher nur text/plain)
+				$.ajax({
+					url : "ems.wsgi?do=store&type="+obj.type+"&parent_id="+String(entry_id)+"&sequence="+String(i),
+					type : "POST",
+					data : { data: obj.data },
+					async : false, /* hier, ohne komplizierteres Event-Hanlding, wichtig zur Vermeidung von Race-Conditions */
+					success :
+				function( result ) {
+					result = parse_result( result )
+					if( result.succeeded ) {
+						part_id_list.push( result.id )
+					}
+				}})
+			} else if( obj.id && (obj.unassigned==undefined || obj.unassigned==true) ) {
+				// bereits gespeicherte Objekte, mit bestehender ID-Zuordnung, 
+				// die dem Eintrag in korrekter Sequenz (neu) zugewiesen werden müssen:
+				// (bisher eingefügte Dateien, wie Bilder etc.)
+				$.ajax({
+					url : "ems.wsgi?do=store&id="+obj.id+"&parent_id="+String(entry_id)+"&sequence="+String(i),
+					async : false, /* hier, ohne komplizierteres Event-Hanlding, wichtig zur Vermeidung von Race-Conditions */
+					success :
+				function( result ) {
+					result = parse_result( result )
+					if( result.succeeded ) {
+						part_id_list.push( result.id )
+					}
+				}})
 			}
-		}})
+		}
 		// serverseitige Bereinigung alter Daten:
+		// (Damit das so funktioniert, ist es wichtig, dass der Neuzuordnungsfall bestehender Objekte (2. Fall oben)
+		//  eine Duplikatbehandlung der Eltern-Kind-Beziehungen vornimmt, sodass bestehende Zuordnungen aktualisiert
+		//  (Sequenz) und nicht vermehrt werden...)
 		$.ajax({
 			url : "ems.wsgi?do=delete&parent_id="+String(entry_id)
 				+"&child_not_in="+part_id_list.join(","),
@@ -476,11 +518,12 @@ function add_file( button ) {
 								$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(upload_id)+'" class="upload-object upload-preview-content" />');
 								var preview_image = $('img', preview_area)[0];
 								preview_image.data = { obj: meta };
+								meta.dom_object = preview_image;
 							} else {
-								$(preview_area).html('<a href="ems.wsgi?do=get&view=data&id='+String(upload_id)+'&attachement=true" class="upload-object download-link" ><img src="tango-scalable/actions/document-save.svg" class="download-icon" /></a>');
-								var preview_link = $('a', preview_area)[0];
-								$(preview_link).append( '<span class="download-title">'+meta.title+'</span><span class="download-size">('+prettyprint_size(meta.size)+')</span>' );
-								preview_link.data = { obj: meta };
+								var download_link = create_download( meta );
+								$(download_link).addClass( 'upload-object' );
+								$(preview_area).empty();
+								$(preview_area).append( download_link );
 							}
 						}
 					}});
@@ -502,7 +545,10 @@ function confirm_upload( button ) {
 	var upload_dialog = $(button).closest(".upload-dialog")[0];
 	var upload_object = $('.upload-object', upload_dialog)[0];
 	$(upload_dialog).after( upload_object );
+	if( $(upload_object).hasClass('download-link') ) {
+		// fancy.css braucht wegen eines Offset-Bugs einen zusätzlichen Zeilenumbruch nach Links:
+		$(upload_object).after( '<br>' );
+	}
 	upload_object.contentEditable = false; // verhindert Editierbarkeit des Links
-	$(upload_object).after( '<br />' ); // Leerzeile wird insbesondere für Links benötigt, wieso auch immer...
 	close_upload_dialog( button );
 }

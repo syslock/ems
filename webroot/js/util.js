@@ -153,6 +153,6 @@ function prettyprint_size( size ) {
 		value /= 1024;
 		two_powers += 10;
 	}
-	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+({10:"KiB", 20:"MiB", 30:"GiB", 40:"TiB"})[two_powers];
+	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+' '+({0:"Byte", 10:"KiB", 20:"MiB", 30:"GiB", 40:"TiB"})[two_powers];
 }
 

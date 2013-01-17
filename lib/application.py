@@ -38,13 +38,13 @@ class Request:
 				pass # hier machen wir erst mal nichts damit, das Parsen übernehmen modules/store.py etc.
 		self.xml_fix_parms() # XML-Kontrollzeichen ersetzen
 		
+	XML_FIXES = [
+		("&",  "&amp;"), # MUSS ZUERST ERSETZT WERDEN!
+		("<", "&lt;"),
+		(">", "&gt;"),
+	]
 	def xml_fix_parm( self, parm ):
-		XML_FIXES = [
-			("&",  "&amp;"), # MUSS ZUERST ERSETZT WERDEN!
-			("<", "&lt;"),
-			(">", "&gt;"),
-		]
-		for pair in XML_FIXES:
+		for pair in self.XML_FIXES:
 			parm = parm.replace( pair[0], pair[1] )
 		return parm
 	def xml_fix_parms( self ):

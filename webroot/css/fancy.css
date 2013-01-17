@@ -157,6 +157,9 @@ body {
 	height: 230px;
 	background-color: transparent;
 }
+.entry-media {
+	max-width: 100%;
+}
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */
@@ -505,28 +508,8 @@ body {
 .upload-preview-content {
 	max-width: 100%;
 }
-.download-icon {
-	width: 50px;
-	height: 50px;
-}
-.download-link {
-	padding: 5px;
-	background-color: lightblue;
-	border-radius: 20px;
-	border: 1px solid black;
-	color: black;
-	text-decoration: none;
-}
 .upload-preview>.download-link {
 	margin-top: 73px;
-}
-.download-title {
-	font-weight: bold;
-	padding-left: 10px;
-}
-.download-size {
-	font-size: small;
-	padding-left: 10px;
 }
 .upload-info {
 	display: block;
@@ -546,4 +529,28 @@ body {
 }
 .upload-dialog>button {
 	float: right;
+}
+
+/* ------------------------------------------------------------------------- */
+/* ------------------------------- Downloads   ----------------------------- */
+/* ------------------------------------------------------------------------- */
+.download-icon {
+	width: 50px;
+	height: 50px;
+}
+.download-link {
+	padding: 5px;
+	background-color: lightblue;
+	border-radius: 20px;
+	border: 1px solid black;
+	color: black;
+	text-decoration: none;
+}
+.download-title {
+	font-weight: bold;
+	padding-left: 10px;
+}
+.download-size {
+	font-size: small;
+	padding-left: 10px;
 }

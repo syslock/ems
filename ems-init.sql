@@ -3,13 +3,13 @@ CREATE TABLE session_parms (sid TEXT, key TEXT, value TEXT, mtime NUMERIC, UNIQU
 CREATE TABLE users (object_id NUMERIC, nick TEXT UNIQUE, email TEXT, password TEXT, avatar_id NUMERIC);
 CREATE TABLE groups (object_id NUMERIC, name TEXT UNIQUE, description TEXT);
 CREATE TABLE text (object_id NUMERIC, data TEXT);
-CREATE TABLE membership (parent_id NUMERIC, child_id NUMERIC );
+CREATE TABLE membership (parent_id NUMERIC, child_id NUMERIC, sequence NUMERIC NOT NULL DEFAULT 0 );
 CREATE INDEX i_membership_p_id ON membership(parent_id ASC);
 CREATE INDEX i_membership_c_id ON membership(child_id ASC);
-CREATE TABLE objects (id INTEGER PRIMARY KEY, type TEXT, sequence NUMERIC NOT NULL DEFAULT 0, ctime NUMERIC, mtime NUMERIC);
+CREATE INDEX i_membership_sequence ON membership(sequence ASC);
+CREATE TABLE objects (id INTEGER PRIMARY KEY, type TEXT, ctime NUMERIC, mtime NUMERIC);
 CREATE UNIQUE INDEX i_objects_id ON objects(id ASC);
 CREATE INDEX i_objects_type ON objects(type ASC);
-CREATE INDEX i_objects_sequence ON objects(sequence ASC);
 CREATE INDEX i_objects_ctime ON objects(ctime ASC);
 CREATE INDEX i_objects_mtime ON objects(mtime ASC);
 CREATE TABLE titles (object_id NUMBER, data TEXT);

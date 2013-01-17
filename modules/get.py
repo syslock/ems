@@ -42,15 +42,13 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 		# hierfür müssen wir Zugriffsfehler abschalten, wodurch im Zweifelsfall eine leere Liste zurückgegeben wird:
 		access_errors=False
 		if "type" in query.parms:
-			c.execute( """select id, type, sequence, mtime
-							from objects
+			c.execute( """select id from objects
 							where type=?
-							order by sequence, mtime desc, id""",
+							order by mtime desc""",
 						[query.parms["type"]] )
 		else:
-			c.execute( """select id, type, sequence, mtime
-							from objects
-							order by sequence, mtime desc, id""" )
+			c.execute( """select id from objects
+							order by mtime desc""" )
 		for i, row in enumerate(c):
 			if not limit or len(object_ids)<limit:
 				object_ids.append( row[0] )
@@ -66,7 +64,7 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 				raise errors.PrivilegeError()
 			else:
 				continue
-		c.execute( """select type, sequence, mtime, ctime
+		c.execute( """select type, mtime, ctime
 						from objects where id=?""", 
 					[object_id] )
 		result = c.fetchone()
@@ -76,9 +74,8 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 		obj = {
 			"id" : object_id,
 			"type" : object_type,
-			"sequence" : result[1],
-			"mtime" : result[2],
-			"ctime" : result[3],
+			"mtime" : result[1],
+			"ctime" : result[2],
 			"permissions" : ["read"]
 			}
 		if usr.can_write(object_id):
@@ -89,7 +86,7 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 		c.execute( """select child_id from membership m
 						inner join objects o on o.id=m.child_id
 						where parent_id=?
-						order by o.sequence, o.mtime desc, o.id""",
+						order by m.sequence, o.mtime desc""",
 					[object_id] )
 		children = []
 		for row in c:
@@ -107,7 +104,7 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 		c.execute( """select parent_id from membership m
 						inner join objects o on o.id=m.parent_id
 						where child_id=?
-						order by o.sequence, o.mtime desc, o.id""",
+						order by o.mtime desc""",
 					[object_id] )
 		parents = []
 		for row in c:
@@ -126,16 +123,20 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 		c.execute( """select data from titles where object_id=?""", 
 			[object_id] )
 		result = c.fetchone()
-		if result:
+		if result and result[0]:
 			obj["title"] = result[0]
 		if view in ["data", "all"]:
-			if object_type == "text/plain":
-				c.execute( """select data from text where object_id=?""", 
-					[object_id] )
-				result = c.fetchone()
-				if not result:
-					raise errors.ObjectError( "Missing object data" )
-				data = result[0]
+			if object_type == db_object.Text.media_type:
+				text_obj = db_object.Text( app=app, usr=usr, object_id=object_id )
+				data = text_obj.get_data()
+				if view=="data":
+					response.output += data
+					response.media_type = object_type
+				elif view=="all":
+					obj["data"] = data
+			if object_type == db_object.HTML.media_type:
+				text_obj = db_object.HTML( app=app, usr=usr, object_id=object_id )
+				data = text_obj.get_data()
 				if view=="data":
 					response.output += data
 					response.media_type = object_type

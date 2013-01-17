@@ -1,6 +1,8 @@
 import time, imp, os, shutil
 from lib import errors
 errors = imp.reload( errors )
+from lib import application
+application = imp.reload( application )
 
 class DBObject:
 	
@@ -12,6 +14,11 @@ class DBObject:
 				# Beiträge gehören standardmäßig zum Nutzer:
 				parent_id = usr.id
 		if parent_id!=None and usr and not usr.can_write( parent_id ):
+			# FIXME: Sind Objektkonstruktionen ohne usr mit parent_id immer legal?
+			#	Wer stellt sicher, dass das nicht passiert? store.py?
+			#	Könnten wir (not usr) hier (oder später) raisen, ohne Dinge wie 
+			#	E-Mail-Registrierung kaputt zu machen, z.B. durch dortige Verwendung 
+			#	von admin oder eines spezielle Reg-Users?
 			raise errors.PrivilegeError()
 		c = self.app.db.cursor()
 		self.parents = []
@@ -35,41 +42,52 @@ class DBObject:
 			if not media_type:
 				raise errors.ParameterError( "Missing media type" )
 			self.media_type = media_type
-			c.execute( """insert into objects (type,sequence,ctime,mtime) 
-							values(?,?,?,?)""",
-						[self.media_type, sequence, time.time(), time.time()] )
+			c.execute( """insert into objects (type,ctime,mtime) 
+							values(?,?,?)""",
+						[self.media_type, time.time(), time.time()] )
+			self.app.db.commit()
 			self.id = c.lastrowid
 			if parent_id == None:
 				# Objekte ohne explizites Elternobjekt werden dem Wurzelobjekt untergeordnet:
+				# FIXME: Auch ohne explizite Schreibrechte?
 				root = get_root_object( self.app )
 				if root:
 					parent_id = root.id
 			if parent_id != None:
-				c.execute( """insert into membership (parent_id, child_id)
-								values(?,?)""",
-							[parent_id, self.id] )
+				c.execute( """insert into membership (parent_id, child_id, sequence)
+								values(?,?,?)""",
+							[parent_id, self.id, sequence] )
+				self.app.db.commit()
 				self.parents = [ parent_id ]
-			self.app.db.commit()
 	
 	def update( self, **keyargs ):
 		sequence = 0
-		if "sequence" in keyargs:
+		if "sequence" in keyargs and sequence!=None:
 			sequence = keyargs["sequence"]
-		parent_id = None
-		if "parent_id" in keyargs:
-			parent_id = keyargs["parent_id"]
-		if parent_id!=None and parent_id not in self.parents:
-			raise NotImplementedError( "TODO: Objektbaum umstrukturieren" )
 		media_type = None
-		if "media_type" in keyargs:
+		if "media_type" in keyargs and keyargs["media_type"]!=None:
 			media_type = keyargs["media_type"]
-		if media_type!=None and media_type!=self.media_type:
-			raise NotImplementedError( "Cannot change media type" )
+			if media_type!=self.media_type:
+				raise NotImplementedError( "Cannot change media type" )
 		c = self.app.db.cursor()
-		c.execute( """update objects set sequence=?, mtime=?
+		parent_id = None
+		if "parent_id" in keyargs and keyargs["parent_id"]!=None:
+			parent_id = keyargs["parent_id"]
+			if parent_id not in self.parents:
+				c.execute( """insert into membership (parent_id, child_id, sequence)
+								values(?,?,?)""",
+							[parent_id, self.id, sequence] )
+				self.parents.append( parent_id )
+			else:
+				c.execute( """update membership set sequence=?
+								where parent_id=? and child_id=?""",
+							[sequence, parent_id, self.id] )
+			self.app.db.commit()
+		c.execute( """update objects set mtime=?
 						where id=?""",
-					[sequence, time.time(), self.id] )
-		if "title" in keyargs:
+					[time.time(), self.id] )
+		self.app.db.commit()
+		if "title" in keyargs and keyargs["title"]!=None:
 			title = keyargs["title"]
 			# Jedes Objekt darf einen Titel haben
 			c.execute( """select object_id from titles where object_id=?""",
@@ -80,7 +98,7 @@ class DBObject:
 			else:
 				c.execute( """insert into titles (object_id, data) values(?,?)""",
 							[self.id, title] )
-		self.app.db.commit()
+			self.app.db.commit()
 	
 	def resolve_parents( self, child_id=None ):
 		result = []
@@ -158,6 +176,31 @@ class Text( DBObject ):
 								where object_id=?""",
 							[keyargs["data"], self.id] )
 			self.app.db.commit()
+	def get_data( self ):
+		c = self.app.db.cursor()
+		c.execute( """select data from text where object_id=?""", 
+			[self.id] )
+		result = c.fetchone()
+		if not result:
+			raise errors.ObjectError( "Missing object data" )
+		data = result[0]
+		return data
+
+
+class HTML( Text ):
+	media_type = "text/html"
+	def __init__( self, app, **keyargs ):
+		keyargs["media_type"] = self.media_type
+		super().__init__( app, **keyargs )
+	def get_data( self, **keyargs ):
+		result = super().get_data( **keyargs )
+		# Zum Schutz gegen XSS-Angriffe XML-quotiert application.Request 
+		# URL-kodierten Parameter. Daher ist unser Datenbankinhalt 
+		# grundsätzlich XML-quotiert und wir müssen für unsere 
+		# HTML-Daten hier eine explizite Rücktransformation vornehmen:
+		for pair in reversed(application.Request.XML_FIXES):
+			result = result.replace( pair[1], pair[0] )
+		return result
 
 
 class UserAttributes( DBObject ):

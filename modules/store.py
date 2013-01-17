@@ -94,17 +94,20 @@ def store_object( app, usr, file_item=None ):
 			sequence = int( query.parms["sequence"] )
 		obj = None
 		if media_type == db_object.Text.media_type:
-			obj = db_object.Text( app, usr=usr, object_id=object_id, parent_id=parent_id )
+			obj = db_object.Text( app, usr=usr, object_id=object_id, parent_id=parent_id, sequence=sequence )
+		elif media_type == db_object.HTML.media_type:
+			obj = db_object.HTML( app, usr=usr, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		elif media_type == user.User.media_type and object_id:
 			obj = user.User( app, user_id=object_id )
 		elif file_item!=None:
 			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
 			# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
-			obj = db_object.File( app, usr=usr, object_id=object_id, parent_id=parent_id, media_type=media_type )
+			obj = db_object.File( app, usr=usr, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
 		else:
 			obj = db_object.DBObject( app, usr=usr, object_id=object_id, 
 									  parent_id=parent_id, 
-									  media_type=media_type )
+									  media_type=media_type,
+									  sequence=sequence )
 		obj.update( **dict(itertools.chain( 
 						query.parms.items(),
 						{"parent_id":parent_id, "data":data, "title":title, 

@@ -5,3 +5,6 @@ webroot/silk_icons/
 .project
 config.py
 ems.db
+phpbb_files/
+phpbb_images/
+webroot/tango-scalable/

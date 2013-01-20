@@ -176,4 +176,20 @@ class Application:
 		self.session = Session( self, sid=("sid" in self.query.parms \
 										  and self.query.parms["sid"] or None) )
 		self.config = config
-
+		self.logfile = None
+		if hasattr(config,"logfile"):
+			self.logfile = open( os.path.join(self.path, self.name+".log"), "a" )
+		self.tracefile = None
+		if hasattr(config,"tracefile"):
+			self.tracefile = open( os.path.join(self.path, self.name+".trace"), "a" )
+			def trace( message ):
+				self.trace( message )
+			self.db.set_trace_callback( trace )
+			self.trace( self )
+		self.access_cache = {}
+	def log( self, message ):
+		if self.logfile:
+			self.logfile.write( time.ctime()+": "+str(message)+"\n" )
+	def trace( self, message ):
+		if self.tracefile:
+			self.tracefile.write( time.ctime()+": "+str(message)+"\n" )

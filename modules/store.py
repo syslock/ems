@@ -86,6 +86,10 @@ def store_object( app, usr, file_item=None ):
 			object_id = int( query.parms["id"] )
 			if not usr.can_write( object_id ):
 				raise errors.PrivilegeError()
+			if not media_type:
+				# nicht explizit angegebenen media_type aus dem DBObject holen:
+				obj = db_object.DBObject( app, usr=usr, object_id=object_id )
+				media_type = obj.media_type
 		parent_id = None
 		if "parent_id" in query.parms:
 			parent_id = int( query.parms["parent_id"] )

@@ -17,16 +17,16 @@ def process( app ):
 		recursive = query.parms["recursive"].lower()=="true"
 	if "id" in query.parms:
 		object_ids = [int(x) for x in query.parms["id"].split(",")]
-		result = get( app, object_ids, limit=limit, recursive=recursive )
+		result = get( app, object_ids, limit=limit, recursive=(recursive,recursive) )
 	else:
-		result = get( app, limit=limit, recursive=recursive )
+		result = get( app, limit=limit, recursive=(recursive,recursive) )
 	if result != None:
 		if hasattr(result,"read"):
 			response.output = result # Stream-lesbare File-Objekte durchreichen
 		else:
 			response.output = str( result )
 
-def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], access_errors=True ):
+def get( app, object_ids=[], limit=None, recursive=(False,False), access_errors=True ):
 	query = app.query
 	response = app.response
 	session = app.session
@@ -76,50 +76,48 @@ def get( app, object_ids=[], limit=None, recursive=False, exclude_relatives=[], 
 			"type" : object_type,
 			"mtime" : result[1],
 			"ctime" : result[2],
-			"permissions" : ["read"]
+			"permissions" : ["read"],
+			"children" : [],
+			"parents" : []
 			}
 		if usr.can_write(object_id):
 			obj["permissions"].append("write")
 		if usr.can_delete(object_id):
 			obj["permissions"].append("delete")
 		# Kindelemente ermitteln:
-		c.execute( """select child_id from membership m
-						inner join objects o on o.id=m.child_id
-						where parent_id=?
-						order by m.sequence, o.mtime desc""",
-					[object_id] )
-		children = []
-		for row in c:
-			child_id = row[0]
-			if not limit or len(children)<limit:
-				if child_id not in exclude_relatives:
+		if recursive[1]:
+			c.execute( """select child_id from membership m
+							inner join objects o on o.id=m.child_id
+							where parent_id=?
+							order by m.sequence, o.mtime desc""",
+						[object_id] )
+			children = []
+			for row in c:
+				child_id = row[0]
+				if not limit or len(children)<limit:
 					children.append( child_id )
-			else:
-				break
-		if children and recursive:
-			obj["children"] = get( app, children, limit=limit, recursive=recursive, exclude_relatives=exclude_relatives+[object_id], access_errors=False )
-		else:
-			obj["children"] = children
+				else:
+					break
+			if children:
+				#                                                               \/ bei Rekursion nie wieder absteigen!
+				obj["children"] = get( app, children, limit=limit, recursive=(False,True), access_errors=False )
 		# Elternelemente ermitteln:
-		c.execute( """select parent_id from membership m
-						inner join objects o on o.id=m.parent_id
-						where child_id=?
-						order by o.mtime desc""",
-					[object_id] )
-		parents = []
-		for row in c:
-			parent_id = row[0]
-			if not limit or len(parents)<limit:
-				if parent_id not in exclude_relatives:
+		if recursive[0]:
+			c.execute( """select parent_id from membership m
+							inner join objects o on o.id=m.parent_id
+							where child_id=?
+							order by o.mtime desc""",
+						[object_id] )
+			parents = []
+			for row in c:
+				parent_id = row[0]
+				if not limit or len(parents)<limit:
 					parents.append( parent_id )
-			else:
-				break
-		if parents and recursive:
-			# Elternelemente werden nie rekursiv abgefragt, sondern nur direkt aufgelöst, 
-			# um Endlosrekursion zu vermeiden:
-			obj["parents"] = get( app, parents, limit=limit, recursive=False, exclude_relatives=exclude_relatives+[object_id], access_errors=False )
-		else:
-			obj["parents"] = parents
+				else:
+					break
+			if parents:
+				#                                                                 \/ bei Rekusion nie wieder aufsteigen!
+				obj["parents"] = get( app, parents, limit=limit, recursive=(True,False), access_errors=False )
 		c.execute( """select data from titles where object_id=?""", 
 			[object_id] )
 		result = c.fetchone()

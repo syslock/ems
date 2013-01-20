@@ -9,6 +9,7 @@ class DBObject:
 	def __init__( self, app, usr=None, object_id=None, parent_id=None, 
 					media_type=None, sequence=0 ):
 		self.app = app
+		self.app.trace( self )
 		if parent_id!=None or object_id==None:
 			if usr and parent_id==None:
 				# Beiträge gehören standardmäßig zum Nutzer:
@@ -30,7 +31,7 @@ class DBObject:
 			if media_type!=None and real_media_type!=media_type:
 				raise errors.ObjectError( "Real media type differs from requested" )
 			self.media_type = real_media_type
-			c.execute( """select parent_id from membership where child_id=?""", 
+			c.execute( """select parent_id from membership where child_id=? -- DBObject""", 
 						[self.id] )
 			for row in c:
 				self.parents.append( row[0] )
@@ -62,7 +63,7 @@ class DBObject:
 	
 	def update( self, **keyargs ):
 		sequence = 0
-		if "sequence" in keyargs and sequence!=None:
+		if "sequence" in keyargs and keyargs["sequence"]!=None:
 			sequence = keyargs["sequence"]
 		media_type = None
 		if "media_type" in keyargs and keyargs["media_type"]!=None:
@@ -100,17 +101,34 @@ class DBObject:
 							[self.id, title] )
 			self.app.db.commit()
 	
-	def resolve_parents( self, child_id=None ):
+	def closest_parents( self, child_ids=None ):
+		result = set()
+		if child_ids==None:
+			child_ids = {self.id}
+		parent_condition = "child_id in %s" % str(tuple(child_ids)).replace(",)",")")
+		c = self.app.db.cursor()
+		c.execute( """select distinct parent_id from membership where %s -- closest_parents""" % (parent_condition) )
+		for row in c:
+			parent_id = row[0]
+			result.add( parent_id )
+		return result
+	
+	def resolve_parents( self, child_id=None, cache=None ):
+		if cache==None:
+			cache = {}
 		result = []
 		child_id = child_id or self.id
 		c = self.app.db.cursor()
-		c.execute( """select parent_id from membership where child_id=?""", [child_id] )
+		c.execute( """select parent_id from membership where child_id=? -- resolve_parents""", [child_id] )
 		for row in c:
 			parent_id = row[0]
-			result += [parent_id] + self.resolve_parents( parent_id )
+			result += [parent_id]
+			if parent_id not in cache:
+				cache[ parent_id ] = True
+				result += self.resolve_parents( parent_id, cache )
 		return result
 	
-	def resolve_children( self, parent_id=None ):
+	def resolve_children( self, parent_id=None, cache=None ):
 		result = []
 		parent_id = parent_id or self.id
 		c = self.app.db.cursor()
@@ -139,9 +157,9 @@ class Group( DBObject ):
 	def update( self, **keyargs ):
 		super().update( **keyargs )
 		update_fields = []
-		if "name" in keyargs:
+		if "name" in keyargs and keyargs["name"]!=None:
 			update_fields.append( "name" )
-		if "description" in keyargs:
+		if "description" in keyargs and keyargs["description"]!=None:
 			update_fields.append( "description" )
 		for field in update_fields:
 			c = self.app.db.cursor()
@@ -164,7 +182,7 @@ class Text( DBObject ):
 		super().__init__( app, **keyargs )
 	def update( self, **keyargs ):
 		super().update( **keyargs )
-		if "data" in keyargs:
+		if "data" in keyargs and keyargs["data"]!=None:
 			c = self.app.db.cursor()
 			c.execute( """select object_id from text where object_id=?""",
 						[self.id] )
@@ -184,6 +202,7 @@ class Text( DBObject ):
 		if not result:
 			raise errors.ObjectError( "Missing object data" )
 		data = result[0]
+		data = data or "" # Nicht None zurück geben, um andere Programmteile nicht zu verwirren...
 		return data
 
 
@@ -282,12 +301,15 @@ class File( DBObject ):
 			return result!=None
 	def update( self, **keyargs ):
 		super().update( **keyargs )
-		if "data" in keyargs:
+		if "data" in keyargs and keyargs["data"]!=None:
 			f = open( self.storage_path, "wb" )
 			shutil.copyfileobj( keyargs["data"], f )
 			f.close
 	def get_size( self ):
-		return os.stat( self.storage_path ).st_size
+		try:
+			return os.stat( self.storage_path ).st_size
+		except FileNotFoundError as e:
+			return None
 	def get_data( self, meta_obj=None, attachment=False, type_override=None ):
 		# Caching für Dateien erlauben:
 		self.app.response.caching = True

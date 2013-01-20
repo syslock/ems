@@ -116,7 +116,7 @@ class User( db_object.DBObject ):
 	def can_delete( self, object_id, limit=None ):
 		"""Ein Objekt ist löschbar, wenn es selbst und alle Eltern schreibbar sind."""
 		c = self.app.db.cursor()
-		c.execute( """select parent_id from membership where child_id=?""",
+		c.execute( """select parent_id from membership where child_id=? -- can_delete""",
 					[object_id] )
 		deletable = self.can_write( object_id, limit=limit )
 		has_parent = False
@@ -128,44 +128,80 @@ class User( db_object.DBObject ):
 			deletable = deletable and self.can_write( parent_id, limit=limit )
 		return deletable and has_parent
 	def can_access( self, object_id, access_type, limit=None ):
+		access_key = (self.id, object_id, access_type)
+		if access_key not in self.app.access_cache:
+			self.app.access_cache[ access_key ] = self._can_access( object_id, access_type, limit )
+			self.app.trace( "can_access: "+str(access_key)+" "+str(self.app.access_cache[access_key]) )
+			self.app.trace( "access_cache size: "+str(len(self.app.access_cache)) )
+		return self.app.access_cache[ access_key ]
+	def _can_access( self, object_id, access_type, limit=None ):
 		if access_type not in self.ACCESS_MASKS:
 			raise NotImplementedError( "Unsupported access_type" )
 		access_mask = self.ACCESS_MASKS[ access_type ]
 		c = self.app.db.cursor()
-		subjects = [self.id] + self.resolve_parents()
-		subject_constraint = "subject_id in %s" % str(tuple(subjects)).replace(",)",")")
-		objects = object_id and ([object_id] + self.resolve_parents(object_id)) or [None]
-		for object_id in objects:
-			object_constraint = "1=1"
-			if object_id != None:
-				object_constraint = "object_id=%(object_id)d" % locals()
+		next_subject_zone = next_subject_childs = { self.id }
+		next_object_zone = next_object_childs = object_id and { object_id } or set()
+		if len(next_object_zone):
+			# Wir erweitern die Suchzonen solange, bis wir eine Entscheidung, oder
+			# keine Kindobjekte für eine weitere Elternsuche mehr haben:
+			while len(next_subject_childs) or len(next_object_childs):
+				# Subjektklauses aus der aktuellen Subjektzone generieren:
+				current_subject_zone = next_subject_zone
+				subject_constraint = "subject_id in %s" % str(tuple(current_subject_zone)).replace(",)",")")
+				# Objektklausel aus der aktuellen Objektzone generieren:
+				current_object_zone = next_object_zone
+				object_constraint = "object_id in %s" % str(tuple(current_object_zone)).replace(",)",")")
+				# Regelsuche in den aktuellen Suchzonen:
+				c.execute( """select subject_id, object_id, access_mask
+								from permissions
+								inner join objects on permissions.object_id=objects.id
+								where %(subject_constraint)s and %(object_constraint)s
+								order by objects.mtime desc""" \
+							% locals() )
+				for row in c:
+					if (row[2] & access_mask):
+						# Wir haben eine Erlaubnis gefunden. Das reicht uns, bis wir eine Idee haben, 
+						# wie wir Konflikte zwischen Erlaubnissen und expliziten Verboten lösen...
+						# TODO: Zugriffs-Caches der betroffenen Kindobjekte aktualisieren!
+						return True
+				# Eltern, der aktuellen Erweiterungsgruppe, bilden die nächste Erweiterungsgruppe
+				self.app.trace( "current_subject_childs: "+str(next_subject_childs) )
+				next_subject_childs = self.closest_parents( next_subject_childs )
+				self.app.trace( "next_subject_childs: "+str(next_subject_childs) )
+				# Nächste Subjektzone ist aktuelle Subjektzone + Eltern derselben:
+				next_subject_zone = current_subject_zone.union( next_subject_childs )
+				# Eltern, der aktuellen Erweiterungsgruppe, bilden die nächste Erweiterungsgruppe
+				self.app.trace( "current_object_childs: "+str(next_object_childs) )
+				next_object_childs = self.closest_parents( next_object_childs )
+				self.app.trace( "next_object_childs: "+str(next_object_childs) )
+				# Nächste Objektzone ist aktuelle Objektzone + Eltern derselben:
+				next_object_zone = current_object_zone.union( next_object_childs )
+			# Wenn wir in der globalen Zone keine Erlaubnis haben, ist es verboten:
+			# TODO: Um Überlast durch Fehlzugriffe in großen Datenbanken zu vermeiden, sollten 
+			#       wir einen Weg finden explizite Verbote zu behandeln und diese Cachen!
+			return False
+		else:
+			# Falls keine object_id übergeben wurde, geben wir die direkt
+			# entsprechend zugreifbaren Object-IDs, zusammen mit den dafür
+			# verantwortlichen Zugriffs-IDs zurück:
+			# TODO: wieder mit dem rekursiven Algorithmus oben zusammenbauen, sodass wir im
+			#       Idealfall eine Liste aller zugreifbaren Objekte aus dem Cache bekommen!
+			subject_constraint = "subject_id in %s" % str(tuple(next_subject_zone)).replace(",)",")")
 			c.execute( """select subject_id, object_id, access_mask
 							from permissions
 							inner join objects on permissions.object_id=objects.id
-							where %(object_constraint)s and %(subject_constraint)s
+							where %(subject_constraint)s and (access_mask & %(access_mask)d)>0
 							order by objects.mtime desc""" \
 						% locals() )
-			if object_id==None:
-				# Falls keine object_id übergeben wurde, geben wir die direkt
-				# entsprechend zugreifbaren Object-IDs, zusammen mit den dafür
-				# verantwortlichen Zugriffs-IDs zurück 
-				result = []
-				for i, row in enumerate(c):
-					if not limit:
-						result.append( row )
-					elif i<limit:
-						result.append( row )
-					else:
-						break
-				return result
-			test_mask = None
-			for row in c:
-				if test_mask == None:
-					test_mask = row[2]
+			result = []
+			for i, row in enumerate(c):
+				if not limit:
+					result.append( row )
+				elif i<limit:
+					result.append( row )
 				else:
-					test_mask &= row[2]
-			if test_mask!=None and test_mask & access_mask:
-				return True
+					break
+			return result
 		return False
 	
 	def grant_read( self, object_id ):

@@ -181,15 +181,15 @@ function show_object( parms )
 				if( parent.type == "application/x-obj.user" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
 		}
-	} else if( obj.type == "text/plain" && obj.data ) {
-		if( dom_parent ) {
+	} else if( obj.type == "text/plain" ) {
+		if( dom_parent && obj.data ) {
 			obj.dom_object = $('<span>').attr( {class: 'entry-text'} )[0];
 			$(obj.dom_object).text( obj.data );
 			obj.dom_object.data = {obj: obj};
 			$(dom_parent).append( obj.dom_object );
 		}
-	} else if( obj.type == "text/html" && obj.data ) {
-		if( dom_parent ) {
+	} else if( obj.type == "text/html" ) {
+		if( dom_parent && obj.data ) {
 			obj.dom_object = $( obj.data )[0];
 			obj.dom_object.data = {obj: obj};
 			$(dom_parent).append( obj.dom_object );
@@ -199,6 +199,15 @@ function show_object( parms )
 			obj.dom_object = $('<img>').attr( {src: 'ems.wsgi?do=get&id='+obj.id+'&view=data', class: 'entry-media'} )[0];
 			obj.dom_object.data = {obj: obj};
 			$(dom_parent).append( obj.dom_object );
+		}
+	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
+		if( dom_parent ) {
+			obj.dom_object = $('<li>').attr( {class: 'entry-tag', title: obj.title} )[0];
+			obj.dom_object.data = {obj: obj};
+			var tag_label_limit = 20;
+			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
+			$(obj.dom_object).text( tag_label );
+			$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
 		}
 	} else if( dom_parent && obj.id ) {
 		var download_link = create_download( obj );
@@ -257,8 +266,16 @@ function get_object_list( element, text_obj ) {
 		if( text_obj && text_obj.unassigned ) {
 			obj.id = text_obj.id;
 			text_obj.unassigned = false;
+			if( obj.data != text_obj.data ) {
+				obj.changed = true;
+			} else {
+				obj.changed = false;
+			}
 		}
-		current_list.push( obj );
+		if( obj.data.replace(/\s/g,'').length ) {
+			// Nur nichtleere Texte übernehmen
+			current_list.push( obj );
+		}
 	} else if( element.nodeName=="BR" ) {
 		if( element.data && element.data.obj ) {
 			current_list.push( element.data.obj );
@@ -313,8 +330,7 @@ function save_entry( button ) {
 		new_item( {obj:{type: "application/x-obj.entry"}, dom_object: entry} );
 	}
 	var entry_id = entry.data.obj.id;
-	var title = $( "."+typemod+"entry-title", entry )[0]
-	var content = $( "."+typemod+"entry-content", entry )[0]
+	var title = $( "."+typemod+"entry-title", entry )[0];
 	if( title ) {
 		title.contentEditable = false
 		var title_text = get_plain_text( title )
@@ -328,6 +344,7 @@ function save_entry( button ) {
 			result = parse_result( result )
 		}})
 	}
+	var content = $( "."+typemod+"entry-content", entry )[0];
 	if( content ) {
 		content.contentEditable = false
 		//var content_text = get_plain_text( content )
@@ -351,12 +368,13 @@ function save_entry( button ) {
 						part_id_list.push( result.id )
 					}
 				}})
-			} else if( obj.id && (obj.unassigned==undefined || obj.unassigned==true) ) {
-				// bereits gespeicherte Objekte, mit bestehender ID-Zuordnung, 
-				// die dem Eintrag in korrekter Sequenz (neu) zugewiesen werden müssen:
-				// (bisher eingefügte Dateien, wie Bilder etc.)
+			} else if( obj.id && (obj.unassigned==undefined || obj.unassigned==true || obj.changed==true) ) {
+				// bereits gespeicherte oder lokal geänderte Objekte, mit bestehender ID-Zuordnung, 
+				// die dem Eintrag in korrekter Sequenz (neu) zugewiesen oder gespeichert werden müssen:
 				$.ajax({
 					url : "ems.wsgi?do=store&id="+obj.id+"&parent_id="+String(entry_id)+"&sequence="+String(i),
+					type : obj.changed ? "POST" : "GET",
+					data : obj.changed ? { data: obj.data } : undefined,
 					async : false, /* hier, ohne komplizierteres Event-Hanlding, wichtig zur Vermeidung von Race-Conditions */
 					success :
 				function( result ) {
@@ -366,6 +384,16 @@ function save_entry( button ) {
 					}
 				}})
 			}
+		}
+		var tags = $( "."+typemod+"entry-tags-content", entry )[0];
+		if( tags ) {
+			$( "."+typemod+"entry-tag", tags ).each( function(i, elem) {
+				if( elem.data.obj.id ) {
+					part_id_list.push( elem.data.obj.id );
+				} else {
+					// TODO: neues TAG speichern...
+				}
+			});
 		}
 		// serverseitige Bereinigung alter Daten:
 		// (Damit das so funktioniert, ist es wichtig, dass der Neuzuordnungsfall bestehender Objekte (2. Fall oben)

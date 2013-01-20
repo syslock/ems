@@ -160,6 +160,17 @@ body {
 .entry-media {
 	max-width: 100%;
 }
+.entry-tags {
+	display: block;
+	border: 1px solid red;
+}
+.entry-tags-button {
+	display: block;
+}
+.entry-tags-content {
+	display: block;
+	border: 1px solid blue;
+}
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */

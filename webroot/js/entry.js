@@ -202,9 +202,9 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
 		if( dom_parent ) {
-			obj.dom_object = $('<li>').attr( {class: 'entry-tag', title: obj.title} )[0];
+			obj.dom_object = $('<span>').attr( {class: 'entry-tag', title: obj.title} )[0];
 			obj.dom_object.data = {obj: obj};
-			var tag_label_limit = 20;
+			var tag_label_limit = 30;
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
 			$(obj.dom_object).text( tag_label );
 			$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
@@ -241,6 +241,13 @@ function edit_entry( button )
 		if( edit_tools ) {
 			$(std_tools).after( $(edit_tools).clone() )
 		}
+		// Themen des Beitrages kopieren:
+		$(".new-entry-tags-content", entry).empty();
+		$(".entry-tag", entry).each( function(i,elem) {
+			var new_tag = $(elem).clone()[0];
+			new_tag.data = { obj: elem.data.obj };
+			$(".new-entry-tags-content", entry).append(new_tag);
+		});
 	}
 }
 
@@ -347,8 +354,11 @@ function save_entry( button ) {
 	var content = $( "."+typemod+"entry-content", entry )[0];
 	if( content ) {
 		content.contentEditable = false
-		//var content_text = get_plain_text( content )
 		var content_list = get_object_list( content );
+		var tags = $( "."+typemod+"entry-tags-content", entry )[0];
+		if( tags ) {
+			content_list = content_list.concat( get_object_list(tags) );
+		}
 		// Inhalt speichern:
 		var part_id_list = []
 		for( var i in content_list ) {
@@ -384,16 +394,6 @@ function save_entry( button ) {
 					}
 				}})
 			}
-		}
-		var tags = $( "."+typemod+"entry-tags-content", entry )[0];
-		if( tags ) {
-			$( "."+typemod+"entry-tag", tags ).each( function(i, elem) {
-				if( elem.data.obj.id ) {
-					part_id_list.push( elem.data.obj.id );
-				} else {
-					// TODO: neues TAG speichern...
-				}
-			});
 		}
 		// serverseitige Bereinigung alter Daten:
 		// (Damit das so funktioniert, ist es wichtig, dass der Neuzuordnungsfall bestehender Objekte (2. Fall oben)
@@ -433,12 +433,21 @@ function new_response( user, button ) {
 	$(new_entry).wrap( '<span class="ems-item"></span>' )
 	$(".new-entry-title", new_entry).empty();
 	$(".new-entry-content", new_entry).empty();
+	$(".new-entry-tags-content", new_entry).empty();
 	if( reference_item ) {
+		// Antworttitel aus Titel des Referenzbeitrages generieren:
 		reference_title = $(".entry-title", reference_item).first().text();
 		if( !reference_title.match(/^Re:/i) ) {
 			reference_title = "Re: "+reference_title;
 		}
 		$(".new-entry-title", new_entry).text( reference_title );
+		// Themen des Referenzbeitrages kopieren:
+		$(".entry-tag", reference_item).each( function(i,elem) {
+			var new_tag = $(elem).clone()[0];
+			new_tag.data = { obj: elem.data.obj };
+			new_tag.data.changed = true; // TAG-Speicherung beauftragen
+			$(".new-entry-tags-content", new_entry).append(new_tag);
+		});
 	}
 	new_entry.style.display="";
 	user_element = new_item( {obj:user, duplicates: true, dom_child: new_entry} );
@@ -480,7 +489,9 @@ function discard_response( button ) {
 			content.contentEditable = false;
 		}
 		// Daten neu laden, um lokale Änderungen zu beseitigen:
-		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry.data.obj.id, dom_object: entry}, update: true} );
+		$("."+typemod+"entry-content", entry).empty()
+		$("."+typemod+"entry-tags-content", entry).empty()
+		show_object( {dom_parent: entry, obj: entry.data.obj, update: true} );
 	}
 }
 

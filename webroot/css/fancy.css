@@ -162,14 +162,33 @@ body {
 }
 .entry-tags {
 	display: block;
-	border: 1px solid red;
+	border-left: 1px solid lightgrey;
+	border-bottom: 1px solid lightgrey;
+	border-radius: 10px;
+	padding: 5px;
+	margin-top: 5px;
+	margin-bottom: 5px;
 }
-.entry-tags-button {
-	display: block;
+.entry-tags-label {
+	display: inline;
+	font-weight: bold;
+}
+button.entry-tags-button-add {
+	display: inline;
+	float: right;
+	font-size: small;
 }
 .entry-tags-content {
 	display: block;
-	border: 1px solid blue;
+}
+.entry-tag {
+	display: block;
+	vertical-align: bottom;
+	font-size: small;
+	background-color: #efefef;
+	border-radius: 10px;
+	padding: 5px;
+	margin-top: 5px;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -264,6 +283,36 @@ body {
 	width: 200px;
 	height: 230px;
 	background-color: transparent;
+}
+.new-entry-tags {
+	display: block;
+	border-left: 1px solid lightgrey;
+	border-bottom: 1px solid lightgrey;
+	border-radius: 10px;
+	padding: 5px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+.new-entry-tags-label {
+	display: inline;
+	font-weight: bold;
+}
+button.new-entry-tags-button-add {
+	display: inline;
+	float: right;
+	font-size: small;
+}
+.new-entry-tags-content {
+	display: block;
+}
+.new-entry-tag {
+	display: block;
+	vertical-align: bottom;
+	font-size: small;
+	background-color: #efefef;
+	border-radius: 10px;
+	padding: 5px;
+	margin-top: 5px;
 }
 
 

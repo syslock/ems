@@ -202,12 +202,14 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
 		if( dom_parent ) {
-			obj.dom_object = $('<span>').attr( {class: 'entry-tag', title: obj.title} )[0];
+			obj.dom_object = $('#entry-tag-template').clone().attr( {id: undefined, title: obj.title} )[0];
 			obj.dom_object.data = {obj: obj};
+			var tag_label_obj = $('.entry-tag-label', obj.dom_object)[0];
 			var tag_label_limit = 30;
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
-			$(obj.dom_object).text( tag_label );
+			$(tag_label_obj).text( tag_label );
 			$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
+			obj.dom_object.style.display="";
 		}
 	} else if( dom_parent && obj.id ) {
 		var download_link = create_download( obj );
@@ -590,4 +592,10 @@ function confirm_upload( button ) {
 	}
 	upload_object.contentEditable = false; // verhindert Editierbarkeit des Links
 	close_upload_dialog( button );
+}
+
+function add_tag( button ) {
+}
+
+function filter_tag( button, parms ) {
 }

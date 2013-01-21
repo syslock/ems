@@ -162,8 +162,8 @@ body {
 }
 .entry-tags {
 	display: block;
-	border-left: 1px solid lightgrey;
-	border-bottom: 1px solid lightgrey;
+	border-left: 1px solid #bfbfbf;
+	border-bottom: 1px solid #bfbfbf;
 	border-radius: 10px;
 	padding: 5px;
 	margin-top: 5px;
@@ -186,9 +186,60 @@ button.entry-tags-button-add {
 	vertical-align: bottom;
 	font-size: small;
 	background-color: #efefef;
+	border: 1px solid #bfbfbf;
 	border-radius: 10px;
 	padding: 5px;
 	margin-top: 5px;
+}
+.entry-tag:hover {
+	background-color: #ffff8f;
+}
+.entry-tag-tools {
+	display: none;
+	position: absolute;
+	left: -210px;
+	margin-top: -5px;
+}
+.entry-tag:hover .entry-tag-tools {
+	display: inline-block;
+}
+.entry-tag-tools-content {
+	position: absolute;
+	background-color: #ffff8f;
+	border: 1px solid #bfbfbf;
+	border-radius: 10px;
+	min-width: 200px;
+	padding: 5px;
+	z-index: 1;
+}
+.entry-tag-tools-decorator-left {
+	position: absolute;
+	border-radius: 20px;
+	min-width: 250px;
+	min-height: 100px;
+	margin-left: -20px;
+	margin-top: -15px;
+}
+.entry-tag-tool {
+	display: block;
+	padding-left: 32px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+.entry-tag-tool button {
+	width: 100%;
+	text-align: left;
+}
+.entry-tag-tool:hover {
+/* 	background-color: white; */
+}
+.entry-tag-tool-filter-for {
+	background: url(../tango-scalable/places/folder-saved-search.svg) no-repeat 0 0;
+	background-size: contain;
+}
+.entry-tag-tool-filter-exclude {
+	background: url(../tango-scalable/actions/edit-clear.svg) no-repeat 0 0;
+	background-size: contain;
 }
 
 /* ------------------------------------------------------------------------- */

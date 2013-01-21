@@ -41,6 +41,7 @@
 							<span class="entry-tags-label">${_("Thema:")}</span>
 							<button class="entry-tags-button-add" title="${_('Weiteres Thema anfügen')}" >${_("+")}</button>
 							<span class="entry-tags-content"></span>
+							<span class="entry-tags-selection"></span>
 						</span>
 					</span>
 					<span class="entry-tools-decorator-bottom"></span>
@@ -48,4 +49,22 @@
 				</span>
 				<span class="entry-decorator-bottom"></span>
 				<span class="entry-decorator-right"></span>
+			</span>
+
+			<span id="entry-tag-template" class="entry-tag" style="display:none" >
+				<span class="entry-tag-tools">
+					<span class="entry-tag-tools-decorator-left"></span>
+					<span class="entry-tag-tools-decorator-top"></span>
+					<span class="entry-tag-tools-content">
+						<span class="entry-tag-tool entry-tag-tool-filter-for" title="${_('Nur Beiträge mit diesem Thema darstellen')}" >
+							<button>${_("Thema suchen")}</button>
+						</span>
+						<span class="entry-tag-tool entry-tag-tool-filter-exclude" title="${_('Beiträge mit diesem Thema ausblenden')}" >
+							<button>${_("Thema ausblenden")}</button>
+						</span>
+					</span>
+					<span class="entry-tag-tools-decorator-bottom"></span>
+					<span class="entry-tag-tools-decorator-right"></span>
+				</span>
+				<span class="entry-tag-label"></span>
 			</span>

@@ -197,27 +197,39 @@ button.entry-tags-button-add {
 .entry-tag-tools {
 	display: none;
 	position: absolute;
-	left: -210px;
-	margin-top: -5px;
+	left: -204px;
+	margin-top: -20px;
 }
 .entry-tag:hover .entry-tag-tools {
 	display: inline-block;
 }
+.entry-tag-tools-decorator-right {
+	position: absolute;
+	margin-top: 6px;
+	margin-left: 212px; /* FIXME: macht statische Toolbreite notwendig */
+	width: 0px;
+	height: 0px;
+	border-left: 12px solid darkblue;
+	border-top: 20px solid transparent;
+	border-bottom: 20px solid transparent;
+}
 .entry-tag-tools-content {
 	position: absolute;
-	background-color: #ffff8f;
-	border: 1px solid #bfbfbf;
+/* 	background-color: #ffff8f; */
+	background-color: white;
+	border: 1px solid darkblue;
+	border-right: 3px solid darkblue;
 	border-radius: 10px;
-	min-width: 200px;
+	width: 200px;
 	padding: 5px;
 	z-index: 1;
 }
 .entry-tag-tools-decorator-left {
 	position: absolute;
 	border-radius: 20px;
-	min-width: 250px;
+	width: 270px;
 	min-height: 100px;
-	margin-left: -20px;
+	margin-left: -10px;
 	margin-top: -15px;
 }
 .entry-tag-tool {
@@ -308,7 +320,7 @@ button.entry-tags-button-add {
 	margin-left: -29px;
 	width: 0px;
 	height: 0px;
-	border-right: 30px solid blue;
+	border-right: 30px solid green;
 	border-top: 60px solid transparent;
 	border-bottom: 60px solid transparent;
 }
@@ -317,8 +329,8 @@ button.entry-tags-button-add {
 	min-height: 126px;
 	min-width: 140px;
 	border-radius: 20px;
-	border: 1px solid blue;
-	border-left: 3px solid blue;
+	border: 1px solid green;
+	border-left: 3px solid green;
 	background-color: white;
 	padding: 10px;
 	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */

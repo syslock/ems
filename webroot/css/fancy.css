@@ -173,7 +173,7 @@ body {
 	display: inline;
 	font-weight: bold;
 }
-button.entry-tags-button-add {
+button.entry-tags-show-selection-button {
 	display: inline;
 	float: right;
 	font-size: small;
@@ -252,6 +252,26 @@ button.entry-tags-button-add {
 .entry-tag-tool-filter-exclude {
 	background: url(../tango-scalable/actions/edit-clear.svg) no-repeat 0 0;
 	background-size: contain;
+}
+.entry-tags-selection {
+	display: block;
+	max-height: 200px;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	background-color: lightgrey;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding: 5px;
+	border-radius: 10px;
+}
+.entry-tags-selection-item {
+	display: block;
+	font-size: small;
+	width: 100%;
+	text-align: left;
+}
+.entry-tags-selection-item:hover {
+/* 	background-color: orange; */
 }
 
 /* ------------------------------------------------------------------------- */

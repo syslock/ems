@@ -23,7 +23,8 @@
 						</button>
 						<span class="new-entry-tags">
 							<span class="new-entry-tags-label">${_("Thema:")}</span>
-							<button class="new-entry-tags-button-add" title="${_('Weiteres Thema anfügen')}" >${_("+")}</button>
+							<button class="new-entry-tags-show-selection-button" title="${_('Weiteres Thema anfügen')}" onclick="show_tag_selection(this);" >${_("+")}</button>
+							<span class="new-entry-tags-selection" style="display:none" ></span>
 							<span class="new-entry-tags-content"></span>
 						</span>
 						<button class="new-entry-send-button" onclick="save_entry(this)">

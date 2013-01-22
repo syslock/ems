@@ -594,7 +594,64 @@ function confirm_upload( button ) {
 	close_upload_dialog( button );
 }
 
+function show_tag_selection( button ) {
+	var entry_tools = $(button).closest('.entry-tools')[0];
+	var entry_tags = $(button).closest('.entry-tags')[0];
+	var tags_selection = $('.entry-tags-selection', entry_tags)[0];
+	$.get( "ems.wsgi?do=get&type=application/x-obj.tag&limit=50", 
+	function( result ) {
+		result = parse_result( result );
+		if( !result.error ) {
+			$(tags_selection).empty();
+			for( var i in result ) {
+				var obj = result[i];
+				var tag_label_limit = 30;
+				var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
+				var add_button = $('<button>').attr({
+					class: 'entry-tags-selection-item', title:obj.title
+				}).text(tag_label)[0];
+				add_button.data = { obj: obj };
+				obj.dom_object = add_button;
+				add_button.onclick = function() { add_tag(this); };
+				$(tags_selection).append( add_button );
+			}
+			tags_selection.style.display = "";
+			$(entry_tools).bind('mouseleave', function(event) {
+				tags_selection.style.display = 'none';
+				$(this).unbind('mouseleave');
+			});
+		}
+	});
+}
+
 function add_tag( button ) {
+	var typemod = "";
+	var entry = $(button).closest(".ems-entry")[0];
+	if( !entry ) {
+		typemod = "new-";
+		entry = $(button).closest(".ems-"+typemod+"entry")[0];
+	}
+	var entry_id = entry.data.obj.id;
+	var tag_id = button.data.obj.id;
+	var tags_selection = $(button).closest('.'+typemod+'entry-tags-selection')[0];
+	$.get( "ems.wsgi?do=store&id="+String(tag_id)+"&parent_id="+String(entry_id), 
+	function( result ) {
+		result = parse_result( result );
+		if( result.succeeded ) {
+			tags_selection.style.display = 'none';
+			// Daten neu laden, um Änderungen zu übernehmen:
+			$.get( "ems.wsgi?do=get&id="+String(entry_id)+"&view=all&recursive=true",
+			function( result ) {
+				result = parse_result( result );
+				if( !result.error && result.length ) {
+					obj = result[0];
+					$("."+typemod+"entry-content", entry).empty()
+					$("."+typemod+"entry-tags-content", entry).empty()
+					show_object( {dom_parent: entry, obj: obj, update: true} );
+				}
+			});
+		}
+	});
 }
 
 function filter_tag( button, parms ) {

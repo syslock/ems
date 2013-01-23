@@ -16,8 +16,17 @@ def process( app ):
 	if "recursive" in query.parms:
 		recursive = query.parms["recursive"].lower()=="true"
 	if "id" in query.parms:
+		app.trace( "id in query.parms" )
 		object_ids = [int(x) for x in query.parms["id"].split(",")]
 		result = get( app, object_ids, limit=limit, recursive=(recursive,recursive) )
+	elif "child_id" in query.parms:
+		app.trace( "child_id in query.parms" )
+		child_ids = [int(x) for x in query.parms["child_id"].split(",")]
+		result = get( app, child_ids=child_ids, limit=limit, recursive=(recursive,recursive) )
+	elif "parent_id" in query.parms:
+		app.trace( "parent_id in query.parms" )
+		parent_ids = [int(x) for x in query.parms["parent_id"].split(",")]
+		result = get( app, parent_ids=parent_ids, limit=limit, recursive=(recursive,recursive) )
 	else:
 		result = get( app, limit=limit, recursive=(recursive,recursive) )
 	if result != None:
@@ -26,7 +35,8 @@ def process( app ):
 		else:
 			response.output = str( result )
 
-def get( app, object_ids=[], limit=None, recursive=(False,False), access_errors=True ):
+def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=(False,False), access_errors=True ):
+	app.trace( "get: object_ids=%s, child_ids=%s, parent_ids=%s" % (str(object_ids), str(child_ids), str(parent_ids)) )
 	query = app.query
 	response = app.response
 	session = app.session
@@ -36,6 +46,14 @@ def get( app, object_ids=[], limit=None, recursive=(False,False), access_errors=
 		usr = user.get_anonymous_user( app )
 	if not usr:
 		raise errors.AuthenticationNeeded()
+	child_join = child_condition = ""
+	if child_ids:
+		child_join = "inner join membership mp on mp.parent_id=id"
+		child_condition = "and mp.child_id in %s" % ( str(tuple(child_ids)).replace(",)",")") )
+	parent_join = parent_condition = ""
+	if parent_ids:
+		parent_join = "inner join membership mc on mp.child_id=id"
+		parent_condition = "and mc.parent_id in %s" % ( str(tuple(parent_ids)).replace(",)",")") )
 	c = app.db.cursor()
 	if not object_ids:
 		# Wildcardsuche nach lesbaren Objekten
@@ -43,12 +61,17 @@ def get( app, object_ids=[], limit=None, recursive=(False,False), access_errors=
 		access_errors=False
 		if "type" in query.parms:
 			c.execute( """select id from objects
+							%(child_join)s %(parent_join)s
 							where type=?
-							order by mtime desc""",
+							%(child_condition)s %(parent_condition)s
+							order by mtime desc""" % (locals()),
 						[query.parms["type"]] )
 		else:
 			c.execute( """select id from objects
-							order by mtime desc""" )
+							%(child_join)s %(parent_join)s
+							where 1=1
+							%(child_condition)s %(parent_condition)s
+							order by mtime desc""" % (locals()) )
 		for i, row in enumerate(c):
 			if not limit or len(object_ids)<limit:
 				object_ids.append( row[0] )

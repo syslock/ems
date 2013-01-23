@@ -112,8 +112,10 @@ function create_download( obj ) {
 function load_visible_objects( parms ) {
 	var limit = (parms.limit ? "&limit="+parms.limit : "");
 	var type = (parms.type ? "&type="+parms.type : "");
+	var parent_ids = (parms.parent_ids ? "&parent_id="+parms.parent_ids.join(",") : "");
+	var child_ids = (parms.child_ids ? "&child_id="+parms.child_ids.join(",") : "");
 	$.ajax({
-		url : "ems.wsgi?do=get&view=all&recursive=true"+limit+type,
+		url : "ems.wsgi?do=get&view=all&recursive=true"+limit+type+parent_ids+child_ids,
 		async : true,
 		success :
 	function( result ) {
@@ -208,6 +210,10 @@ function show_object( parms )
 			var tag_label_limit = 30;
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
 			$(tag_label_obj).text( tag_label );
+			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
+				$('.ems-content').empty();
+				load_visible_objects( {limit: 15, type: 'application/x-obj.entry', child_ids: [obj.id]} );
+			};
 			$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
 			obj.dom_object.style.display="";
 		}

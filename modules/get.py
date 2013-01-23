@@ -16,15 +16,12 @@ def process( app ):
 	if "recursive" in query.parms:
 		recursive = query.parms["recursive"].lower()=="true"
 	if "id" in query.parms:
-		app.trace( "id in query.parms" )
 		object_ids = [int(x) for x in query.parms["id"].split(",")]
 		result = get( app, object_ids, limit=limit, recursive=(recursive,recursive) )
 	elif "child_id" in query.parms:
-		app.trace( "child_id in query.parms" )
 		child_ids = [int(x) for x in query.parms["child_id"].split(",")]
 		result = get( app, child_ids=child_ids, limit=limit, recursive=(recursive,recursive) )
 	elif "parent_id" in query.parms:
-		app.trace( "parent_id in query.parms" )
 		parent_ids = [int(x) for x in query.parms["parent_id"].split(",")]
 		result = get( app, parent_ids=parent_ids, limit=limit, recursive=(recursive,recursive) )
 	else:
@@ -36,7 +33,6 @@ def process( app ):
 			response.output = str( result )
 
 def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=(False,False), access_errors=True ):
-	app.trace( "get: object_ids=%s, child_ids=%s, parent_ids=%s" % (str(object_ids), str(child_ids), str(parent_ids)) )
 	query = app.query
 	response = app.response
 	session = app.session
@@ -48,26 +44,36 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 		raise errors.AuthenticationNeeded()
 	child_join = child_condition = ""
 	if child_ids:
-		child_join = "inner join membership mp on mp.parent_id=id"
-		child_condition = "and mp.child_id in %s" % ( str(tuple(child_ids)).replace(",)",")") )
+		in_list = [x for x in child_ids if x>=0]
+		out_list = [-x for x in child_ids if x<0]
+		if in_list:
+			child_join = "inner join membership mp on mp.parent_id=id"
+			child_condition += " and mp.child_id in %s" % ( str(tuple(in_list)).replace(",)",")") )
+		if out_list:
+			child_condition += " and id not in (select parent_id from membership where child_id in %s)" % ( str(tuple(out_list)).replace(",)",")") )
 	parent_join = parent_condition = ""
 	if parent_ids:
-		parent_join = "inner join membership mc on mp.child_id=id"
-		parent_condition = "and mc.parent_id in %s" % ( str(tuple(parent_ids)).replace(",)",")") )
+		in_list = [x for x in parent_ids if x>=0]
+		out_list = [-x for x in parent_ids if x<0]
+		if in_list:
+			parent_join = "inner join membership mc on mp.child_id=id"
+			parent_condition += " and mc.parent_id in %s" % ( str(tuple(in_list)).replace(",)",")") )
+		if out_list:
+			parent_condition += " and id not in (select child_id from membership where parent_id in %s)" % ( str(tuple(out_list)).replace(",)",")") )
 	c = app.db.cursor()
 	if not object_ids:
 		# Wildcardsuche nach lesbaren Objekten
 		# hierfür müssen wir Zugriffsfehler abschalten, wodurch im Zweifelsfall eine leere Liste zurückgegeben wird:
 		access_errors=False
 		if "type" in query.parms:
-			c.execute( """select id from objects
+			c.execute( """select distinct id from objects
 							%(child_join)s %(parent_join)s
 							where type=?
 							%(child_condition)s %(parent_condition)s
 							order by mtime desc""" % (locals()),
 						[query.parms["type"]] )
 		else:
-			c.execute( """select id from objects
+			c.execute( """select distinct id from objects
 							%(child_join)s %(parent_join)s
 							where 1=1
 							%(child_condition)s %(parent_condition)s

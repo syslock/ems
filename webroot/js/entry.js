@@ -212,7 +212,11 @@ function show_object( parms )
 			$(tag_label_obj).text( tag_label );
 			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
 				$('.ems-content').empty();
-				load_visible_objects( {limit: 15, type: 'application/x-obj.entry', child_ids: [obj.id]} );
+				apply_page_filter( [obj.id] );
+			};
+			$('.entry-tag-tool-filter-exclude', obj.dom_object)[0].onclick = function(ev) {
+				$('.ems-content').empty();
+				apply_page_filter( [-obj.id] );
 			};
 			$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
 			obj.dom_object.style.display="";
@@ -221,6 +225,14 @@ function show_object( parms )
 		var download_link = create_download( obj );
 		$(dom_parent).append( download_link );
 	}
+}
+
+function apply_page_filter( add_list ) {
+	if( add_list==undefined ) add_list=[];
+	var filter = $('.page-filter')[0];
+	var filter_list = filter.value.length ? filter.value.split(",").concat(add_list) : add_list;
+	filter.value = filter_list.join(',');
+	load_visible_objects( {limit: 15, type: 'application/x-obj.entry', child_ids: filter_list} );
 }
 
 function edit_entry( button )

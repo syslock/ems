@@ -35,7 +35,7 @@
 						$(".menu-nick")[0].innerHTML="";
 						$(".menu-logout")[0].style.display="none";
 					}
-					load_visible_objects( {limit: 15, type: 'application/x-obj.entry'} )
+					apply_page_filter();
 				})
 			}			
 		</script>
@@ -47,6 +47,7 @@
 				<button class="new-entry-button" onclick="new_response(global_user)">
 					${_("Beitrag erstellen")}
 				</button>
+				<input type="text" class="page-filter" size="100" onkeypress="onenter(event,apply_page_filter)" />
 			</span>
 		</span>
 		<div class="ems-content"></div>

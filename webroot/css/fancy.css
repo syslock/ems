@@ -10,7 +10,7 @@ body {
 	top: 0px;
 	width: 100%;
 	background-color: #dfdfdf;
-	border-bottom: 1px solid black;
+	border-bottom: 1px solid #bfbfbf;
 	padding: 10px;
 	z-index: 50;
 }
@@ -193,6 +193,7 @@ button.entry-tags-show-selection-button {
 }
 .entry-tag:hover {
 	background-color: #ffff8f;
+	cursor: default;
 }
 .entry-tag-tools {
 	display: none;
@@ -246,11 +247,11 @@ button.entry-tags-show-selection-button {
 /* 	background-color: white; */
 }
 .entry-tag-tool-filter-for {
-	background: url(../tango-scalable/places/folder-saved-search.svg) no-repeat 0 0;
+	background: url(../tango-scalable/actions/system-search.svg) no-repeat 0 0;
 	background-size: contain;
 }
 .entry-tag-tool-filter-exclude {
-	background: url(../tango-scalable/actions/edit-clear.svg) no-repeat 0 0;
+	background: url(../tango-scalable/actions/list-remove.svg) no-repeat 0 0;
 	background-size: contain;
 }
 .entry-tags-selection {
@@ -696,4 +697,49 @@ button.new-entry-tags-button-add {
 .download-size {
 	font-size: small;
 	padding-left: 10px;
+}
+
+/* ------------------------------------------------------------------------- */
+/* ---------------------------------- Filter ------------------------------- */
+/* ------------------------------------------------------------------------- */
+.page-filter {
+	display: none;
+	border-radius: 8px;
+	border: 1px solid #bfbfbf;
+	background-color: #efefef;
+	padding: 2px;
+}
+.page-filter-active {
+	display: inline-block;
+}
+.page-filter-view {
+	display: inline-block;
+	border-radius: 5px;
+}
+.filter-item-include {
+	background: url(../tango-scalable/actions/system-search.svg) no-repeat 0 0;
+	background-size: contain;
+}
+.filter-item-exclude {
+	background: url(../tango-scalable/actions/list-remove.svg) no-repeat 0 0;
+	background-size: contain;
+}
+.filter-item {
+	display: inline-block;
+	border-radius: 5px;
+	border: 1px solid darkblue;
+	margin: 1px;
+	min-height: 16px;
+	padding: 2px;
+	padding-left: 20px;
+	background-color: #ffff8f;
+}
+.filter-item:hover {
+	background: url(../tango-scalable/actions/edit-clear.svg) no-repeat 0 0;
+	background-size: contain;
+/* 	text-decoration: line-through; */
+	color: grey;
+	background-color: #efefef;
+	border: 1px solid #bfbfbf;
+	cursor: pointer;
 }

@@ -47,7 +47,10 @@
 				<button class="new-entry-button" onclick="new_response(global_user)">
 					${_("Beitrag erstellen")}
 				</button>
-				<input type="text" class="page-filter" size="100" onkeypress="onenter(event,apply_page_filter)" />
+				<span class="page-filter">
+					<span class="page-filter-title">${_("Filter:")}</span>
+					<span class="page-filter-view"></span>
+				</span>
 			</span>
 		</span>
 		<div class="ems-content"></div>

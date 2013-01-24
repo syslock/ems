@@ -211,10 +211,12 @@ function show_object( parms )
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
 			$(tag_label_obj).text( tag_label );
 			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
-				apply_page_filter( [obj.id] );
+				var parms = {}; parms[obj.id] = obj;
+				apply_page_filter( parms );
 			};
 			$('.entry-tag-tool-filter-exclude', obj.dom_object)[0].onclick = function(ev) {
-				apply_page_filter( [-obj.id] );
+				var parms = {}; parms[-obj.id] = obj;
+				apply_page_filter( parms );
 			};
 			$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
 			obj.dom_object.style.display="";
@@ -225,22 +227,48 @@ function show_object( parms )
 	}
 }
 
-function apply_page_filter( add_list ) {
-	if( add_list==undefined ) add_list=[];
-	var filter = $('.page-filter')[0];
-	var filter_list = filter.value.length ? filter.value.split(",").concat(add_list) : add_list;
-	var values = {}
-	for( var i in filter_list ) {
-		if( values[-filter_list[i]] ) {
-			values[-filter_list[i]] = undefined;
+function apply_page_filter( parms ) {
+	if( parms==undefined ) parms={};
+	$('.filter-item-include').each( function(i, elem) {
+		var obj = elem.data.obj;
+		if( parms[-obj.id] ) {
+		} else if( parms[obj.id] ) {
+		} else {
+			parms[obj.id] = obj;
 		}
-		values[filter_list[i]] = true;
+	});
+	$('.filter-item-exclude').each( function(i, elem) {
+		var obj = elem.data.obj;
+		if( parms[-obj.id] ) {
+		} else if( parms[obj.id] ) {
+		} else {
+			parms[-obj.id] = obj;
+		}
+	});
+	var filter_list = []
+	var filter_view = $('.page-filter-view')[0];
+	$(filter_view).empty();
+	for( key in parms ) {
+		var obj = parms[key];
+		if( obj ) {
+			filter_list.push( key );
+			var filter_item = $('<span>').attr( {'class':(Number(key)<0 ? 'filter-item filter-item-exclude' : 'filter-item filter-item-include')} )[0];
+			$(filter_item).text( obj.title );
+			filter_item.data = { obj: obj };
+			obj.dom_object = filter_item;
+			filter_item.onclick = function(ev) {
+				$(this).remove();
+				apply_page_filter();
+			};
+			$(filter_view).append( filter_item );
+		}
 	}
-	filter_list = [];
-	for( key in values ) {
-		if( values[key] ) filter_list.push( key );
+	var page_filter = $('.page-filter')[0];
+	if( filter_list.length>0 ) {
+		$(page_filter).addClass( 'page-filter-active' );
+	} else {
+		$(page_filter).removeClass( 'page-filter-active' );
 	}
-	filter.value = filter_list.join(',');
 	$('.ems-content').empty();
 	load_visible_objects( {limit: 15, type: 'application/x-obj.entry', child_ids: filter_list} );
 }

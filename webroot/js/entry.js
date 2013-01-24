@@ -211,11 +211,9 @@ function show_object( parms )
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
 			$(tag_label_obj).text( tag_label );
 			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
-				$('.ems-content').empty();
 				apply_page_filter( [obj.id] );
 			};
 			$('.entry-tag-tool-filter-exclude', obj.dom_object)[0].onclick = function(ev) {
-				$('.ems-content').empty();
 				apply_page_filter( [-obj.id] );
 			};
 			$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
@@ -231,7 +229,19 @@ function apply_page_filter( add_list ) {
 	if( add_list==undefined ) add_list=[];
 	var filter = $('.page-filter')[0];
 	var filter_list = filter.value.length ? filter.value.split(",").concat(add_list) : add_list;
+	var values = {}
+	for( var i in filter_list ) {
+		if( values[-filter_list[i]] ) {
+			values[-filter_list[i]] = undefined;
+		}
+		values[filter_list[i]] = true;
+	}
+	filter_list = [];
+	for( key in values ) {
+		if( values[key] ) filter_list.push( key );
+	}
 	filter.value = filter_list.join(',');
+	$('.ems-content').empty();
 	load_visible_objects( {limit: 15, type: 'application/x-obj.entry', child_ids: filter_list} );
 }
 

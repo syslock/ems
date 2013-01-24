@@ -19,10 +19,10 @@ def process( app ):
 		object_ids = [int(x) for x in query.parms["id"].split(",")]
 		result = get( app, object_ids, limit=limit, recursive=(recursive,recursive) )
 	elif "child_id" in query.parms:
-		child_ids = [int(x) for x in query.parms["child_id"].split(",")]
+		child_ids = [int(x) for x in query.parms["child_id"].split(",") if x]
 		result = get( app, child_ids=child_ids, limit=limit, recursive=(recursive,recursive) )
 	elif "parent_id" in query.parms:
-		parent_ids = [int(x) for x in query.parms["parent_id"].split(",")]
+		parent_ids = [int(x) for x in query.parms["parent_id"].split(",") if x]
 		result = get( app, parent_ids=parent_ids, limit=limit, recursive=(recursive,recursive) )
 	else:
 		result = get( app, limit=limit, recursive=(recursive,recursive) )

@@ -709,6 +709,3 @@ function add_tag( button ) {
 		}
 	});
 }
-
-function filter_tag( button, parms ) {
-}

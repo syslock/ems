@@ -10,6 +10,7 @@ class Request:
 	"""Implementiert Parameterübergabe an die Webanwendung"""
 	def __init__( self, environ ):
 		self.environ = environ
+		self.remote_addr = self.environ["REMOTE_ADDR"]
 		self.cookies = {}
 		self.parms = {}
 		self.merge_cookies()
@@ -178,10 +179,10 @@ class Application:
 		self.config = config
 		self.logfile = None
 		if hasattr(config,"logfile"):
-			self.logfile = open( os.path.join(self.path, self.name+".log"), "a" )
+			self.logfile = open( os.path.join(self.path, config.logfile), "a" )
 		self.tracefile = None
 		if hasattr(config,"tracefile"):
-			self.tracefile = open( os.path.join(self.path, self.name+".trace"), "a" )
+			self.tracefile = open( os.path.join(self.path, config.tracefile), "a" )
 			def trace( message ):
 				self.trace( message )
 			self.db.set_trace_callback( trace )
@@ -190,6 +191,8 @@ class Application:
 	def log( self, message ):
 		if self.logfile:
 			self.logfile.write( time.ctime()+": "+str(message)+"\n" )
+		else:
+			print( "["+self.name+"] "+message ) # Write to Server log, e.g. /var/log/htpd/error_log
 	def trace( self, message ):
 		if self.tracefile:
 			self.tracefile.write( time.ctime()+": "+str(message)+"\n" )

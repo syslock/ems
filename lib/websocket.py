@@ -2,6 +2,17 @@ import base64, hashlib, imp, struct, time, signal, threading, traceback
 from lib import errors
 errors = imp.reload( errors )
 
+# WARNING: This is basically an ugly hack tied to Apache/mod_wsgi, fooling 
+# them into thinking the WebSocket connection would be some kind of standard 
+# HTTP long polling request, by faking absurdly huge Content-Length headers.
+# Server to client messages sent by this implementation seem to work with most 
+# browsers, that seem to ignore the Content-Length header, that normally should 
+# not be present in WebSocket handshake responses.
+# An additional Apache config hack faking a Content-Length header in the clients 
+# WebSocket handshake initiation package is needed to get client messages handed
+# up through Apache/mod_wsgi to the application layer:
+#	SetEnvIf Upgrade websocket HAVE_UpgradeWebSocket
+#	RequestHeader set Content-Length 4294967295 env=HAVE_UpgradeWebSocket
 class WebSocket:
 	def __init__( self, app, endpoint ):
 		if not self.can_handle( app.query ):

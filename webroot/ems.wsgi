@@ -65,10 +65,6 @@ def application( environ, start_response ):
 						"error":{	"message":str(e), 
 									"class":e.__class__.__name__, 
 									"trace":trace}} ).encode("utf-8")]
-		#byte_trace = []
-		#for value in trace:
-		#	byte_trace.append( value.encode("utf-8") )
-		#return byte_trace # FIXME: DEBUG
 	finally:
 		if pdb:
 			debugger.quitting = 1

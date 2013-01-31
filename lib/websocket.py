@@ -61,6 +61,7 @@ class WebSocket:
 		#                FrrrOOOOMLLLLLLL
 		frame_header = 0b1000000100000000 # finished, unmasked (server-to-client), text (opcode=1) frame with zero payload length
 		frame = bytes()
+		payload = payload.encode( "utf-8" )
 		length = len(payload)
 		if length<126:
 			frame_header |= length
@@ -75,7 +76,7 @@ class WebSocket:
 			frame += struct.pack( ">Q", length )
 		else:
 			raise errors.StateError( "Encountered unsupported payload length of %d" % (length) )
-		frame += payload.encode( "utf-8" )
+		frame += payload
 		return frame
 	
 	def decode_frame( self, frame ):

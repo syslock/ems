@@ -36,7 +36,7 @@
 						$(".menu-logout")[0].style.display="none";
 					}
 					apply_page_filter();
-					var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
+					/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
 					ws.onmessage = function( msg ) {
 						var result = parse_result( msg.data );
 						if( result.succeeded ) {
@@ -48,7 +48,7 @@
 								$('.page-events').append( img );
 							}
 						}
-					};
+					};*/
 				})
 			}
 			

@@ -36,8 +36,34 @@
 						$(".menu-logout")[0].style.display="none";
 					}
 					apply_page_filter();
+					var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
+					ws.onmessage = function( msg ) {
+						var result = parse_result( msg.data );
+						if( result.succeeded ) {
+							$('.page-events').empty();
+							for( var i in result.objects ) {
+								var obj = result.objects[i];
+								var img = $('<img>').attr( {'class': 'status-icon', 'src': get_status_icon(obj.type),
+									'title': obj.title+' ('+obj.type+')'} );
+								$('.page-events').append( img );
+							}
+						}
+					};
 				})
-			}			
+			}
+			
+			function get_status_icon( type ) {
+				var fallback = 'tango-scalable/status/image-missing.svg';
+				var generic_type = type.match(/^([^/]*)\//)[1];
+				var mappings = {
+					'application/x-obj.group' : 'tango-scalable/apps/system-users.svg',
+					'application/x-obj.entry' : 'tango-scalable/mimetypes/x-office-document.svg',
+					'text/plain' : 'tango-scalable/mimetypes/text-x-generic.svg',
+					'image' : 'tango-scalable/mimetypes/image-x-generic.svg'
+				};
+				
+				return mappings[type] ? mappings[type] : mappings[generic_type] ? mappings[generic_type] : fallback;
+			}
 		</script>
 	</head>
 	<body>
@@ -51,6 +77,7 @@
 					<span class="page-filter-title">${_("Filter:")}</span>
 					<span class="page-filter-view"></span>
 				</span>
+				<span class="page-events"></span>
 			</span>
 		</span>
 		<div class="ems-content"></div>

@@ -58,8 +58,13 @@
 				var mappings = {
 					'application/x-obj.group' : 'tango-scalable/apps/system-users.svg',
 					'application/x-obj.entry' : 'tango-scalable/mimetypes/x-office-document.svg',
+					'application/x-obj.tag' : 'tango-scalable/mimetypes/application-certificate.svg',
 					'text/plain' : 'tango-scalable/mimetypes/text-x-generic.svg',
-					'image' : 'tango-scalable/mimetypes/image-x-generic.svg'
+					'text/html' : 'tango-scalable/mimetypes/text-html.svg',
+					'image' : 'tango-scalable/mimetypes/image-x-generic.svg',
+					'audio' : 'tango-scalable/mimetypes/audio-x-generic.svg',
+					'video' : 'tango-scalable/mimetypes/video-x-generic.svg',
+					'binary' : 'tango-scalable/mimetypes/binary.svg'
 				};
 				
 				return mappings[type] ? mappings[type] : mappings[generic_type] ? mappings[generic_type] : fallback;

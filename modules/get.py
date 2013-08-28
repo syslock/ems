@@ -98,7 +98,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 					[object_id] )
 		result = c.fetchone()
 		if not result:
-			raise errors.ParameterError( "Invalid object id" )
+			raise errors.ParameterError( "Invalid object id: %d" % (object_id) )
 		object_type = result[0]
 		obj = {
 			"id" : object_id,

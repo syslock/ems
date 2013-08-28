@@ -172,8 +172,8 @@ class Application:
 		self.response = Response( start_response )
 		self.path = path
 		self.name = name
-		db_path = os.path.join( self.path, self.name+".db" )
-		self.db = sqlite3.connect( db_path )
+		self.db_path = os.path.join( self.path, self.name+".db" )
+		self.open_db()
 		self.session = Session( self, sid=("sid" in self.query.parms \
 										  and self.query.parms["sid"] or None) )
 		self.config = config
@@ -188,6 +188,12 @@ class Application:
 			self.db.set_trace_callback( trace )
 			self.trace( self )
 		self.access_cache = {}
+	def open_db( self ):
+		self.db = sqlite3.connect( self.db_path )
+		return self.db
+	def close_db( self ):
+		self.db.close()
+		self.db = None
 	def log( self, message ):
 		if self.logfile:
 			self.logfile.write( time.ctime()+": "+str(message)+"\n" )

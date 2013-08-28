@@ -202,6 +202,13 @@ function show_object( parms )
 			obj.dom_object.data = {obj: obj};
 			$(dom_parent).append( obj.dom_object );
 		}
+	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
+		if( dom_parent ) {
+			obj.dom_object = $('<video>').attr( {class: 'entry-media', width: '480', height: '270', controls: ''} )[0];
+			obj.dom_object.data = {obj: obj};
+			$(obj.dom_object).append( $('<source>').attr({src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
+			$(dom_parent).append( obj.dom_object );
+		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
 		if( dom_parent ) {
 			obj.dom_object = $('#entry-tag-template').clone().attr( {id: undefined, title: obj.title} )[0];

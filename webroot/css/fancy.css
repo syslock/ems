@@ -648,6 +648,15 @@ button.new-entry-tags-button-add {
 	min-height: 200px;
 	padding: 10px;
 }
+.upload-progress {
+	display: block;
+	min-height: 200px;
+	width: 0%;
+	background-color: lightblue;
+	color: darkgrey;
+	font-size: 40pt;
+	text-align: left;
+}
 .upload-preview-over {
 	background-color: lightblue;
 }

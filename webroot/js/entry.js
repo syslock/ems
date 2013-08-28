@@ -577,6 +577,7 @@ function add_file( button ) {
 	selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
 	upload_dialog.contentEditable = false; // verhindert Editierbarkeit des Dialogfeldes
 	var preview_area = $(".upload-preview", upload_dialog)[0];
+	var upload_progress = $(".upload-progress", upload_dialog)[0];
 	$(preview_area).bind( "dragover", function(event) {
 		return false;
 	});
@@ -603,6 +604,19 @@ function add_file( button ) {
 				data : form_data,
 				contentType: false, /*form_data den Content-Type bestimmen lassen*/
 				processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
+				xhr :
+			function() {
+				var xhr = new window.XMLHttpRequest();
+				xhr.upload.addEventListener( "progress", function(evt) {
+					if( evt.lengthComputable ) {
+						var percentComplete = 100 * evt.loaded / evt.total;
+						var progress_string = String(Math.round(percentComplete))+"%";
+						$(upload_progress).width( progress_string );
+						$(upload_progress).text( progress_string );
+					}
+				}, false );
+				return xhr;
+			},
 				success :
 			function( result ) {
 				result = parse_result( result );

@@ -632,16 +632,11 @@ function add_file( button ) {
 							if( meta.title ) $('.upload-title',upload_dialog).text( meta.title );
 							if( meta.type ) $('.upload-type',upload_dialog).text( "["+meta.type+"]" );
 							if( meta.size ) $('.upload-size',upload_dialog).text( prettyprint_size(meta.size) );
-							if( meta.type.match(/^image\//) ) {
-								$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(upload_id)+'" class="upload-object upload-preview-content" />');
-								var preview_image = $('img', preview_area)[0];
-								preview_image.data = { obj: meta };
-								meta.dom_object = preview_image;
-							} else {
-								var download_link = create_download( meta );
-								$(download_link).addClass( 'upload-object' );
-								$(preview_area).empty();
-								$(preview_area).append( download_link );
+						   $(preview_area).empty();
+							show_object( {obj: meta, dom_parent: preview_area} );
+							if( meta.dom_object ) { 
+								$(meta.dom_object).addClass('upload-object');
+								$(meta.dom_object).addClass('upload-preview-content');
 							}
 						}
 					}});

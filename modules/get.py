@@ -54,24 +54,36 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 			parent_condition += " and mc.parent_id in %s" % ( str(tuple(in_list)).replace(",)",")") )
 		if out_list:
 			parent_condition += " and id not in (select child_id from membership where parent_id in %s)" % ( str(tuple(out_list)).replace(",)",")") )
+	type_condition = ""
+	types = []
+	if "type" in query.parms and query.parms["type"]:
+		type_condition = "type in ("
+		types = query.parms["type"].split(",")
+		first = True
+		for t in types:
+			if not first:
+				type_condition += ","
+			first = False
+			type_condition += "?"
+		type_condition += ")"
 	c = app.db.cursor()
 	if not object_ids:
 		# Wildcardsuche nach lesbaren Objekten
 		# hierfür müssen wir Zugriffsfehler abschalten, wodurch im Zweifelsfall eine leere Liste zurückgegeben wird:
 		access_errors=False
-		if "type" in query.parms:
+		if types:
 			c.execute( """select distinct id from objects
 							%(child_join)s %(parent_join)s
-							where type=?
+							where %(type_condition)s
 							%(child_condition)s %(parent_condition)s
-							order by mtime desc""" % (locals()),
-						[query.parms["type"]] )
+							order by ctime desc""" % (locals()),
+						types )
 		else:
 			c.execute( """select distinct id from objects
 							%(child_join)s %(parent_join)s
 							where 1=1
 							%(child_condition)s %(parent_condition)s
-							order by mtime desc""" % (locals()) )
+							order by ctime desc""" % (locals()) )
 		for i, row in enumerate(c):
 			if not limit or len(object_ids)<limit:
 				object_ids.append( row[0] )
@@ -112,7 +124,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 			c.execute( """select child_id from membership m
 							inner join objects o on o.id=m.child_id
 							where parent_id=?
-							order by m.sequence, o.mtime desc""",
+							order by m.sequence, o.ctime desc""",
 						[object_id] )
 			children = []
 			for row in c:
@@ -129,7 +141,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 			c.execute( """select parent_id from membership m
 							inner join objects o on o.id=m.parent_id
 							where child_id=?
-							order by o.mtime desc""",
+							order by o.ctime desc""",
 						[object_id] )
 			parents = []
 			for row in c:

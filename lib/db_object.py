@@ -1,8 +1,6 @@
 import time, imp, os, shutil
 from lib import errors
 errors = imp.reload( errors )
-from lib import application
-application = imp.reload( application )
 
 class DBObject:
 	
@@ -210,7 +208,7 @@ class HTML( Text ):
 		# URL-kodierten Parameter. Daher ist unser Datenbankinhalt 
 		# grundsätzlich XML-quotiert und wir müssen für unsere 
 		# HTML-Daten hier eine explizite Rücktransformation vornehmen:
-		for pair in reversed(application.Request.XML_FIXES):
+		for pair in reversed(self.app.query.XML_FIXES):
 			result = result.replace( pair[1], pair[0] )
 		return result
 

@@ -52,8 +52,7 @@ class User( db_object.DBObject ):
 			encrypted_new_password = password.encrypt( new_password )
 			if not "user_id" in self.app.session.parms:
 				raise errors.AuthenticationNeeded()
-			user_id = int(self.app.session.parms["user_id"])
-			if user_id==self.id:
+			if self.app.user.id==self.id:
 				if not "old_password" in keyargs:
 					raise errors.PrivilegeError( "You need to authorize the change request with your old password" )
 				old_password = keyargs["old_password"]
@@ -64,7 +63,7 @@ class User( db_object.DBObject ):
 			self.app.db.commit()
 		if "avatar_id" in keyargs:
 			avatar_id = int( keyargs["avatar_id"] )
-			if self.can_read( avatar_id ):
+			if self.app.user.can_read( avatar_id ):
 				obj = db_object.DBObject( self.app, object_id=avatar_id )
 				if db_object.File.supports(self.app, obj.media_type) and obj.media_type.startswith("image/"):
 					file_obj = db_object.File( self.app, object_id=obj.id )

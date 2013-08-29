@@ -15,25 +15,25 @@
 				{
 					result = parse_result( result )
 					global_status = result
-					if( result.login && result.login.nick!='anonymous' )
-					{
-						$(".menu-login")[0].style.display="none";
-						$(".menu-nick-caption")[0].style.display="";
-						$(".menu-nick")[0].innerHTML=result.login.nick;
-						$(".menu-logout")[0].style.display="";
+					if( !result.login || result.login.nick=='anonymous' ) {
+						$(".menu-login")[0].style.display="";
+						$(".menu-nick-caption")[0].style.display="none";
+						$(".menu-nick")[0].innerHTML="";
+						$(".menu-logout")[0].style.display="none";
+					}
+					if( result.login ) {
+						if( result.login.nick!='anonymous' ) {
+							$(".menu-login")[0].style.display="none";
+							$(".menu-nick-caption")[0].style.display="";
+							$(".menu-nick")[0].innerHTML=result.login.nick;
+							$(".menu-logout")[0].style.display="";
+						} 
 						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
 						function(result)
 						{
 							result = parse_result( result )
 							global_user = result[0]
-						})
-					}
-					else
-					{
-						$(".menu-login")[0].style.display="";
-						$(".menu-nick-caption")[0].style.display="none";
-						$(".menu-nick")[0].innerHTML="";
-						$(".menu-logout")[0].style.display="none";
+						});
 					}
 					apply_page_filter();
 					/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');

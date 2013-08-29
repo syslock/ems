@@ -35,7 +35,7 @@ def check_login( app ):
 		or not password.check( password=query.parms["password"], 
 								encrypted_password=encrypted_password ):
 			raise Exception( "Invalid user name or password" )
-		usr = user.User( app, user_id )
+		usr = user.User( app, user_id=user_id )
 		return usr
 	else:
 		raise Exception( "Missing user name or password" )

@@ -13,7 +13,7 @@
 				function( result )
 				{
 					result = parse_result( result )
-					if( result.login )
+					if( result.login && result.login.nick!='anonymous' )
 					{
 						open_tpl("overview.html")
 					}

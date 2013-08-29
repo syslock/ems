@@ -5,6 +5,8 @@ config = imp.reload( config ) # DEBUG?
 # Es muss einen Weg geben die Konfiguration auf Befehl neu einzulesen...
 from lib import errors
 errors = imp.reload( errors ) # DEBUG?
+from lib import user
+user = imp.reload( user )
 
 class Request:
 	"""Implementiert Parameterübergabe an die Webanwendung"""
@@ -188,6 +190,9 @@ class Application:
 			self.db.set_trace_callback( trace )
 			self.trace( self )
 		self.access_cache = {}
+		self.user = user.get_anonymous_user(self)
+		if "user_id" in self.session.parms:
+			self.user = user.User( self, user_id=int(self.session.parms["user_id"]) )
 	def open_db( self ):
 		self.db = sqlite3.connect( self.db_path )
 		return self.db

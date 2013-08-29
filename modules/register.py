@@ -64,8 +64,11 @@ def process( app ):
 			response.output = str( {"succeeded" : True} )
 			return
 		else:
-			usr = user.User( app=app, nick=nick, plain_password=password,
+			app_old_user = app.user
+			app.user = user.get_admin_user(app)
+			usr = user.User( app=app, parent_id=1, nick=nick, plain_password=password,
 									email=email )
+			app.user = app_old_user
 			# FIXME: Falls das Versenden der E-Mail hier sofort fehlschlägt,
 			# müssen wir user.create entweder zurückrollen oder den 
 			# fehlgeschlagenen Zustellungsversuch zwischenspeichern, sodass

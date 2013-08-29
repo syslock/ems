@@ -9,12 +9,12 @@ db_object = imp.reload( db_object )
 class User( db_object.DBObject ):
 	media_type = "application/x-obj.user"
 	def __init__( self, app, user_id=None, nick=None, plain_password=None, 
-					email=None ):
+					email=None, parent_id=None ):
 		if( user_id!=None ):
 			super().__init__( app, object_id=user_id )
 		else:
 			self.check( app, nick, plain_password, email )
-			super().__init__( app, media_type=self.media_type )
+			super().__init__( app, media_type=self.media_type, parent_id=parent_id )
 			encrypted_password = password.encrypt( plain_password )
 			try:
 				c = self.app.db.cursor()
@@ -39,6 +39,7 @@ class User( db_object.DBObject ):
 		return result
 	
 	def update( self, **keyargs ):
+		super().update( **keyargs )
 		c = self.app.db.cursor()
 		if "email" in keyargs:
 			email = keyargs["email"]
@@ -223,11 +224,19 @@ class User( db_object.DBObject ):
 							% locals(), [self.id, object_id] )
 			self.app.db.commit()
 
+class SpecialUser( User ):
+	def __init__( self, app, nick ):
+		self.app = app
+		c = app.db.cursor()
+		c.execute( "select object_id from users where nick=?", [nick] )
+		result = c.fetchone()
+		if result:
+			self.id=result[0]
+		else:
+			raise errors.StateError( "Cannot find special user '%s'!" % (nick) )
+		self.post_init( self.id, None, User.media_type, 0 )
+
 def get_anonymous_user( app ):
-	c = app.db.cursor()
-	c.execute( "select object_id from users where nick='anonymous'" )
-	result = c.fetchone()
-	if result:
-		return User(app, user_id=result[0])
-	else:
-		return None
+	return SpecialUser( app, 'anonymous' )
+def get_admin_user( app ):
+	return SpecialUser( app, 'admin' )

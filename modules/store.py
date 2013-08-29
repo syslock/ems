@@ -21,12 +21,6 @@ def process( app ):
 	query = app.query
 	response = app.response
 	session = app.session
-	if "user_id" in session.parms:
-		usr = user.User( app, user_id=int(session.parms["user_id"]) )
-	else:
-		usr = user.get_anonymous_user( app )
-	if not usr:
-		raise errors.AuthenticationNeeded()
 	if query.content_media_type in ["multipart/form-data"]:
 		# Speichern eines oder mehrerer Objekte aus einem multipart/form-data-Streams:
 		# FIXME: FieldStorage speichert die aus dem Stream geparsten Objekte an unbekannter Stelle zwischen.
@@ -36,12 +30,12 @@ def process( app ):
 		for i, form_key in enumerate(fs.keys()):
 			item = fs[ form_key ]
 			if type(item)==cgi.FieldStorage and item.file:
-				store_object( app, usr, item )
+				store_object( app, item )
 	else:
 		# Speichern eines einzelnen Objektes aus Request-Parametern:
-		store_object( app, usr )
+		store_object( app )
 				
-def store_object( app, usr, file_item=None ):
+def store_object( app, file_item=None ):
 	query = app.query
 	response = app.response
 	session = app.session
@@ -66,7 +60,7 @@ def store_object( app, usr, file_item=None ):
 		c = app.db.cursor()
 		c.execute( """select count(*) from privileges 
 						where privilege=? and object_id=?""",
-					['create_user', usr.id] )
+					['create_user', app.user.id] )
 		if( c.fetchone()!=1 ):
 			raise errors.PrivilegeError()
 		if "nick" in query.parms and "password" in query.parms \
@@ -84,11 +78,11 @@ def store_object( app, usr, file_item=None ):
 		object_id = None
 		if "id" in query.parms:
 			object_id = int( query.parms["id"] )
-			if not usr.can_write( object_id ):
+			if not app.user.can_write( object_id ):
 				raise errors.PrivilegeError()
 			if not media_type:
 				# nicht explizit angegebenen media_type aus dem DBObject holen:
-				obj = db_object.DBObject( app, usr=usr, object_id=object_id )
+				obj = db_object.DBObject( app, object_id=object_id )
 				media_type = obj.media_type
 		parent_id = None
 		if "parent_id" in query.parms:
@@ -98,17 +92,17 @@ def store_object( app, usr, file_item=None ):
 			sequence = int( query.parms["sequence"] )
 		obj = None
 		if media_type == db_object.Text.media_type:
-			obj = db_object.Text( app, usr=usr, object_id=object_id, parent_id=parent_id, sequence=sequence )
+			obj = db_object.Text( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		elif media_type == db_object.HTML.media_type:
-			obj = db_object.HTML( app, usr=usr, object_id=object_id, parent_id=parent_id, sequence=sequence )
+			obj = db_object.HTML( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		elif media_type == user.User.media_type and object_id:
 			obj = user.User( app, user_id=object_id )
 		elif file_item!=None:
 			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
 			# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
-			obj = db_object.File( app, usr=usr, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
+			obj = db_object.File( app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
 		else:
-			obj = db_object.DBObject( app, usr=usr, object_id=object_id, 
+			obj = db_object.DBObject( app, object_id=object_id, 
 									  parent_id=parent_id, 
 									  media_type=media_type,
 									  sequence=sequence )

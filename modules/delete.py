@@ -4,11 +4,11 @@ user = imp.reload( user )
 from lib import errors
 errors = imp.reload( errors )
 
-def delete_in( app, usr, object_id_list ):
+def delete_in( app, object_id_list ):
 	object_id_list = [ int(x) for x in object_id_list ]
 	for object_id in object_id_list:
-		if not usr.can_delete( object_id ):
-			raise errors.PrivilegeError( "%d cannot delete %d" % (usr.id, object_id) )
+		if not app.user.can_delete( object_id ):
+			raise errors.PrivilegeError( "%d cannot delete %d" % (app.user.id, object_id) )
 	c = app.db.cursor()
 	in_list = ",".join( [str(x) for x in object_id_list] )
 	c.execute( """delete from objects where id in (%(in_list)s)""" % locals() )
@@ -26,17 +26,11 @@ def process( app ):
 	query = app.query
 	response = app.response
 	session = app.session
-	if "user_id" in session.parms:
-		usr = user.User( app, user_id=int(session.parms["user_id"]) )
-	else:
-		usr = user.get_anonymous_user( app )
-	if not usr:
-		raise errors.AuthenticationNeeded()
 	media_type = None
 	object_id = None
 	if "id" in query.parms:
 		object_id_list = query.parms["id"].split(",")
-		delete_in( app, usr, object_id_list )
+		delete_in( app, object_id_list )
 		response.output = str( {"succeeded" : True, 
 								"delete_id_list" : object_id_list} )
 	elif "parent_id" in query.parms:
@@ -52,7 +46,7 @@ def process( app ):
 		delete_id_list = []
 		for row in c:
 			delete_id_list.append( row[0] )
-		delete_in( app, usr, delete_id_list )
+		delete_in( app, delete_id_list )
 		response.output = str( {"succeeded" : True, 
 								"delete_id_list" : delete_id_list} )
 	else:

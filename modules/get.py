@@ -36,12 +36,6 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 	query = app.query
 	response = app.response
 	session = app.session
-	if "user_id" in session.parms:
-		usr = user.User( app, user_id=int(session.parms["user_id"]) )
-	else:
-		usr = user.get_anonymous_user( app )
-	if not usr:
-		raise errors.AuthenticationNeeded()
 	child_join = child_condition = ""
 	if child_ids:
 		in_list = [x for x in child_ids if x>=0]
@@ -88,7 +82,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 		view = query.parms["view"]
 	objects = []
 	for object_id in object_ids:
-		if not usr.can_read( object_id ):
+		if not app.user.can_read( object_id ):
 			if access_errors:
 				raise errors.PrivilegeError()
 			else:
@@ -109,9 +103,9 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 			"children" : [],
 			"parents" : []
 			}
-		if usr.can_write(object_id):
+		if app.user.can_write(object_id):
 			obj["permissions"].append("write")
-		if usr.can_delete(object_id):
+		if app.user.can_delete(object_id):
 			obj["permissions"].append("delete")
 		# Kindelemente ermitteln:
 		if recursive[1]:
@@ -154,7 +148,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 			obj["title"] = result[0]
 		if view in ["data", "all"]:
 			if object_type == db_object.Text.media_type:
-				text_obj = db_object.Text( app=app, usr=usr, object_id=object_id )
+				text_obj = db_object.Text( app=app, object_id=object_id )
 				data = text_obj.get_data()
 				if view=="data":
 					response.output += data
@@ -162,7 +156,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 				elif view=="all":
 					obj["data"] = data
 			if object_type == db_object.HTML.media_type:
-				text_obj = db_object.HTML( app=app, usr=usr, object_id=object_id )
+				text_obj = db_object.HTML( app=app, object_id=object_id )
 				data = text_obj.get_data()
 				if view=="data":
 					response.output += data
@@ -188,7 +182,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 						raise errors.ObjectError( "Missing object data" )
 					obj["name"] = result[0]
 			if db_object.File.supports( app, object_type ):
-				file_obj = db_object.File( app, usr=usr, object_id=object_id )
+				file_obj = db_object.File( app, object_id=object_id )
 				if view=="data":
 					# FIXME: Rückgabe mehrerer File-Objekte in Downstream-Analogon zu multipart/form-data möglich?
 					return file_obj.get_data( obj, attachment=("attachment" in query.parms and True or False),

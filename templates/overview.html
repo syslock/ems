@@ -15,7 +15,7 @@
 				{
 					result = parse_result( result )
 					global_status = result
-					if( result.login )
+					if( result.login && result.login.nick!='anonymous' )
 					{
 						$(".menu-login")[0].style.display="none";
 						$(".menu-nick-caption")[0].style.display="";

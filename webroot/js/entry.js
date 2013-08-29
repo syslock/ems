@@ -675,6 +675,7 @@ function show_tag_selection( button ) {
 		result = parse_result( result );
 		if( !result.error ) {
 			$(tags_selection).empty();
+			
 			for( var i in result ) {
 				var obj = result[i];
 				var tag_label_limit = 30;
@@ -687,7 +688,17 @@ function show_tag_selection( button ) {
 				add_button.onclick = function() { add_tag(this); };
 				$(tags_selection).append( add_button );
 			}
+			
+			var add_button = $('<input>').attr({
+				class: 'entry-tags-selection-item', title: 'Neues Thema',
+			})[0];
+			add_button.data = { obj: {type:'application/x-obj.tag'} };
+			obj.dom_object = add_button;
+			add_button.onkeypress = function(event) { onenter(event,add_tag,this); };
+			$(tags_selection).append( add_button );
 			tags_selection.style.display = "";
+			add_button.focus();
+			
 			$(entry_tools).bind('mouseleave', function(event) {
 				tags_selection.style.display = 'none';
 				$(this).unbind('mouseleave');
@@ -705,8 +716,11 @@ function add_tag( button ) {
 	}
 	var entry_id = entry.data.obj.id;
 	var tag_id = button.data.obj.id;
+	var tag_id_query = tag_id ? "&id="+String(tag_id) : "";
+	var tag_title_query = tag_id ? "" : "&title="+$(button)[0].value;
+	var tag_type_query = tag_id ? "" : "&type="+button.data.obj.type;
 	var tags_selection = $(button).closest('.'+typemod+'entry-tags-selection')[0];
-	$.get( "ems.wsgi?do=store&id="+String(tag_id)+"&parent_id="+String(entry_id), 
+	$.get( "ems.wsgi?do=store&parent_id="+String(entry_id)+tag_id_query+tag_title_query+tag_type_query, 
 	function( result ) {
 		result = parse_result( result );
 		if( result.succeeded ) {

@@ -141,9 +141,9 @@ function unlight( field )
 	field.style.backgroundColor = ""
 }
 
-function onenter( event, dostuff )
+function onenter( event, dostuff, arg )
 {     
-	if( event.keyCode==13 ) dostuff();
+	if( event.keyCode==13 ) dostuff(arg);
 }
 
 function prettyprint_size( size ) {

@@ -31,7 +31,11 @@ class DBObject:
 						[self.id] )
 			for row in c:
 				self.children.append( row[0] )
-		elif parent_id and self.app.user.can_write( parent_id ):
+		elif parent_id:
+			parent_id = isinstance(parent_id,list) and parent_id or [parent_id]
+			for pid in parent_id:
+				if not self.app.user.can_write( pid ):
+					raise errors.PrivilegeError( "Cannot create object with parent %d: forbidden" % pid )
 			if not media_type:
 				raise errors.ParameterError( "Missing media type" )
 			self.media_type = media_type
@@ -40,13 +44,14 @@ class DBObject:
 						[self.media_type, time.time(), time.time()] )
 			self.app.db.commit()
 			self.id = c.lastrowid
-			c.execute( """insert into membership (parent_id, child_id, sequence)
-							values(?,?,?)""",
-						[parent_id, self.id, sequence] )
-			self.app.db.commit()
-			self.parents = [ parent_id ]
+			for pid in parent_id:
+				c.execute( """insert into membership (parent_id, child_id, sequence)
+								values(?,?,?)""",
+							[pid, self.id, sequence] )
+				self.app.db.commit()
+				self.parents.append( pid )
 		else:
-			raise errors.PrivilegeError()
+			raise errors.ParameterError( "Cannot create anonymous object without parent" )
 	
 	def update( self, **keyargs ):
 		sequence = 0
@@ -62,18 +67,20 @@ class DBObject:
 		if "parent_id" in keyargs and keyargs["parent_id"]!=None:
 			parent_id = keyargs["parent_id"]
 			if parent_id:
-				if not self.app.user.can_write(parent_id):
-					raise errors.PrivilegeError( "Membership change requires write access to parent object" )
-				else:
-					if parent_id not in self.parents:
+				parent_id = isinstance(parent_id,list) and parent_id or [parent_id]
+				for pid in parent_id:
+					if not self.app.user.can_write(pid):
+						raise errors.PrivilegeError( "Membership change requires write access to parent object" )
+				for pid in parent_id:
+					if pid not in self.parents:
 						c.execute( """insert into membership (parent_id, child_id, sequence)
 										values(?,?,?)""",
-									[parent_id, self.id, sequence] )
-						self.parents.append( parent_id )
+									[pid, self.id, sequence] )
+						self.parents.append( pid )
 					else:
 						c.execute( """update membership set sequence=?
 										where parent_id=? and child_id=?""",
-									[sequence, parent_id, self.id] )
+									[sequence, pid, self.id] )
 					self.app.db.commit()
 		c.execute( """update objects set mtime=?
 						where id=?""",

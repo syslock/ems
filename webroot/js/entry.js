@@ -723,7 +723,7 @@ function add_tag( button ) {
 	var tag_title_query = tag_id ? "" : "&title="+$(tag)[0].value;
 	var tag_type_query = tag_id ? "" : "&type="+tag.data.obj.type;
 	var tags_selection = $(button).closest('.'+typemod+'entry-tags-selection')[0];
-	$.get( "ems.wsgi?do=store&parent_id="+String(entry_id)+tag_id_query+tag_title_query+tag_type_query, 
+	$.get( "ems.wsgi?do=store&parent_id=5,"+String(entry_id)+tag_id_query+tag_title_query+tag_type_query, 
 	function( result ) {
 		result = parse_result( result );
 		if( result.succeeded ) {

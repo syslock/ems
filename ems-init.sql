@@ -42,10 +42,15 @@ INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(2,3,2);
 INSERT INTO objects (id,type) VALUES(3,'application/x-obj.user');
 INSERT INTO users (object_id,nick) VALUES(3,'anonymous');
 INSERT INTO membership (parent_id,child_id) VALUES(1,3);
-INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(3,1,3);
+INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(3,1,3); -- darf sich selbst sehen, aber keine Objekte erstellen
 
 INSERT INTO objects (id,type) VALUES(4,'application/x-obj.group');
 INSERT INTO groups (object_id,name,description) VALUES(4,'public','Zugriffsgruppe für öffentlich lesbare Objekte');
 INSERT INTO membership (parent_id,child_id) VALUES(1,4);
-INSERT INTO membership (parent_id,child_id) VALUES(4,3);
-INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(1,1,4);
+-- INSERT INTO membership (parent_id,child_id) VALUES(4,3); -- Anonymous wäre hierdurch öffentlich lesbar
+INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(1,1,4); -- Alle dürfen public lesen
+
+INSERT INTO objects (id,type) VALUES(5,'application/x-obj.group');
+INSERT INTO groups (object_id,name,description) VALUES(5,'tags','Tags');
+INSERT INTO membership (parent_id,child_id) VALUES(1,5);
+INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(4,3,5); -- public darf tags lesen/schreiben

@@ -86,7 +86,7 @@ def store_object( app, file_item=None ):
 				media_type = obj.media_type
 		parent_id = None
 		if "parent_id" in query.parms:
-			parent_id = int( query.parms["parent_id"] )
+			parent_id = [ int(x) for x in query.parms["parent_id"].split(",") ]
 		sequence = 0
 		if "sequence" in query.parms:
 			sequence = int( query.parms["sequence"] )

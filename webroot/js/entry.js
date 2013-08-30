@@ -225,7 +225,15 @@ function show_object( parms )
 				var parms = {}; parms[-obj.id] = obj;
 				apply_page_filter( parms );
 			};
-			$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
+			if( $(dom_parent).hasClass('entry-tags-selection') ) {
+				$(dom_parent).append( obj.dom_object );
+				$('.entry-tag-add', obj.dom_object).show();
+				$('.entry-tag-remove', obj.dom_object).hide();
+			} else {
+				$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
+				$('.entry-tag-add', obj.dom_object).hide();
+				$('.entry-tag-remove', obj.dom_object).show();
+			}
 			obj.dom_object.style.display="";
 		}
 	} else if( dom_parent && obj.id ) {
@@ -676,28 +684,21 @@ function show_tag_selection( button ) {
 		if( !result.error ) {
 			$(tags_selection).empty();
 			
-			for( var i in result ) {
-				var obj = result[i];
-				var tag_label_limit = 30;
-				var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
-				var add_button = $('<button>').attr({
-					class: 'entry-tags-selection-item', title:obj.title
-				}).text(tag_label)[0];
-				add_button.data = { obj: obj };
-				obj.dom_object = add_button;
-				add_button.onclick = function() { add_tag(this); };
-				$(tags_selection).append( add_button );
-			}
-			
-			var add_button = $('<input>').attr({
+			var new_tag_input = $('<input>').attr({
 				class: 'entry-tags-selection-item', title: 'Neues Thema',
 			})[0];
-			add_button.data = { obj: {type:'application/x-obj.tag'} };
-			obj.dom_object = add_button;
-			add_button.onkeypress = function(event) { onenter(event,add_tag,this); };
-			$(tags_selection).append( add_button );
+			new_tag_input.data = { obj: {type:'application/x-obj.tag'} };
+			new_tag_input.onkeypress = function(event) { onenter(event,add_tag,this); };
+			$(tags_selection).append( new_tag_input );
+			
+			for( var i in result ) {
+				var obj = result[i];
+				show_object( {obj: obj, dom_parent: tags_selection} );
+				$(obj.dom_object).addClass('entry-tags-selection-item');
+			}
+			
 			tags_selection.style.display = "";
-			add_button.focus();
+			new_tag_input.focus();
 			
 			$(entry_tools).bind('mouseleave', function(event) {
 				tags_selection.style.display = 'none';
@@ -715,10 +716,12 @@ function add_tag( button ) {
 		entry = $(button).closest(".ems-"+typemod+"entry")[0];
 	}
 	var entry_id = entry.data.obj.id;
-	var tag_id = button.data.obj.id;
+	var tag = $(button).closest('.'+typemod+'entry-tag')[0];
+	tag = tag ? tag : button;
+	var tag_id = tag.data.obj.id;
 	var tag_id_query = tag_id ? "&id="+String(tag_id) : "";
-	var tag_title_query = tag_id ? "" : "&title="+$(button)[0].value;
-	var tag_type_query = tag_id ? "" : "&type="+button.data.obj.type;
+	var tag_title_query = tag_id ? "" : "&title="+$(tag)[0].value;
+	var tag_type_query = tag_id ? "" : "&type="+tag.data.obj.type;
 	var tags_selection = $(button).closest('.'+typemod+'entry-tags-selection')[0];
 	$.get( "ems.wsgi?do=store&parent_id="+String(entry_id)+tag_id_query+tag_title_query+tag_type_query, 
 	function( result ) {
@@ -736,6 +739,27 @@ function add_tag( button ) {
 					show_object( {dom_parent: entry, obj: obj, update: true} );
 				}
 			});
+		}
+	});
+}
+
+function remove_tag( button ) {
+	var typemod = "";
+	var entry = $(button).closest(".ems-entry")[0];
+	if( !entry ) {
+		typemod = "new-";
+		entry = $(button).closest(".ems-"+typemod+"entry")[0];
+	}
+	var entry_id = entry.data.obj.id;
+	var tag = $(button).closest('.'+typemod+'entry-tag')[0];
+	var tag_id = tag.data.obj.id;
+	var tag_id_query = "&id="+String(tag_id);
+	var tags_content = $(button).closest('.'+typemod+'entry-tags-content')[0];
+	$.get( "ems.wsgi?do=delete&parent_id="+String(entry_id)+tag_id_query, 
+	function( result ) {
+		result = parse_result( result );
+		if( result.succeeded ) {
+			$(tag).remove();
 		}
 	});
 }

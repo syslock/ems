@@ -185,6 +185,7 @@ button.entry-tags-show-selection-button {
 }
 .entry-tag {
 	display: block;
+	position: relative;
 	vertical-align: bottom;
 	font-size: small;
 	background-color: #efefef;
@@ -200,8 +201,8 @@ button.entry-tags-show-selection-button {
 .entry-tag-tools {
 	display: none;
 	position: absolute;
-	left: -204px;
 	margin-top: -20px;
+	left: -222px;
 }
 .entry-tag:hover .entry-tag-tools {
 	display: inline-block;
@@ -259,9 +260,6 @@ button.entry-tags-show-selection-button {
 .entry-tags-selection {
 	display: block;
 	max-height: 200px;
-	overflow-y: scroll;
-	overflow-x: hidden;
-	background-color: lightgrey;
 	margin-top: 10px;
 	margin-bottom: 10px;
 	padding: 5px;
@@ -275,6 +273,17 @@ button.entry-tags-show-selection-button {
 }
 .entry-tags-selection-item:hover {
 /* 	background-color: orange; */
+}
+.entry-tag>button {
+	display: inline-block;
+	position: absolute;
+	top: 0px;
+	right: 1px;
+	margin: 1px;
+}
+.entry-tag-add {
+}
+.entry-tag-remove {
 }
 
 /* ------------------------------------------------------------------------- */

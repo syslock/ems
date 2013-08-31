@@ -50,7 +50,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 		in_list = [x for x in parent_ids if x>=0]
 		out_list = [-x for x in parent_ids if x<0]
 		if in_list:
-			parent_join = "inner join membership mc on mp.child_id=id"
+			parent_join = "inner join membership mc on mc.child_id=id"
 			parent_condition += " and mc.parent_id in %s" % ( str(tuple(in_list)).replace(",)",")") )
 		if out_list:
 			parent_condition += " and id not in (select child_id from membership where parent_id in %s)" % ( str(tuple(out_list)).replace(",)",")") )

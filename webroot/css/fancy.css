@@ -162,6 +162,7 @@ body {
 .entry-media {
 	max-width: 100%;
 }
+
 .entry-tags {
 	display: block;
 	border-left: 1px solid #bfbfbf;
@@ -182,6 +183,7 @@ button.entry-tags-show-selection-button {
 }
 .entry-tags-content {
 	display: block;
+	padding: 3px;
 }
 .entry-tag {
 	display: block;
@@ -190,14 +192,42 @@ button.entry-tags-show-selection-button {
 	font-size: small;
 	background-color: #efefef;
 	border: 1px solid #bfbfbf;
-	border-radius: 10px;
+	border-radius: 8px;
 	padding: 5px;
 	margin-top: 5px;
+	min-width: 150px;
 }
 .entry-tag:hover {
 	background-color: #ffff8f;
 	cursor: default;
 }
+input.entry-tag {
+}
+.entry-tag>button {
+	display: inline-block;
+	position: absolute;
+	top: 0px;
+	right: 1px;
+	margin: 1px;
+}
+.entry-tag-add {
+}
+.entry-tag-remove {
+}
+
+.entry-tags-selection {
+	display: block;
+	margin-top: 10px;
+	background-color: #7f7fff;
+	padding: 3px;
+	padding-top: 2px;
+	border-radius: 10px;
+}
+.entry-tags-selection-item {
+}
+.entry-tags-selection-item:hover {
+}
+
 .entry-tag-tools {
 	display: none;
 	position: absolute;
@@ -247,7 +277,6 @@ button.entry-tags-show-selection-button {
 	text-align: left;
 }
 .entry-tag-tool:hover {
-/* 	background-color: white; */
 }
 .entry-tag-tool-filter-for {
 	background: url(../tango-scalable/actions/system-search.svg) no-repeat 0 0;
@@ -257,96 +286,32 @@ button.entry-tags-show-selection-button {
 	background: url(../tango-scalable/actions/list-remove.svg) no-repeat 0 0;
 	background-size: contain;
 }
-.entry-tags-selection {
-	display: block;
-	max-height: 200px;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	padding: 5px;
-	border-radius: 10px;
-}
-.entry-tags-selection-item {
-	display: block;
-	font-size: small;
-	width: 100%;
-	text-align: left;
-}
-.entry-tags-selection-item:hover {
-/* 	background-color: orange; */
-}
-.entry-tag>button {
-	display: inline-block;
-	position: absolute;
-	top: 0px;
-	right: 1px;
-	margin: 1px;
-}
-.entry-tag-add {
-}
-.entry-tag-remove {
-}
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */
 /* ------------------------------------------------------------------------- */
-.ems-new-entry {
-	display: inline;
-}
-.new-entry-decorator-left {
-	position: absolute;
-	margin-top: 30px;
-	margin-left: -16px;
+.new-entry .entry-decorator-left {
 	width: 20px;
 	height: 20px;
 	background-color: white;
 	border: 2px solid orange;
 	border-radius: 50%;
 }
-.new-entry-data {
-	display: inline-block;
-	vertical-align: top;
-	margin-left: 17px;
-	margin-bottom: 10px;
-	border-radius: 20px;
+.new-entry .entry-data {
 	border: 2px solid orange;
-	background-color: white;
-	padding: 10px;
-	min-height: 110px;
-	width: 60%;
 }
-.new-entry-title-label {
+.ems-item:hover .new-entry .entry-tools {
 	display: none;
 }
-.new-entry-title {
-	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
-	font-weight: bold;
-	text-decoration: underline;
-	padding: 2px;
-	padding-bottom: 10px;
-	border: 2px solid transparent;
-}
-.new-entry-title:focus {
-	border: 2px solid orange;
-}
-.new-entry-content {
-	/* Anklicken des Inhalts beim Editieren vereinfachen, indem er die ganze Breite und eine Mindeshöhe einnimmt: */
-	display: block;
-	min-height: 100px;
-	padding: 2px;
-	border: 2px solid transparent;
-}
-.new-entry-content:focus {
-	border: 2px solid orange;
-}
-.new-entry-tools {
+.entry-edit-tools {
 	display: none;
 	position: absolute;
 	margin-left: 10px;
 }
-.ems-item:hover .new-entry-tools {
+.ems-item:hover .new-entry .entry-edit-tools {
 	display: inline-block;
 }
-.new-entry-tools-decorator-left {
+.entry-edit-tools-decorator-left {
 	position: absolute;
 	margin-top: 13px;
 	margin-left: -29px;
@@ -356,7 +321,7 @@ button.entry-tags-show-selection-button {
 	border-top: 60px solid transparent;
 	border-bottom: 60px solid transparent;
 }
-.new-entry-tools-content {
+.entry-edit-tools-content {
 	position: absolute;
 	min-height: 126px;
 	min-width: 140px;
@@ -367,10 +332,10 @@ button.entry-tags-show-selection-button {
 	padding: 10px;
 	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
-.new-entry-tools-content button {
+.entry-edit-tools-content button {
 	display: block;
 }
-.new-entry-tools-decorator-right {
+.entry-edit-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
 	position: absolute;
 	margin-left: -30px;
@@ -379,37 +344,6 @@ button.entry-tags-show-selection-button {
 	height: 230px;
 	background-color: transparent;
 }
-.new-entry-tags {
-	display: block;
-	border-left: 1px solid lightgrey;
-	border-bottom: 1px solid lightgrey;
-	border-radius: 10px;
-	padding: 5px;
-	margin-top: 5px;
-	margin-bottom: 5px;
-}
-.new-entry-tags-label {
-	display: inline;
-	font-weight: bold;
-}
-button.new-entry-tags-button-add {
-	display: inline;
-	float: right;
-	font-size: small;
-}
-.new-entry-tags-content {
-	display: block;
-}
-.new-entry-tag {
-	display: block;
-	vertical-align: bottom;
-	font-size: small;
-	background-color: #efefef;
-	border-radius: 10px;
-	padding: 5px;
-	margin-top: 5px;
-}
-
 
 /* ------------------------------------------------------------------------- */
 /* ---------------------------------- Users -------------------------------- */

@@ -34,9 +34,7 @@ function new_item( parms ) {
 					if( button ) edit_entry( button )
 				}
 				else {
-					parms.dom_object.data = {
-						obj: obj
-					}
+					$(parms.dom_object).data( {obj: obj} );
 				}
 			}
 		}})
@@ -54,7 +52,7 @@ function new_item( parms ) {
 			item = $("#ems-"+short_type+"-"+String(obj.id))[0]
 		}
 		if( !item ) {
-			item = $("#ems-"+short_type+"-template").first().clone(true)[0];
+			item = $("#ems-"+short_type+"-template").first().clone()[0];
 			item.id = "ems-"+short_type+"-"+String(obj.id)
 			item.style.display = ""
 			if( parms.dom_parent ) {
@@ -69,9 +67,7 @@ function new_item( parms ) {
 				$(parms.dom_child).first().before( item );
 				$("."+short_type+"-content",item).append( parms.dom_child );
 			}
-			item.data = {
-				obj: obj
-			}
+			$(item).data( {obj: obj} );
 		}
 		for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
 			var value = obj[ field_name ];
@@ -104,7 +100,7 @@ function create_download( obj ) {
 	var link = $( '<a href="ems.wsgi?do=get&view=data&id='+String(obj.id)+'&attachement=true" class="download-link" ><img src="tango-scalable/actions/document-save.svg" class="download-icon" /></a>' );
 	link.append( '<span class="download-title">'+obj.title+'</span><span class="download-size">('+prettyprint_size(obj.size)+')</span>' );
 	link = link[0];
-	link.data = { obj: obj };
+	$(link).data( {obj: obj} );
 	obj.dom_object = link;
 	return link;
 }
@@ -147,7 +143,7 @@ function show_object( parms )
 					var merged_obj = {}
 					for( key in obj ) merged_obj[key] = obj[key];
 					for( key in result[i] ) merged_obj[key] = result[i][key];
-					show_object( {obj:merged_obj, dom_parent:$(".ems-content")[0], limit:limit, prepend:prepend, update:update} )
+					show_object( {obj:merged_obj, dom_parent:dom_parent ? dom_parent : $(".ems-content")[0], limit:limit, prepend:prepend, update:update} )
 				}
 			}
 		})
@@ -187,32 +183,32 @@ function show_object( parms )
 		if( dom_parent && obj.data ) {
 			obj.dom_object = $('<span>').attr( {class: 'entry-text'} )[0];
 			$(obj.dom_object).text( obj.data );
-			obj.dom_object.data = {obj: obj};
+			$(obj.dom_object).data( {obj: obj} );
 			$(dom_parent).append( obj.dom_object );
 		}
 	} else if( obj.type == "text/html" ) {
 		if( dom_parent && obj.data ) {
 			obj.dom_object = $( obj.data )[0];
-			obj.dom_object.data = {obj: obj};
+			$(obj.dom_object).data( {obj: obj} );
 			$(dom_parent).append( obj.dom_object );
 		}
 	} else if( obj.type && obj.type.match(/^image\//) && obj.id ) {
 		if( dom_parent ) {
 			obj.dom_object = $('<img>').attr( {src: 'ems.wsgi?do=get&id='+obj.id+'&view=data', class: 'entry-media'} )[0];
-			obj.dom_object.data = {obj: obj};
+			$(obj.dom_object).data( {obj: obj} );
 			$(dom_parent).append( obj.dom_object );
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {
 			obj.dom_object = $('<video>').attr( {class: 'entry-media', width: '480', height: '270', controls: ''} )[0];
-			obj.dom_object.data = {obj: obj};
+			$(obj.dom_object).data( {obj: obj} );
 			$(obj.dom_object).append( $('<source>').attr({src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
 			$(dom_parent).append( obj.dom_object );
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
 		if( dom_parent ) {
 			obj.dom_object = $('#entry-tag-template').clone().attr( {id: undefined, title: obj.title} )[0];
-			obj.dom_object.data = {obj: obj};
+			$(obj.dom_object).data( {obj: obj} );
 			var tag_label_obj = $('.entry-tag-label', obj.dom_object)[0];
 			var tag_label_limit = 30;
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
@@ -245,7 +241,7 @@ function show_object( parms )
 function apply_page_filter( parms ) {
 	if( parms==undefined ) parms={};
 	$('.filter-item-include').each( function(i, elem) {
-		var obj = elem.data.obj;
+		var obj = $(elem).data().obj;
 		if( parms[-obj.id] ) {
 		} else if( parms[obj.id] ) {
 		} else {
@@ -253,7 +249,7 @@ function apply_page_filter( parms ) {
 		}
 	});
 	$('.filter-item-exclude').each( function(i, elem) {
-		var obj = elem.data.obj;
+		var obj = $(elem).data().obj;
 		if( parms[-obj.id] ) {
 		} else if( parms[obj.id] ) {
 		} else {
@@ -269,7 +265,7 @@ function apply_page_filter( parms ) {
 			filter_list.push( key );
 			var filter_item = $('<span>').attr( {'class':(Number(key)<0 ? 'filter-item filter-item-exclude' : 'filter-item filter-item-include')} )[0];
 			$(filter_item).text( obj.title );
-			filter_item.data = { obj: obj };
+			$(filter_item).data( {obj: obj} );
 			obj.dom_object = filter_item;
 			filter_item.onclick = function(ev) {
 				$(this).remove();
@@ -290,14 +286,10 @@ function apply_page_filter( parms ) {
 
 function edit_entry( button )
 {
-	var typemod = "";
 	var entry = $(button).closest(".ems-entry")[0];
-	if( !entry ) {
-		typemod = "new-";
-		entry = $(button).closest(".ems-"+typemod+"entry")[0];
-	}
-	var title = $( "."+typemod+"entry-title", entry )[0]
-	var content = $( "."+typemod+"entry-content", entry )[0]
+	$(entry).addClass("new-entry");
+	var title = $( ".entry-title", entry )[0]
+	var content = $( ".entry-content", entry )[0]
 	if( title ) {
 		title.contentEditable = true
 		if( title.innerHTML.length==0 || !content ) title.focus()
@@ -306,22 +298,14 @@ function edit_entry( button )
 		content.contentEditable = true
 		if( title.innerHTML.length>0 ) content.focus()
 	}
-	// Standard-Toolbox verbergen und temporären Klon der Editieren-Toolbox für diesen Beitrag erzeugen:
+	
+	// Standard-Toolbox verbergen und Editieren-Toolbox anzeigen:
 	var std_tools = $( ".entry-tools", entry )[0];
-	if( std_tools ) {
-		std_tools.style.display="none";
-		var edit_tools = $( ".new-entry-tools", $("#ems-new-entry") )[0];
-		if( edit_tools ) {
-			$(std_tools).after( $(edit_tools).clone() )
-		}
-		// Themen des Beitrages kopieren:
-		$(".new-entry-tags-content", entry).empty();
-		$(".entry-tag", entry).each( function(i,elem) {
-			var new_tag = $(elem).clone()[0];
-			new_tag.data = { obj: elem.data.obj };
-			$(".new-entry-tags-content", entry).append(new_tag);
-		});
-	}
+	$(std_tools.style).hide();
+	var edit_tools = $( ".entry-edit-tools", entry )[0];
+	$(edit_tools).show();
+	// Themen des Beitrages kopieren:
+	$(".entry-tags",edit_tools).empty().append( $(".entry-tags",std_tools).clone(true,true).contents() );
 }
 
 function get_plain_text( element ) {
@@ -357,18 +341,18 @@ function get_object_list( element, text_obj ) {
 			current_list.push( obj );
 		}
 	} else if( element.nodeName=="BR" ) {
-		if( element.data && element.data.obj ) {
-			current_list.push( element.data.obj );
+		if( $(element).data().obj ) {
+			current_list.push( $(element).data().obj );
 		} else {
 			var obj = { 'type': 'text/html', 'data': element.outerHTML };
 			current_list.push( obj );
 		}
-	} else if( element.data && element.data.obj ) {
-		current_list.push( element.data.obj );
+	} else if( $(element).data().obj ) {
+		current_list.push( $(element).data().obj );
 	}
-	if( !element.data || !element.data.obj || element.data.obj.type=="text/plain" ) {
-		if( element.data && element.data.obj && element.data.obj.type=="text/plain" ) {
-			text_obj = element.data.obj;
+	if( !$(element).data().obj || $(element).data().obj.type=="text/plain" ) {
+		if( $(element).data().obj && $(element).data().obj.type=="text/plain" ) {
+			text_obj = $(element).data().obj;
 			text_obj.unassigned = true;
 		}
 		for( var i=0; i<element.childNodes.length; i++ ) {
@@ -381,36 +365,29 @@ function get_object_list( element, text_obj ) {
 
 function restore_standard_tools( entry ) {
 	// temporären Klon der Editieren-Toolbox wieder aus diesem Beitrag löschen und Standard-Toolbox wieder anzeigen:
-	var edit_tools = $( ".new-entry-tools", entry )[0];
-	if( edit_tools ) {
-		$(edit_tools).remove();
-	}
+	var edit_tools = $( ".entry-edit-tools", entry )[0];
+	$(edit_tools).hide();
 	var std_tools = $( ".entry-tools", entry )[0];
-	if( std_tools ) {
-		std_tools.style.display="";
-	}
+	$(std_tools).show();
 }
 
 function remove_new_entry_item( entry ) {
-	// new-entry-Objekt weg legen, Pseudo-Item löschen und neues reguläres Entry-Objekt abrufen:
+	// neues entry-Objekt und Pseudo-Item löschen:
 	var item = $(entry).closest(".ems-item")[0];
-	entry.style.display = "none";
-	$(".ems-content").first().after( entry );
-	entry.data = {};
 	$(item).remove();
 }
 
 function save_entry( button ) {
-	var typemod = "";
 	var entry = $(button).closest(".ems-entry")[0];
-	if( !entry ) {
-		typemod = "new-";
-		entry = $(button).closest(".ems-"+typemod+"entry")[0];
-		// new-entry-Objekt mit einem neuen DB-Objekt assoziieren:
+	$(entry).removeClass("new-entry");
+	var new_entry_created = false;
+	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
+		// neues entry-Objekt mit einem neuen DB-Objekt assoziieren:
 		new_item( {obj:{type: "application/x-obj.entry"}, dom_object: entry} );
+		new_entry_created = true;
 	}
-	var entry_id = entry.data.obj.id;
-	var title = $( "."+typemod+"entry-title", entry )[0];
+	var entry_id = $(entry).data().obj.id;
+	var title = $( ".entry-title", entry )[0];
 	if( title ) {
 		title.contentEditable = false
 		var title_text = get_plain_text( title )
@@ -424,11 +401,11 @@ function save_entry( button ) {
 			result = parse_result( result )
 		}})
 	}
-	var content = $( "."+typemod+"entry-content", entry )[0];
+	var content = $( ".entry-content", entry )[0];
 	if( content ) {
 		content.contentEditable = false
 		var content_list = get_object_list( content );
-		var tags = $( "."+typemod+"entry-tags-content", entry )[0];
+		var tags = $( ".entry-tags-content", entry )[0];
 		if( tags ) {
 			content_list = content_list.concat( get_object_list(tags) );
 		}
@@ -481,12 +458,11 @@ function save_entry( button ) {
 			result = parse_result( result )
 		}})
 	}
-	if( entry.id!="ems-new-entry" ) {
-		restore_standard_tools( entry );
-	}
-	else {
+	if( new_entry_created ) {
 		remove_new_entry_item( entry );
 		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry_id}, prepend: true} );
+	} else {
+		restore_standard_tools( entry );
 	}
 }
 
@@ -495,32 +471,25 @@ function new_response( user, button ) {
 	if( button ) {
 		reference_item = $(button).closest(".ems-item")[0];
 	}
-	var new_entry = $("#ems-new-entry")[0];
-	var old_item = $(new_entry).closest('.ems-item')[0];
+	var new_entry = $("#ems-entry-template").first().clone()[0];
+	new_entry.id="";
 	if( reference_item ) {
 		$(reference_item).before( new_entry );
 	} else {
 		$(".ems-content").first().prepend( new_entry );
 	}
-	if( old_item ) $(old_item).remove();
 	$(new_entry).wrap( '<span class="ems-item"></span>' )
-	$(".new-entry-title", new_entry).empty();
-	$(".new-entry-content", new_entry).empty();
-	$(".new-entry-tags-content", new_entry).empty();
 	if( reference_item ) {
 		// Antworttitel aus Titel des Referenzbeitrages generieren:
 		reference_title = $(".entry-title", reference_item).first().text();
 		if( !reference_title.match(/^Re:/i) ) {
 			reference_title = "Re: "+reference_title;
 		}
-		$(".new-entry-title", new_entry).text( reference_title );
+		$(".entry-title", new_entry).text( reference_title );
 		// Themen des Referenzbeitrages kopieren:
-		$(".entry-tag", reference_item).each( function(i,elem) {
-			var new_tag = $(elem).clone()[0];
-			new_tag.data = { obj: elem.data.obj };
-			new_tag.data.changed = true; // TAG-Speicherung beauftragen
-			$(".new-entry-tags-content", new_entry).append(new_tag);
-		});
+		var ref_tools = $( ".entry-tools", reference_item )[0];
+		var new_tools = $( ".entry-tools", new_entry )[0];
+		$(".entry-tags",new_tools).empty().append( $(".entry-tags",ref_tools).clone(true,true).contents() );
 	}
 	new_entry.style.display="";
 	user_element = new_item( {obj:user, duplicates: true, dom_child: new_entry} );
@@ -533,7 +502,7 @@ function new_response( user, button ) {
 function delete_entry( button ) {
 	var entry = $(button).closest(".ems-entry")[0];
 	$.ajax({
-		url : "ems.wsgi?do=delete&id="+String(entry.data.obj.id),
+		url : "ems.wsgi?do=delete&id="+String($(entry).data().obj.id),
 		success :
 	function( result ) {
 		result = parse_result( result );
@@ -544,17 +513,15 @@ function delete_entry( button ) {
 }
 
 function discard_response( button ) {
-	var typemod = "";
 	var entry = $(button).closest(".ems-entry")[0];
-	if( !entry ) {
-		typemod = "new-";
-		entry = $(button).closest(".ems-"+typemod+"entry")[0];
+	$(entry).removeClass("new-entry");
+	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
 		remove_new_entry_item( entry );
 	}
 	else {
 		restore_standard_tools( entry );
-		var title = $( "."+typemod+"entry-title", entry )[0]
-		var content = $( "."+typemod+"entry-content", entry )[0]
+		var title = $( ".entry-title", entry )[0]
+		var content = $( ".entry-content", entry )[0]
 		if( title ) {
 			title.contentEditable = false;
 		}
@@ -562,20 +529,15 @@ function discard_response( button ) {
 			content.contentEditable = false;
 		}
 		// Daten neu laden, um lokale Änderungen zu beseitigen:
-		$("."+typemod+"entry-content", entry).empty()
-		$("."+typemod+"entry-tags-content", entry).empty()
-		show_object( {dom_parent: entry, obj: entry.data.obj, update: true} );
+		$(".entry-content", entry).empty()
+		$(".entry-tags-content", entry).empty()
+		show_object( {dom_parent: entry, obj: $(entry).data().obj, update: true} );
 	}
 }
 
 function add_file( button ) {
-	var typemod = "";
 	var entry = $(button).closest(".ems-entry")[0];
-	if( !entry ) {
-		typemod = "new-";
-		entry = $(button).closest(".ems-"+typemod+"entry")[0];
-	}
-	var content = $("."+typemod+"entry-content", entry)[0];
+	var content = $(".entry-content", entry)[0];
 	var selection = window.getSelection();
 	var range = selection.getRangeAt(0);
 	var upload_dialog = $(".upload-dialog-template").clone()[0];
@@ -675,9 +637,9 @@ function confirm_upload( button ) {
 }
 
 function show_tag_selection( button ) {
-	var entry_tools = $(button).closest('.entry-tools')[0];
-	var entry_tags = $(button).closest('.entry-tags')[0];
-	var tags_selection = $('.entry-tags-selection', entry_tags)[0];
+	var entry_tools = $(button).closest(".entry-tools")[0];
+	var entry_tags = $(button).closest(".entry-tags")[0];
+	var tags_selection = $(".entry-tags-selection", entry_tags)[0];
 	$.get( "ems.wsgi?do=get&type=application/x-obj.tag&limit=50", 
 	function( result ) {
 		result = parse_result( result );
@@ -685,9 +647,9 @@ function show_tag_selection( button ) {
 			$(tags_selection).empty();
 			
 			var new_tag_input = $('<input>').attr({
-				class: 'entry-tags-selection-item', title: 'Neues Thema',
+				class: 'entry-tag entry-tags-selection-item', title: 'Neues Thema',
 			})[0];
-			new_tag_input.data = { obj: {type:'application/x-obj.tag'} };
+			$(new_tag_input).data( {obj: {type:'application/x-obj.tag'}} );
 			new_tag_input.onkeypress = function(event) { onenter(event,add_tag,this); };
 			$(tags_selection).append( new_tag_input );
 			
@@ -709,52 +671,53 @@ function show_tag_selection( button ) {
 }
 
 function add_tag( button ) {
-	var typemod = "";
 	var entry = $(button).closest(".ems-entry")[0];
-	if( !entry ) {
-		typemod = "new-";
-		entry = $(button).closest(".ems-"+typemod+"entry")[0];
-	}
-	var entry_id = entry.data.obj.id;
-	var tag = $(button).closest('.'+typemod+'entry-tag')[0];
+	var entry_id = $(entry).data().obj ? $(entry).data().obj.id : undefined;
+	var entry_id_query = entry_id ? ","+String(entry_id) :"";
+	var tag = $(button).closest('.entry-tag')[0];
 	tag = tag ? tag : button;
-	var tag_id = tag.data.obj.id;
+	var tag_id = $(tag).data().obj.id;
 	var tag_id_query = tag_id ? "&id="+String(tag_id) : "";
 	var tag_title_query = tag_id ? "" : "&title="+$(tag)[0].value;
-	var tag_type_query = tag_id ? "" : "&type="+tag.data.obj.type;
-	var tags_selection = $(button).closest('.'+typemod+'entry-tags-selection')[0];
-	$.get( "ems.wsgi?do=store&parent_id=5,"+String(entry_id)+tag_id_query+tag_title_query+tag_type_query, 
+	var tag_type_query = tag_id ? "" : "&type="+$(tag).data().obj.type;
+	var tags_selection = $(button).closest('.entry-tags-selection')[0];
+	var tags_content = $('.entry-edit-tools .entry-tags-content',entry)[0];
+	$.get( "ems.wsgi?do=store&parent_id=5"+entry_id_query+tag_id_query+tag_title_query+tag_type_query, 
 	function( result ) {
 		result = parse_result( result );
 		if( result.succeeded ) {
+			tag_id = result.id;
 			tags_selection.style.display = 'none';
-			// Daten neu laden, um Änderungen zu übernehmen:
-			$.get( "ems.wsgi?do=get&id="+String(entry_id)+"&view=all&recursive=true",
-			function( result ) {
-				result = parse_result( result );
-				if( !result.error && result.length ) {
-					obj = result[0];
-					$("."+typemod+"entry-content", entry).empty()
-					$("."+typemod+"entry-tags-content", entry).empty()
-					show_object( {dom_parent: entry, obj: obj, update: true} );
-				}
-			});
+			if( entry_id ) {
+				// Daten neu laden, um Änderungen zu übernehmen:
+				$.get( "ems.wsgi?do=get&id="+String(entry_id)+"&view=all&recursive=true",
+				function( result ) {
+					result = parse_result( result );
+					if( !result.error && result.length ) {
+						obj = result[0];
+						$(".entry-content", entry).empty()
+						$(".entry-tags-content", entry).empty()
+						show_object( {dom_parent: entry, obj: obj, update: true} );
+					}
+				});
+			} else {
+				show_object( {dom_parent: tags_content, obj: {id: tag_id}} );
+			}
 		}
 	});
 }
 
 function remove_tag( button ) {
-	var typemod = "";
 	var entry = $(button).closest(".ems-entry")[0];
-	if( !entry ) {
-		typemod = "new-";
-		entry = $(button).closest(".ems-"+typemod+"entry")[0];
+	var tag = $(button).closest('.entry-tag')[0];
+	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
+		$(tag).remove();
+		return;
 	}
-	var entry_id = entry.data.obj.id;
-	var tag = $(button).closest('.'+typemod+'entry-tag')[0];
-	var tag_id = tag.data.obj.id;
+	var entry_id = $(entry).data().obj.id;
+	var tag_id = $(tag).data().obj.id;
 	var tag_id_query = "&id="+String(tag_id);
-	var tags_content = $(button).closest('.'+typemod+'entry-tags-content')[0];
+	var tags_content = $(button).closest('.entry-tags-content')[0];
 	$.get( "ems.wsgi?do=delete&parent_id="+String(entry_id)+tag_id_query, 
 	function( result ) {
 		result = parse_result( result );

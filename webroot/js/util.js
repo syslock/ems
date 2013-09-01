@@ -73,33 +73,20 @@ function change_style( style )
 	if( menu_style ) menu_style.value = style;
 }
 
-function get_cookie( key )
-{
-	var cookies = {}
-	var _cookies = document.cookie.match( /([^=; ]*)=(?:"([^"]*)"|([^;]*))/g )
-	for( var i=0; i<_cookies.length; i++ )
-	{
-		var _cookie = _cookies[i].match( /([^=; ]*)=(?:"([^"]*)"|([^;]*))/ )
-		cookies[ _cookie[1] ] = _cookie[2] ? _cookie[2] : _cookie[3]
-	}
-	return cookies[ key ]
+function get_cookie( key ) {
+	return $.cookie( key );
 }
 
-function set_cookie( key, value, path, expires )
-{
-	del_cookie( key );
-	if( !expires )
-	{
-		var d = new Date()
-		d.setFullYear( d.getFullYear()+1 )
-		expires = d.toGMTString()
+function set_cookie( key, value, path, expires ) {
+	if( !expires ) {
+		var expires = new Date()
+		expires.setFullYear( expires.getFullYear()+1 )
 	}
-	document.cookie = key + "=" + value + "; path=" + (path ? path : "/") + "; expires="+expires;
+	$.cookie( key, value, {path: path ? path : "/", expires: expires} );
 }
 
-function del_cookie( key, path )
-{
-    document.cookie = key + "=" + "; path=" + (path ? path : "/") + "; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+function del_cookie( key, path ) {
+	$.removeCookie( key, {path: path ? path : "/"} );
 }
 
 var store_latency = 2000 //milliseconds

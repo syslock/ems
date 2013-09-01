@@ -482,6 +482,101 @@ input.entry-tag {
 .user-image-dialog>button {
 	float: right;
 }
+.user-details-dialog {
+	display: inline-block;
+	position: absolute;
+	min-width: 400px;
+	background-color: white;
+	border: 3px solid green;
+	border-radius: 20px;
+	padding: 10px;
+	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
+}
+.user-details-dialog span {
+	display: block;
+	margin-bottom: 15px;
+}
+.user-details-dialog input {
+	float: right;
+}
+.user-details-dialog button {
+	float: right;
+}
+
+.user-details-groups {
+	display: block;
+	border-left: 1px solid #bfbfbf;
+	border-bottom: 1px solid #bfbfbf;
+	border-radius: 10px;
+	padding: 5px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+.user-details-groups span {
+	display: inline;
+	margin: 0px;
+}
+button.user-groups-show-selection-button {
+	display: inline;
+	float: right;
+	font-size: small;
+}
+.user-groups-content {
+	display: block;
+	padding: 3px;
+}
+
+span.user-groups-selection {
+	display: block;
+	margin-top: 10px;
+	background-color: lightgreen;
+	padding: 3px;
+	padding-top: 2px;
+	border-radius: 10px;
+}
+.user-groups-selection-item {
+}
+.user-groups-selection-item:hover {
+}
+
+.user-details-groups .ems-group {
+	display: block;
+	position: relative;
+	vertical-align: bottom;
+	font-size: small;
+	background-color: #efefef;
+	border: 1px solid #bfbfbf;
+	border-radius: 8px;
+	padding: 5px;
+	margin-top: 5px;
+	min-width: 150px;
+}
+.user-details-groups .ems-group:hover {
+	background-color: #ffff8f;
+	cursor: default;
+}
+.user-details-groups .group-heading {
+	display: inline;
+}
+.user-details-groups .group-title {
+	display: none;
+}
+.user-details-groups .group-description {
+	display: inline;
+}
+.user-details-groups .group-name {
+	display: inline;
+}
+.user-details-groups .group-content {
+	display: inline;
+}
+.user-details-groups .ems-group>button {
+	display: inline-block;
+	position: absolute;
+	top: 0px;
+	right: 1px;
+	margin: 1px;
+}
 
 
 /* ------------------------------------------------------------------------- */

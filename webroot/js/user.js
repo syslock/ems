@@ -1,6 +1,6 @@
 function edit_password( button ) {
 	var user_element = $(button).closest(".ems-user")[0];
-	var user_id = user_element.data.obj.id;
+	var user_id = $(user_element).data().obj.id;
 	if( global_user.id == user_id ) {
 		// Bei Änderung des eigenen Passworts aus Sicherheitsgründen das alte abfragen:
 		// (serverseitige Berechtigungsprüfung übernimmt in jedem Fall der Store-Handler)
@@ -13,7 +13,7 @@ function edit_password( button ) {
 
 function change_password( button, old_password, new_password ) {
 	var user_element = $(button).closest(".ems-user")[0];
-	var user_id = user_element.data.obj.id;
+	var user_id = $(user_element).data().obj.id;
 	var old_password = $('.user-old-password-input',user_element)[0].value;
 	var new_password = $('.user-new-password-input',user_element)[0].value;
 	var new_password_2 = $('.user-new-password-input-2',user_element)[0].value;
@@ -59,7 +59,7 @@ function change_password( button, old_password, new_password ) {
 
 function change_user_image( button ) {
 	var user_element = $(button).closest(".ems-user")[0];
-	var user_id = user_element.data.obj.id;
+	var user_id = $(user_element).data().obj.id;
 	$('.user-image-dialog',user_element)[0].style.display='';
 	var preview_area = $('.user-image-preview',user_element)[0];
 	$(preview_area).bind( "dragover", function(event) {
@@ -107,7 +107,7 @@ function change_user_image( button ) {
 					}});
 					$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(image_id)+'" class="user-image-preview-content" />');
 					var preview_image = $('.user-image-preview-content', preview_area)[0];
-					preview_image.data = { obj: {id: image_id} };
+					$(preview_image).data( {obj: {id: image_id}} );
 				}
 			}});
 		} catch( error ) {
@@ -129,10 +129,10 @@ function replace_user_image( user_element, avatar_id ) {
 
 function confirm_user_image( button ) {
 	var user_element = $(button).closest(".ems-user")[0];
-	var user_id = user_element.data.obj.id;
+	var user_id = $(user_element).data().obj.id;
 	var preview_image = $('.user-image-preview img',user_element)[0];
-	if( preview_image && preview_image.data && preview_image.data.obj && preview_image.data.obj.id ) {
-		var avatar_id = preview_image.data.obj.id;
+	if( preview_image && $(preview_image).data().obj && $(preview_image).data().obj.id ) {
+		var avatar_id = $(preview_image).data().obj.id;
 		$.ajax({
 			url : "ems.wsgi",
 			data : {'do':'store', 'type':'application/x-obj.user', 'id':user_id, 'avatar_id':avatar_id},
@@ -145,4 +145,95 @@ function confirm_user_image( button ) {
 			}
 		}});
 	}
+}
+
+function show_user_details( button ) {
+	var user_element = $(button).closest(".ems-user")[0];
+	var dialog = $('.user-details-dialog',user_element)[0];
+	dialog.style.display=''
+	var user = $(user_element).data().obj;
+	$('.user-details-nick-input',dialog).attr( {value: user.nick} );
+	$('.user-details-id-input',dialog).attr( {value: user.id} );
+	$('.user-details-ctime-input',dialog).attr( {value: (new Date(user.ctime*1000)).toLocaleString()} );
+	$('.user-details-mtime-input',dialog).attr( {value: (new Date(user.mtime*1000)).toLocaleString()} );
+	var groups = $(".user-details-groups", dialog)[0];
+	var groups_content = $(".user-groups-content", groups)[0];
+	$.get( "ems.wsgi?do=get&child_id="+String(user.id)+"&type=application/x-obj.group&limit=50", 
+	function( result ) {
+		result = parse_result( result );
+		if( !result.error ) {
+			$(groups_content).empty();
+			for( var i in result ) {
+				var obj = result[i];
+				show_object( {obj: obj, dom_parent: groups_content, duplicates: true} );
+				$(obj.dom_object).addClass('user-groups-item');
+				$(".group-remove",obj.dom_object).show();
+			}
+		}
+	});
+}
+function close_user_details( button ) {
+	var user_element = $(button).closest(".ems-user")[0];
+	$('.user-details-dialog',user_element)[0].style.display='none';
+}
+
+function show_group_selection( button ) {
+	var user_element = $(button).closest(".ems-user")[0];
+	var dialog = $('.user-details-dialog',user_element)[0];
+	var groups = $(button).closest(".user-details-groups")[0];
+	var groups_selection = $(".user-groups-selection", groups)[0];
+	$.get( "ems.wsgi?do=get&type=application/x-obj.group&limit=50", 
+	function( result ) {
+		result = parse_result( result );
+		if( !result.error ) {
+			$(groups_selection).empty();
+			for( var i in result ) {
+				var obj = result[i];
+				show_object( {obj: obj, dom_parent: groups_selection, duplicates: true} );
+				$(obj.dom_object).addClass('user-groups-selection-item');
+				$(".group-add",obj.dom_object).show();
+			}
+			groups_selection.style.display = "";
+			$(dialog).bind('mouseleave', function(event) {
+				groups_selection.style.display = 'none';
+				$(this).unbind('mouseleave');
+			});
+		}
+	});
+}
+function add_group( button ) {
+	var user = $(button).closest(".ems-user")[0];
+	var user_id = $(user).data().obj ? $(user).data().obj.id : undefined;
+	var group = $(button).closest('.ems-group')[0];
+	var group_id = $(group).data().obj.id;
+	var groups_selection = $(button).closest('.user-groups-selection')[0];
+	var groups_content = $('.user-groups-content',user)[0];
+	$.get( "ems.wsgi?do=store&id="+String(user_id)+"&parent_id="+String(group_id), 
+	function( result ) {
+		result = parse_result( result );
+		if( result.succeeded ) {
+			groups_selection.style.display = 'none';
+			// Daten neu laden, um Änderungen zu übernehmen:
+			show_user_details( button )
+		}
+	});
+}
+function remove_group( button ) {
+	var user = $(button).closest(".ems-user")[0];
+	var group = $(button).closest('.ems-group')[0];
+	if( !$(user).data().obj || !$(user).data().obj.id ) {
+		$(group).remove();
+		return;
+	}
+	var user_id = $(user).data().obj.id;
+	var group_id = $(group).data().obj.id;
+	var groups_content = $(button).closest('.user-groups-content')[0];
+	$.get( "ems.wsgi?do=delete&id="+String(user_id)+"&parent_id="+String(group_id), 
+	function( result ) {
+		result = parse_result( result );
+		if( result.succeeded ) {
+			// Daten neu laden, um Änderungen zu übernehmen:
+			show_user_details( button )
+		}
+	});
 }

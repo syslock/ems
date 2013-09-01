@@ -8,7 +8,7 @@
 					<span class="user-tools-decorator-left"></span>
 					<span class="user-tools-decorator-top"></span>
 					<span class="user-tools-content">
-						<button class="user-send-message" onlick="send_message(this" disabled="true">
+						<button class="user-send-message" onclick="send_message(this)" disabled="true">
 							${_("Nachricht senden")}
 						</button>
 						<span class="require-permission-write-user">
@@ -19,11 +19,9 @@
 								${_("Passwort ändern")}
 							</button>
 						</span>
-						<span class="require-permission-delete-user">
-							<button class="user-delete" onclick="" disabled="true" >
-								${_("Benutzer löschen")}
-							</button>
-						</span>
+						<button class="user-show-details" onclick="show_user_details(this)">
+							${_("Details")}
+						</button>
 					</span>
 					<span class="user-tools-decorator-bottom"></span>
 					<span class="user-tools-decorator-right"></span>
@@ -66,5 +64,43 @@
 						${_("Abbrechen")}
 					</button>
 				</span>
+				<span class="user-details-dialog" style="display:none">
+					<span class="user-details-nick">
+						<label>${_("Nutzername")}</label>
+						<input class="user-details-nick-input" disabled="true"></input>
+					</span>
+					<span class="user-details-id">
+						<label>${_("ID")}</label>
+						<input class="user-details-id-input" disabled="true"></input>
+					</span>
+					<span class="user-details-ctime">
+						<label>${_("Erstellt")}</label>
+						<input class="user-details-ctime-input" disabled="true"></input>
+					</span>
+					<span class="user-details-mtime">
+						<label>${_("Geändert")}</label>
+						<input class="user-details-mtime-input" disabled="true"></input>
+					</span>
+					<span class="user-details-groups">
+						<span class="user-groups-label">${_("Gruppenzuweisung:")}</span>
+						<button class="user-groups-show-selection-button" title="${_('Weitere Gruppe zuweisen')}" onclick="show_group_selection(this);" >${_("...")}</button>
+						<span class="user-groups-selection" style="display:none" ></span>
+						<span class="user-groups-content"></span>
+					</span>
+					<span class="require-permission-delete-user">
+						<button class="user-delete" onclick="delete_user(this)" disabled="true" >
+							${_("Benutzer löschen")}
+						</button>
+					</span>
+					<button class="user-details-cancel" onclick="close_user_details(this);">
+						${_("Abbrechen")}
+					</button>
+				</span>
 				<span class="user-content"></span>
+			</span>
+
+			<span id="user-group-template" class="user-group" style="display:none" >
+				<span class="user-group-label"></span>
+				<button class="user-group-add" style="display:none" onclick="add_group(this)">${_("+")}</button>
+				<button class="user-group-remove" style="display:none" onclick="remove_group(this)">${_("-")}</button>
 			</span>

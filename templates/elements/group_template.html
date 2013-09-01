@@ -1,7 +1,10 @@
 			<span id="ems-group-template" class="ems-group" style="display:none">
 				<span class="group-heading">
-					<span>${_("Gruppe:")}</span>
+					<span class="group-title">${_("Gruppe:")}</span>
 					<span class="group-name"></span>
+					<span class="group-description"></span>
+					<button class="group-add" style="display:none" onclick="add_group(this)">${_("+")}</button>
+					<button class="group-remove" style="display:none" onclick="remove_group(this)">${_("-")}</button>
 				</span>
 				<span class="group-content"></span>
 			</span>

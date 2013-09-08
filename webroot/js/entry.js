@@ -200,9 +200,39 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {
-			obj.dom_object = $('<video>').attr( {class: 'entry-media', width: '480', height: '270', controls: ''} )[0];
+			obj.dom_object = $('<video>').attr( {class: 'entry-media', width: '480', controls: ''} )[0];
 			$(obj.dom_object).data( {obj: obj} );
-			$(obj.dom_object).append( $('<source>').attr({src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
+			var conversion_callback = function(result) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					if( result.objects.length ) {
+						for( var i=0; i<result.objects.length; i++ ) {
+							conv_obj = result.objects[i];
+							if( conv_obj.type.match('^video/.*') ) {
+								// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
+								if( $('#source_'+conv_obj.id, obj.dom_object)[0]==undefined ) {
+									var source = $('<source>').attr({id: 'source_'+conv_obj.id, src: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'});
+									$(source).data( {obj: conv_obj} );
+									$(obj.dom_object).append( source );
+								}
+							} else if( conv_obj.type.match('^image/.*') ) {
+								$(obj.dom_object).attr( {poster: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'} );
+							}
+						}
+					}
+					// Original-Video-Daten als Fallback für unfertige/fehlgeschlagene Konvertierung:
+					if( $('#source_'+obj.id, obj.dom_object)[0]==undefined ) {
+						$(obj.dom_object).append( $('<source>').attr({id: 'source_'+obj.id, src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
+					}
+				}
+			};
+			// Schnell-Lookup von bereits vorhandenen Konvertierungen:
+			$.get( 'ems.wsgi?do=convert&mode=status&id='+obj.id, conversion_callback );
+			// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
+			// (um 3s verzögert um (hauptsächlich clientseitige) Race-Conditions zu vermeiden)
+			setTimeout( function() {
+				$.get( 'ems.wsgi?do=convert&mode=convert&id='+obj.id, conversion_callback );
+			}, 3000 );
 			$(dom_parent).append( obj.dom_object );
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {

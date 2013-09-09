@@ -34,15 +34,17 @@ def process( app ):
 			error_list = []
 			if mode == "convert":
 				# Alle fehlende Objekte sofort ohne Daten anlegen, um Mehrfachkonvertierung zu vermeiden:
-				# TODO: ohne Privilege-Escalation kann nur der Eigentümer des Target-Objekts diesen Code ausführen
-				new_objects = {}
+				new_objects = []
 				for new_media_type in search_formats:
-					base_type, sub_type = new_media_type.split("/")
-					new_objects[ sub_type ] = db_object.File( app, parent_id=target_obj.id, media_type=new_media_type )
+					# Privilege-Escalation damit nicht nur der Eigentümer des Target-Objekts diesen Code ausführen kann:
+					app_old_user = app.user
+					app.user = user.get_admin_user(app)
+					new_objects.append( db_object.File(app, parent_id=target_obj.id, media_type=new_media_type) )
+					app.user = app_old_user
 				# Konvertierungsvorgänge für angelegte Objekte durchführen:
-				for format_ext in new_objects:
-					new_obj = new_objects[format_ext]
-					new_tmp_name = new_obj.storage_path+".tmp."+format_ext
+				for new_obj in new_objects:
+					base_type, sub_type = new_obj.media_type.split("/")
+					new_tmp_name = new_obj.storage_path+".tmp."+sub_type
 					if( re.match(r"^video/.*", new_obj.media_type) ):
 						# Konvertierung mit konservativer Breite von 480px bei Erhaltug des Seitenverhältnisses:
 						# http://stackoverflow.com/questions/8218363/maintaining-ffmpeg-aspect-ratio
@@ -58,7 +60,11 @@ def process( app ):
 					if p.returncode!=0:
 						try:
 							# FIXME: Löschenfunktion nach DBObject ausmodularisieren und Dateibereinigung nach db_object.File:
+							# Privilege-Escalation damit nicht nur der Eigentümer des Target-Objekts diesen Code ausführen kann:
+							app_old_user = app.user
+							app.user = user.get_admin_user(app)
 							delete_module.delete_in( app, [new_obj.id] )
+							app.user = app_old_user
 							os.remove( new_tmp_name )
 						except Exception as e:
 							error_list.append( e )

@@ -200,38 +200,66 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {
-			obj.dom_object = $('<video>').attr( {class: 'entry-media', width: '480', controls: '', preload: 'metadata'} )[0];
+			var video_box = $('<span>').attr( {class: 'entry-media'} );
+			obj.dom_object = video_box;
 			$(obj.dom_object).data( {obj: obj} );
+			var status = $('<span>').attr( {class: 'video-status'} )[0];
+			$(video_box).append( status );
+			var video = $('<video>').attr( {class: 'video', width: '480', controls: '', preload: 'metadata'} )[0];
+			$(video_box).append( video );
+			$(status).append( $('<img>').attr({class: 'video-status-image', src: 'tango-scalable/categories/applications-system.svg'}) );
+			var status_text = $('<span>').attr( {class: 'video-status-text'} );
+			$(status).append( status_text );
+			$(video_box).append( status );
 			var conversion_callback = function(result) {
 				result = parse_result( result );
 				if( result.succeeded ) {
+					$(status_text).empty();
 					if( result.objects.length ) {
 						for( var i=0; i<result.objects.length; i++ ) {
 							conv_obj = result.objects[i];
 							if( conv_obj.type.match('^video/.*') ) {
-								// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
-								if( $('#source_'+conv_obj.id, obj.dom_object)[0]==undefined ) {
-									var source = $('<source>').attr({id: 'source_'+conv_obj.id, src: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'});
-									$(source).data( {obj: conv_obj} );
-									$(obj.dom_object).append( source );
+								if( conv_obj.size>0 ) {
+									$(status_text).append( $('<span>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
+									// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
+									if( $('#source_'+conv_obj.id, video)[0]==undefined ) {
+										var source = $('<source>').attr({id: 'source_'+conv_obj.id, src: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'});
+										$(source).data( {obj: conv_obj} );
+										$(video).append( source );
+									}
+								} else {
+									$(status_text).append( $('<span>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
 								}
 							} else if( conv_obj.type.match('^image/.*') ) {
-								$(obj.dom_object).attr( {poster: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'} );
+								if( conv_obj.size>0 ) {
+									$(status_text).append( $('<span>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
+									$(video).attr( {poster: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'} );
+								} else {
+									$(status_text).append( $('<span>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
+								}
 							}
 						}
 					}
 					// Original-Video-Daten als Fallback für unfertige/fehlgeschlagene Konvertierung:
-					if( $('#source_'+obj.id, obj.dom_object)[0]==undefined ) {
-						$(obj.dom_object).append( $('<source>').attr({id: 'source_'+obj.id, src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
+					if( $('#source_'+obj.id, video)[0]==undefined ) {
+						$(video).append( $('<source>').attr({id: 'source_'+obj.id, src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
+					}
+					if( $(video)[0].networkState==HTMLMediaElement.NETWORK_NO_SOURCE ) {
+						setTimeout( function() {
+							// Schnell-Lookup von bereits vorhandenen Konvertierungen:
+							$.get( 'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', conversion_callback );
+						}, 5000 );
+					} else {
+						$(status).hide();
 					}
 				}
 			};
 			// Schnell-Lookup von bereits vorhandenen Konvertierungen:
-			$.get( 'ems.wsgi?do=convert&mode=status&id='+obj.id, conversion_callback );
+			$.get( 'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', conversion_callback );
 			// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
 			// (um 3s verzögert um (hauptsächlich clientseitige) Race-Conditions zu vermeiden)
 			setTimeout( function() {
-				$.get( 'ems.wsgi?do=convert&mode=convert&id='+obj.id, conversion_callback );
+				$.get( 'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', conversion_callback );
 			}, 3000 );
 			$(dom_parent).append( obj.dom_object );
 		}

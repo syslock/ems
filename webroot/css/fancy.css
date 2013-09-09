@@ -159,8 +159,36 @@ body {
 	height: 230px;
 	background-color: transparent;
 }
+
 .entry-media {
 	max-width: 100%;
+	position: relative;
+}
+.video-status {
+	position: absolute;
+	left: 0px;
+	margin: 10px;
+	text-align: center;
+	border-radius: 10px;
+	background-color: #070707;
+	padding: 5px;
+}
+.video-status-image {
+	animation:spin 2s linear infinite;
+	-webkit-animation:spin 2s linear infinite;
+}
+@keyframes spin { 100% { transform:rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform:rotate(360deg); } }
+.video-status-text {
+	font-weight: bold;
+}
+.video-status-success {
+	display: block;
+	color: green;
+}
+.video-status-warning {
+	display: block;
+	color: yellow;
 }
 
 .entry-tags {

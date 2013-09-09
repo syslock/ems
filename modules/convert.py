@@ -84,9 +84,9 @@ def process( app ):
 			else:
 				response.output = str( {"succeeded": True,
 										"objects": result_ids and get_module.get(app, object_ids=result_ids) or result_ids} )
-		elif re.match( r"^audio/.*", obj.media_type ):
-			raise NotImplementedError( "unsupported media type: "+obj.media_type )
+		elif re.match( r"^audio/.*", target_obj.media_type ):
+			raise NotImplementedError( "unsupported media type: "+target_obj.media_type )
 		else:
-			raise NotImplementedError( "unsupported media type: "+obj.media_type )
+			raise NotImplementedError( "unsupported media type: "+target_obj.media_type )
 	else:
 		raise errors.PrivilegeError()

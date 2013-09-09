@@ -244,7 +244,9 @@ function show_object( parms )
 					if( $('#source_'+obj.id, video)[0]==undefined ) {
 						$(video).append( $('<source>').attr({id: 'source_'+obj.id, src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
 					}
-					if( $(video)[0].networkState==HTMLMediaElement.NETWORK_NO_SOURCE ) {
+					// Statusprüfung nach Timeout wiederholen, sofern wir nicht sicher wissen, dass wir eine funktionerende
+					// Source haben:
+					if( $(video)[0].networkState!=HTMLMediaElement.NETWORK_IDLE ) {
 						setTimeout( function() {
 							// Schnell-Lookup von bereits vorhandenen Konvertierungen:
 							$.get( 'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', conversion_callback );

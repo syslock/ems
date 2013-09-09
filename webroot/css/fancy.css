@@ -174,11 +174,11 @@ body {
 	padding: 5px;
 }
 .video-status-image {
-	animation:spin 2s linear infinite;
-	-webkit-animation:spin 2s linear infinite;
+	animation:video-status-image-spin 5s linear infinite;
+	-webkit-animation:video-status-image-spin 5s linear infinite;
 }
-@keyframes spin { 100% { transform:rotate(360deg); } }
-@-webkit-keyframes spin { 100% { -webkit-transform:rotate(360deg); } }
+@keyframes video-status-image-spin { 100% { transform:rotate(360deg); } }
+@-webkit-keyframes video-status-image-spin { 100% { -webkit-transform:rotate(360deg); } }
 .video-status-text {
 	font-weight: bold;
 }

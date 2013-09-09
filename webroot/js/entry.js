@@ -200,7 +200,7 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {
-			obj.dom_object = $('<video>').attr( {class: 'entry-media', width: '480', controls: ''} )[0];
+			obj.dom_object = $('<video>').attr( {class: 'entry-media', width: '480', controls: '', preload: 'metadata'} )[0];
 			$(obj.dom_object).data( {obj: obj} );
 			var conversion_callback = function(result) {
 				result = parse_result( result );

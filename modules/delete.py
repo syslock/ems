@@ -37,7 +37,7 @@ def process( app ):
 	media_type = None
 	object_id = None
 	if "id" in query.parms:
-		object_id_list = [int(x) for x in query.parms["id"].split(",")]
+		object_id_list = [int(x) for x in query.parms["id"].split(",") if x!=""]
 		parent_id = "parent_id" in query.parms and int(query.parms["parent_id"]) or None
 		delete_in( app, object_id_list, parent_id=parent_id )
 		response.output = str( {"succeeded" : True, 
@@ -46,7 +46,7 @@ def process( app ):
 		parent_id = int( query.parms["parent_id"] )
 		object_id_list = []
 		if "child_not_in" in query.parms:
-			object_id_list = [int(x) for x in query.parms["child_not_in"].split(",")]
+			object_id_list = [int(x) for x in query.parms["child_not_in"].split(",") if x!=""]
 		c = app.db.cursor()
 		not_in_list = ",".join( [str(x) for x in object_id_list] )
 		c.execute( """select child_id from membership where parent_id=? and

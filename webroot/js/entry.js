@@ -205,7 +205,7 @@ function show_object( parms )
 			$(obj.dom_object).data( {obj: obj} );
 			var status = $('<span>').attr( {class: 'video-status'} )[0];
 			$(video_box).append( status );
-			var video = $('<video>').attr( {class: 'video', width: '480', controls: '', preload: 'metadata'} )[0];
+			var video = $('<video>').attr( {class: 'video', width: '480', controls: '', preload: 'none'} )[0];
 			$(video_box).append( video );
 			$(status).append( $('<img>').attr({class: 'video-status-image', src: 'tango-scalable/categories/applications-system.svg'}) );
 			var status_text = $('<span>').attr( {class: 'video-status-text'} );
@@ -214,6 +214,8 @@ function show_object( parms )
 			var conversion_callback = function(result) {
 				result = parse_result( result );
 				if( result.succeeded ) {
+					var warn_count = 0;
+					var success_count = 0;
 					$(status_text).empty();
 					if( result.objects.length ) {
 						for( var i=0; i<result.objects.length; i++ ) {
@@ -221,6 +223,7 @@ function show_object( parms )
 							if( conv_obj.type.match('^video/.*') ) {
 								if( conv_obj.size>0 ) {
 									$(status_text).append( $('<span>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
+									success_count++;
 									// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
 									if( $('#source_'+conv_obj.id, video)[0]==undefined ) {
 										var source = $('<source>').attr({id: 'source_'+conv_obj.id, src: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'});
@@ -229,13 +232,16 @@ function show_object( parms )
 									}
 								} else {
 									$(status_text).append( $('<span>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
+									warn_count++;
 								}
 							} else if( conv_obj.type.match('^image/.*') ) {
 								if( conv_obj.size>0 ) {
 									$(status_text).append( $('<span>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
+									success_count++;
 									$(video).attr( {poster: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'} );
 								} else {
 									$(status_text).append( $('<span>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
+									warn_count++;
 								}
 							}
 						}
@@ -244,15 +250,17 @@ function show_object( parms )
 					if( $('#source_'+obj.id, video)[0]==undefined ) {
 						$(video).append( $('<source>').attr({id: 'source_'+obj.id, src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
 					}
-					// Statusprüfung nach Timeout wiederholen, sofern wir nicht sicher wissen, dass wir eine funktionerende
-					// Source haben:
-					if( $(video)[0].networkState!=HTMLMediaElement.NETWORK_IDLE ) {
+					// Wir gehen unter folgender Bedingung von einem Erfolg aus, woraufhin eine weitere Statusprüfung
+					// unterlassen und die Statusanzeige versteckt werden kann:
+					// Entweder ist das Video-Element NETWORK_IDLE, hat also eine Quelle und wartet oder aber
+					// bei der aktuellen Prüfung wurde mindestens ein eine fertige Source gefunden und keine unfertige.
+					if( $(video)[0].networkState==HTMLMediaElement.NETWORK_IDLE || (success_count>0 && warn_count==0) ) {
+						$(status).hide();
+					} else {
 						setTimeout( function() {
 							// Schnell-Lookup von bereits vorhandenen Konvertierungen:
 							$.get( 'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', conversion_callback );
 						}, 5000 );
-					} else {
-						$(status).hide();
 					}
 				}
 			};

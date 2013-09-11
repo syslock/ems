@@ -18,8 +18,8 @@ class DBObject:
 		self.children = []
 		if object_id != None:
 			self.id = object_id
-			c.execute( """select type from objects where id=?""", [self.id] )
-			real_media_type = c.fetchone()[0]
+			c.execute( """select type, ctime, mtime from objects where id=?""", [self.id] )
+			real_media_type, self.ctime, self.mtime = c.fetchone()
 			if media_type!=None and real_media_type!=media_type:
 				raise errors.ObjectError( "Real media type differs from requested" )
 			self.media_type = real_media_type
@@ -39,9 +39,10 @@ class DBObject:
 			if not media_type:
 				raise errors.ParameterError( "Missing media type" )
 			self.media_type = media_type
+			self.ctime = self.mtime = time.time()
 			c.execute( """insert into objects (type,ctime,mtime) 
 							values(?,?,?)""",
-						[self.media_type, time.time(), time.time()] )
+						[self.media_type, self.ctime, self.mtime] )
 			self.app.db.commit()
 			self.id = c.lastrowid
 			for pid in parent_id:
@@ -311,6 +312,7 @@ class File( DBObject ):
 	def get_data( self, meta_obj=None, attachment=False, type_override=None ):
 		# Caching für Dateien erlauben:
 		self.app.response.caching = True
+		self.app.response.last_modified = self.mtime
 		if type_override and type_override==self.base_type:
 			# Anfrage-Override des Content-Types auf den Klassen-Basistypen, z.b. octet-stream für erzwungende Download-Dialoge, erlauben:
 			self.app.response.media_type = self.base_type

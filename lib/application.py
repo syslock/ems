@@ -104,6 +104,8 @@ class Response:
 		self.content_length = None
 		self.buffer_size = 4096
 		self.content_disposition = None
+		self.last_modified = None
+		self.max_age = 60*60*24*30 # 30 Tage
 	def encode_chunk( self, data ):
 		if type(data)==str and self.encoding:
 			return data.encode( self.encoding )
@@ -126,6 +128,9 @@ class Response:
 			self.response_headers.append( cookie.get_header() )
 		if not self.caching:
 			self.response_headers.append( ('Cache-Control', 'no-store') )
+		elif self.last_modified:
+			self.response_headers.append( ('Last-Modified', time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime(self.last_modified))) )
+			self.response_headers.append( ('Cache-Control', 'max-age='+str(self.max_age)) )
 		if self.content_disposition:
 			self.response_headers.append( ('Content-Disposition', self.content_disposition) )
 		self.start_response( self.status, self.response_headers )

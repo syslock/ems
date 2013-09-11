@@ -1,4 +1,4 @@
-import time, imp, os, shutil
+import time, imp, os, shutil, io
 from lib import errors
 errors = imp.reload( errors )
 
@@ -312,7 +312,10 @@ class File( DBObject ):
 	def get_data( self, meta_obj=None, attachment=False, type_override=None ):
 		# Caching für Dateien erlauben:
 		self.app.response.caching = True
-		self.app.response.last_modified = self.mtime
+		self.app.response.last_modified = int(self.mtime)
+		if( self.app.query.if_modified_since==int(self.mtime) ):
+			self.app.response.status = "304 Not Modified"
+			return io.StringIO()
 		if type_override and type_override==self.base_type:
 			# Anfrage-Override des Content-Types auf den Klassen-Basistypen, z.b. octet-stream für erzwungende Download-Dialoge, erlauben:
 			self.app.response.media_type = self.base_type

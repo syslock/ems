@@ -39,6 +39,10 @@ class Request:
 				self.merge_parms( self.content ) # Post-Parameter überschreiben URL-Parameter
 			elif self.content_media_type in ["multipart/form-data"]:
 				pass # hier machen wir erst mal nichts damit, das Parsen übernehmen modules/store.py etc.
+		self.if_modified_since = None
+		if "HTTP_IF_MODIFIED_SINCE" in self.environ:
+			timestr = self.environ["HTTP_IF_MODIFIED_SINCE"]
+			self.if_modified_since = int( time.mktime(time.strptime(timestr,"%a, %d %b %Y %H:%M:%S")) )
 		self.xml_fix_parms() # XML-Kontrollzeichen ersetzen
 		
 	XML_FIXES = [

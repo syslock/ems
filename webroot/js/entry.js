@@ -310,7 +310,8 @@ function show_object( parms )
 	}
 }
 
-var filter_list = []
+var offsets_loaded = {};
+var filter_list = [];
 function apply_page_filter( parms ) {
 	if( parms==undefined ) parms={};
 	$('.filter-item-include').each( function(i, elem) {
@@ -357,6 +358,8 @@ function apply_page_filter( parms ) {
 	var scroll_offset = 0;
 	var scroll_step = 10;
 	var scroll_time = (new Date()).getTime();
+	offsets_loaded = {};
+	offsets_loaded[ scroll_offset ] = true;
 	load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: filter_list} );
 	window.addEventListener(
 		'scroll',
@@ -372,7 +375,12 @@ function apply_page_filter( parms ) {
 					// Mindestwartezeit für Nachladeaktionen überschritten
 					scroll_time = new_scroll_time;
 					scroll_offset += scroll_step;
-					load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: filter_list} );
+					if( offsets_loaded[scroll_offset]!=true ) {
+						offsets_loaded[ scroll_offset ] = true;
+						load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: filter_list} );
+					} else {
+						// discard doublicate event
+					}
 				}
 			}
 		},

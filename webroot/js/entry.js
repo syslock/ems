@@ -205,7 +205,9 @@ function show_object( parms )
 			$(obj.dom_object).data( {obj: obj} );
 			var status = $('<span>').attr( {class: 'video-status'} )[0];
 			$(video_box).append( status );
-			var video = $('<video>').attr( {class: 'video', width: '480', controls: '', preload: 'metadata'} )[0];
+			var video = $('<video>').attr( {class: 'video', controls: '', preload: 'none'} )[0];
+			video.onplay = function() { $(status).hide(); };
+			video.onmouseover = function() { video.preload='metadata'; };
 			$(video_box).append( video );
 			$(status).append( $('<img>').attr({class: 'video-status-image', src: 'tango-scalable/categories/applications-system.svg'}) );
 			var status_text = $('<span>').attr( {class: 'video-status-text'} );
@@ -256,12 +258,15 @@ function show_object( parms )
 					// NETWORK_IDLE, hat also eine gültige Quelle gefunden und wartet oder aber wir haben mindestens 
 					// eine fertige Source (ready_source_count>0) und keine unfertige (stale_source_count==0) und das 
 					// Video-Element glaubt nicht noch keine gültige Quelle gefunden zu haben (!=NETWORK_NO_SOURCE).
-					if( (ready_source_count>0 && $(video)[0].networkState==HTMLMediaElement.NETWORK_IDLE) 
-					|| (ready_source_count>0 && stale_source_count==0 && $(video)[0].networkState!=HTMLMediaElement.NETWORK_NO_SOURCE) ) {
+					if( (ready_source_count>0 && stale_source_count==0 && $(video)[0].networkState!=HTMLMediaElement.NETWORK_NO_SOURCE) ) {
 						$(status).hide();
 					} else {
+						if( ready_source_count+stale_source_count==0 ) {
+							// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
+							$.get( 'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', conversion_callback );
+						}
 						setTimeout( function() {
-							// Schnell-Lookup von bereits vorhandenen Konvertierungen:
+							// Schnell-Lookup von bereits vorhandenen Konvertierungen wiederholen:
 							$.get( 'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', conversion_callback );
 						}, 5000 );
 					}
@@ -269,11 +274,6 @@ function show_object( parms )
 			};
 			// Schnell-Lookup von bereits vorhandenen Konvertierungen:
 			$.get( 'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', conversion_callback );
-			// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
-			// (um 3s verzögert um (hauptsächlich clientseitige) Race-Conditions zu vermeiden)
-			setTimeout( function() {
-				$.get( 'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', conversion_callback );
-			}, 3000 );
 			$(dom_parent).append( obj.dom_object );
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {

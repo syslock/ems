@@ -164,6 +164,11 @@ body {
 	max-width: 100%;
 	position: relative;
 }
+.video {
+	width: 480px;
+	min-height: 270px;
+	background-color: lightgrey;
+}
 .video-status {
 	position: absolute;
 	left: 0px;

@@ -9,6 +9,9 @@ db_object = imp.reload( db_object )
 def process( app ):
 	query = app.query
 	response = app.response
+	offset = 0
+	if "offset" in query.parms:
+		offset = int(query.parms["offset"])
 	limit = None
 	if "limit" in query.parms:
 		limit = int(query.parms["limit"])
@@ -17,22 +20,22 @@ def process( app ):
 		recursive = query.parms["recursive"].lower()=="true"
 	if "id" in query.parms:
 		object_ids = [int(x) for x in query.parms["id"].split(",")]
-		result = get( app, object_ids, limit=limit, recursive=(recursive,recursive) )
+		result = get( app, object_ids, offset=offset, limit=limit, recursive=(recursive,recursive) )
 	elif "child_id" in query.parms:
 		child_ids = [int(x) for x in query.parms["child_id"].split(",") if x]
-		result = get( app, child_ids=child_ids, limit=limit, recursive=(recursive,recursive) )
+		result = get( app, child_ids=child_ids, offset=offset, limit=limit, recursive=(recursive,recursive) )
 	elif "parent_id" in query.parms:
 		parent_ids = [int(x) for x in query.parms["parent_id"].split(",") if x]
-		result = get( app, parent_ids=parent_ids, limit=limit, recursive=(recursive,recursive) )
+		result = get( app, parent_ids=parent_ids, offset=offset, limit=limit, recursive=(recursive,recursive) )
 	else:
-		result = get( app, limit=limit, recursive=(recursive,recursive) )
+		result = get( app, offset=offset, limit=limit, recursive=(recursive,recursive) )
 	if result != None:
 		if hasattr(result,"read"):
 			response.output = result # Stream-lesbare File-Objekte durchreichen
 		else:
 			response.output = str( result )
 
-def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=(False,False), access_errors=True ):
+def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, recursive=(False,False), access_errors=True ):
 	query = app.query
 	response = app.response
 	session = app.session
@@ -85,6 +88,8 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 							%(child_condition)s %(parent_condition)s
 							order by ctime desc""" % (locals()) )
 		for i, row in enumerate(c):
+			if i<offset:
+				continue
 			if not limit or len(object_ids)<limit:
 				object_ids.append( row[0] )
 			else:
@@ -134,7 +139,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], limit=None, recursive=
 				else:
 					break
 			if children:
-				#                                                               \/ bei Rekursion nie wieder absteigen!
+				#                                                             \/ bei Rekursion nie wieder absteigen!
 				obj["children"] = get( app, children, limit=limit, recursive=(False,True), access_errors=False )
 		# Elternelemente ermitteln:
 		if recursive[0]:

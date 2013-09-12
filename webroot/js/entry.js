@@ -106,12 +106,13 @@ function create_download( obj ) {
 }
 
 function load_visible_objects( parms ) {
+	var offset = (parms.offset ? "&offset="+parms.offset : "");
 	var limit = (parms.limit ? "&limit="+parms.limit : "");
 	var type = (parms.type ? "&type="+parms.type : "");
 	var parent_ids = (parms.parent_ids ? "&parent_id="+parms.parent_ids.join(",") : "");
 	var child_ids = (parms.child_ids ? "&child_id="+parms.child_ids.join(",") : "");
 	$.ajax({
-		url : "ems.wsgi?do=get&view=all&recursive=true"+limit+type+parent_ids+child_ids,
+		url : "ems.wsgi?do=get&view=all&recursive=true"+offset+limit+type+parent_ids+child_ids,
 		async : true,
 		success :
 	function( result ) {
@@ -352,7 +353,31 @@ function apply_page_filter( parms ) {
 		$(page_filter).removeClass( 'page-filter-active' );
 	}
 	$('.ems-content').empty();
-	load_visible_objects( {limit: 15, type: 'application/x-obj.entry', child_ids: filter_list} );
+	var scroll_offset = 0;
+	var scroll_step = 10;
+	var scroll_time = (new Date()).getTime();
+	load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: filter_list} );
+	window.addEventListener(
+		'scroll',
+		function()
+		{
+			var new_scroll_time = (new Date()).getTime();
+			if( new_scroll_time-scroll_time > 1000 ) {
+				scroll_time = new_scroll_time;
+				var scrollTop = document.documentElement.scrollTop ||
+					document.body.scrollTop;
+				var offsetHeight = document.body.offsetHeight;
+				var clientHeight = document.documentElement.clientHeight;
+				if (offsetHeight <= scrollTop + clientHeight)
+				{
+					// Scroll end detected
+					scroll_offset+=scroll_step;
+					load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: filter_list} );
+				}
+			}
+		},
+		false
+	);
 }
 
 function edit_entry( button )

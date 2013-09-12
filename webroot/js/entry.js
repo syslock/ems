@@ -359,19 +359,18 @@ function apply_page_filter( parms ) {
 	load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: filter_list} );
 	window.addEventListener(
 		'scroll',
-		function()
-		{
-			var new_scroll_time = (new Date()).getTime();
-			if( new_scroll_time-scroll_time > 1000 ) {
-				scroll_time = new_scroll_time;
-				var scrollTop = document.documentElement.scrollTop ||
-					document.body.scrollTop;
-				var offsetHeight = document.body.offsetHeight;
-				var clientHeight = document.documentElement.clientHeight;
-				if (offsetHeight <= scrollTop + clientHeight)
-				{
-					// Scroll end detected
-					scroll_offset+=scroll_step;
+		function() {
+			var scrollTop = document.documentElement.scrollTop ||
+				document.body.scrollTop;
+			var offsetHeight = document.body.offsetHeight;
+			var clientHeight = document.documentElement.clientHeight;
+			if (offsetHeight <= scrollTop + clientHeight) {
+				// Scroll end detected
+				var new_scroll_time = (new Date()).getTime();
+				if( new_scroll_time-scroll_time > 1000 ) {
+					// Mindestwartezeit für Nachladeaktionen überschritten
+					scroll_time = new_scroll_time;
+					scroll_offset += scroll_step;
 					load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: filter_list} );
 				}
 			}

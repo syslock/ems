@@ -310,6 +310,7 @@ function show_object( parms )
 	}
 }
 
+var filter_list = []
 function apply_page_filter( parms ) {
 	if( parms==undefined ) parms={};
 	$('.filter-item-include').each( function(i, elem) {
@@ -328,7 +329,7 @@ function apply_page_filter( parms ) {
 			parms[-obj.id] = obj;
 		}
 	});
-	var filter_list = []
+	filter_list = []
 	var filter_view = $('.page-filter-view')[0];
 	$(filter_view).empty();
 	for( key in parms ) {

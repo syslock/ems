@@ -430,28 +430,54 @@ function get_plain_text( element ) {
 function get_object_list( element, text_obj ) {
 	var current_list = [];
 	if( element.nodeName=="#text" ) {
-		var obj = { 'type': 'text/plain', 'data': element.textContent };
-		if( text_obj && text_obj.unassigned ) {
-			obj.id = text_obj.id;
-			text_obj.unassigned = false;
-			if( obj.data != text_obj.data ) {
-				obj.changed = true;
-			} else {
-				obj.changed = false;
+		var token_list = element.textContent.match( /http:\/\/[^ ]+|./gim );
+		token_list = token_list ? token_list : [];
+		var current_plain_text = "";
+		var finalize_plain_text = function( plain_text ) {
+			var obj = { 'type': 'text/plain', 'data': plain_text };
+			if( text_obj && text_obj.unassigned ) {
+				obj.id = text_obj.id;
+				text_obj.unassigned = false;
+				if( obj.data != text_obj.data ) {
+					obj.changed = true;
+				} else {
+					obj.changed = false;
+				}
+			}
+			if( obj.data.replace(/\s/g,'').length ) {
+				// Nur nichtleere Texte übernehmen
+				current_list.push( obj );
 			}
 		}
-		if( obj.data.replace(/\s/g,'').length ) {
-			// Nur nichtleere Texte übernehmen
-			current_list.push( obj );
+		for( var i=0; i<token_list.length; i++ ) {
+			if( token_list[i].length==1 ) {
+				current_plain_text += token_list[i];
+			} else if( token_list[i].length>1 ) {
+				if( current_plain_text.length) {
+					finalize_plain_text( current_plain_text );
+					current_plain_text = "";
+				}
+				var obj = { 'type': 'text/html', 'data': $('<a>').attr({target:"_blank", href:token_list[i]}).text(token_list[i])[0].outerHTML };
+				current_list.push( obj );
+			}
 		}
-	} else if( element.nodeName=="BR" ) {
+		if( current_plain_text.length) {
+			finalize_plain_text( current_plain_text );
+		}
+	} else if( element.nodeName=="BR" || element.nodeName=="A" ) {
 		if( $(element).data().obj ) {
+			if( $(element).data().obj.data != element.outerHTML ) {
+				$(element).data().obj.data = element.outerHTML;
+				$(element).data().obj.changed = true;
+			}
 			current_list.push( $(element).data().obj );
 		} else {
 			var obj = { 'type': 'text/html', 'data': element.outerHTML };
 			current_list.push( obj );
 		}
-	} else if( $(element).data().obj ) {
+	} else if( $(element).data().obj && $(element).data().obj.type!="text/plain" ) {
+		// bestehende text/plain-Objekte werden beim Baumdurchlauf dem erst besten 
+		// Text-Node zugewiesen und nicht, wie andere Objekte direkt hier übernommen...
 		current_list.push( $(element).data().obj );
 	}
 	if( !$(element).data().obj || $(element).data().obj.type=="text/plain" ) {

@@ -509,6 +509,11 @@ function remove_new_entry_item( entry ) {
 
 function save_entry( button ) {
 	var entry = $(button).closest(".ems-entry")[0];
+	var upload_dialog = $( ".upload-dialog", entry )[0];
+	if( upload_dialog ) {
+		$( "button", upload_dialog ).wrap( $("<span>").addClass("highlight") );
+		return;
+	}
 	$(entry).removeClass("new-entry");
 	var new_entry_created = false;
 	if( !$(entry).data().obj || !$(entry).data().obj.id ) {

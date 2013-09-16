@@ -834,3 +834,20 @@ span.user-groups-selection {
 .status-icon {
 	height: 32px;
 }
+
+/* ------------------------------------------------------------------------- */
+/* ----------------------- GUI Element Notifications ----------------------- */
+/* ------------------------------------------------------------------------- */
+.highlight {
+	border-radius: 10px;
+	padding: 8px;
+	animation:red-to-white 2s ease-out 0.5s 10;
+}
+@keyframes red-to-white {
+	from {
+		background-color: red;
+	}
+	to {
+		background-color: white;
+	}
+}

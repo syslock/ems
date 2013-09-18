@@ -90,8 +90,6 @@ body {
 	padding-left: 20px;
 	padding-bottom: 5px;
 	background:url(../silk_icons/date_edit.png) no-repeat 0 0;
-/* 	background:url(../tango-scalable/mimetypes/x-office-calendar.svg) no-repeat 0 0; */
-/* 	background-size: 20px; */
 	font-size: small;
 	text-align: center;
 }
@@ -109,8 +107,6 @@ body {
 	padding-left: 20px;
 	padding-bottom: 5px;
 	background:url(../silk_icons/date.png) no-repeat 0 0;
-/* 	background:url(../tango-scalable/mimetypes/x-office-calendar.svg) no-repeat 0 0; */
-/* 	background-size: 20px; */
 	font-size: small;
 	text-align: center;
 }

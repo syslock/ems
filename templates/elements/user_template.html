@@ -8,8 +8,11 @@
 					<span class="user-tools-decorator-left"></span>
 					<span class="user-tools-decorator-top"></span>
 					<span class="user-tools-content">
-						<button class="user-send-message" onclick="send_message(this)" disabled="true">
-							${_("Nachricht senden")}
+						<button class="user-filter-for" onclick="filter_user_content(this,'for')" >
+							${_("Beiträge suchen")}
+						</button>
+						<button class="user-filter-exclude" onclick="filter_user_content(this,'exclude')" >
+							${_("Beiträge ausblenden")}
 						</button>
 						<span class="require-permission-write-user">
 							<button class="user-change-image" onclick="change_user_image(this)">

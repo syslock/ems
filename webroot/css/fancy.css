@@ -105,13 +105,29 @@ body {
 	display: block;
 }
 .entry-ctime {
+	display: block;
+	padding-left: 20px;
+	padding-bottom: 5px;
+	background:url(../silk_icons/date_edit.png) no-repeat 0 0;
+/* 	background:url(../tango-scalable/mimetypes/x-office-calendar.svg) no-repeat 0 0; */
+/* 	background-size: 20px; */
+	font-size: small;
+	text-align: center;
+}
+.entry-ctime-label {
 	display: none;
+}
+.entry-ctime-day {
+	display: block;
+}
+.entry-ctime-time {
+	display: block;
 }
 
 .entry-content {
 	/* Anklicken des Inhalts beim Editieren vereinfachen, indem er die ganze Breite und eine Mindeshöhe einnimmt: */
 	display: block;
-	min-height: 100px;
+	min-height: 120px;
 	padding: 2px;
 	border: 2px solid transparent;
 }
@@ -148,7 +164,8 @@ body {
 	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
 .entry-tools-content button {
-	display: block;
+	position: relative;
+	width: 100%;
 }
 .entry-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
@@ -196,6 +213,68 @@ body {
 	color: yellow;
 }
 
+/* ------------------------------------------------------------------------- */
+/* ------------------------------- New Entries ----------------------------- */
+/* ------------------------------------------------------------------------- */
+.new-entry .entry-decorator-left {
+	width: 20px;
+	height: 20px;
+	background-color: white;
+	border: 2px solid orange;
+	border-radius: 50%;
+}
+.new-entry .entry-data {
+	border: 2px solid orange;
+}
+.ems-item:hover .new-entry .entry-tools {
+	display: none;
+}
+.entry-edit-tools {
+	display: none;
+	position: absolute;
+	margin-left: 10px;
+}
+.ems-item:hover .new-entry .entry-edit-tools {
+	display: inline-block;
+}
+.entry-edit-tools-decorator-left {
+	position: absolute;
+	margin-top: 13px;
+	margin-left: -29px;
+	width: 0px;
+	height: 0px;
+	border-right: 30px solid green;
+	border-top: 60px solid transparent;
+	border-bottom: 60px solid transparent;
+}
+.entry-edit-tools-content {
+	position: absolute;
+	min-height: 126px;
+	min-width: 140px;
+	border-radius: 20px;
+	border: 1px solid green;
+	border-left: 3px solid green;
+	background-color: white;
+	padding: 10px;
+	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.entry-edit-tools-content button {
+	position: relative;
+	width: 100%;
+}
+.entry-edit-tools-decorator-right {
+	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
+	position: absolute;
+	margin-left: -30px;
+	margin-top: -40px;
+	width: 200px;
+	height: 230px;
+	background-color: transparent;
+}
+
+/* ------------------------------------------------------------------------- */
+/* ----------------------------------- Tags -------------------------------- */
+/* ------------------------------------------------------------------------- */
 .entry-tags {
 	display: block;
 	border-left: 1px solid #bfbfbf;
@@ -204,6 +283,9 @@ body {
 	padding: 5px;
 	margin-top: 5px;
 	margin-bottom: 5px;
+}
+.entry-tags button {
+	width: 3em;
 }
 .entry-tags-label {
 	display: inline;
@@ -321,64 +403,6 @@ input.entry-tag {
 }
 
 /* ------------------------------------------------------------------------- */
-/* ------------------------------- New Entries ----------------------------- */
-/* ------------------------------------------------------------------------- */
-.new-entry .entry-decorator-left {
-	width: 20px;
-	height: 20px;
-	background-color: white;
-	border: 2px solid orange;
-	border-radius: 50%;
-}
-.new-entry .entry-data {
-	border: 2px solid orange;
-}
-.ems-item:hover .new-entry .entry-tools {
-	display: none;
-}
-.entry-edit-tools {
-	display: none;
-	position: absolute;
-	margin-left: 10px;
-}
-.ems-item:hover .new-entry .entry-edit-tools {
-	display: inline-block;
-}
-.entry-edit-tools-decorator-left {
-	position: absolute;
-	margin-top: 13px;
-	margin-left: -29px;
-	width: 0px;
-	height: 0px;
-	border-right: 30px solid green;
-	border-top: 60px solid transparent;
-	border-bottom: 60px solid transparent;
-}
-.entry-edit-tools-content {
-	position: absolute;
-	min-height: 126px;
-	min-width: 140px;
-	border-radius: 20px;
-	border: 1px solid green;
-	border-left: 3px solid green;
-	background-color: white;
-	padding: 10px;
-	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
-}
-.entry-edit-tools-content button {
-	display: block;
-}
-.entry-edit-tools-decorator-right {
-	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
-	position: absolute;
-	margin-left: -30px;
-	margin-top: -40px;
-	width: 200px;
-	height: 230px;
-	background-color: transparent;
-}
-
-/* ------------------------------------------------------------------------- */
 /* ---------------------------------- Users -------------------------------- */
 /* ------------------------------------------------------------------------- */
 .user-image {
@@ -438,7 +462,7 @@ input.entry-tag {
 }
 .user-tools-content {
 	position: absolute;
-	min-width: 140px;
+	min-width: 160px;
 	border-radius: 20px;
 	border: 1px solid green;
 	border-top: 3px solid green;
@@ -446,6 +470,11 @@ input.entry-tag {
 	background-color: white;
 	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
+.user-tools-content button {
+	position: relative;
+	width: 100%;
+}
+
 .user-password-dialog {
 	display: inline-block;
 	position: absolute;
@@ -549,10 +578,9 @@ input.entry-tag {
 	display: inline;
 	margin: 0px;
 }
-button.user-groups-show-selection-button {
-	display: inline;
-	float: right;
-	font-size: small;
+.user-details-groups button {
+	float: none;
+	width: 3em;
 }
 .user-groups-content {
 	display: block;
@@ -584,6 +612,11 @@ span.user-groups-selection {
 	margin-top: 5px;
 	min-width: 150px;
 }
+.user-details-groups .ems-group button {
+	position: absolute;
+	top: 1px;
+	right: 2px;
+}
 .user-details-groups .ems-group:hover {
 	background-color: #ffff8f;
 	cursor: default;
@@ -602,13 +635,6 @@ span.user-groups-selection {
 }
 .user-details-groups .group-content {
 	display: inline;
-}
-.user-details-groups .ems-group>button {
-	display: inline-block;
-	position: absolute;
-	top: 0px;
-	right: 1px;
-	margin: 1px;
 }
 
 

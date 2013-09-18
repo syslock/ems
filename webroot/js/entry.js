@@ -82,8 +82,11 @@ function new_item( parms ) {
 				$( "."+short_type+"-"+field_name+"-day", item ).first().text( day );
 				$( "."+short_type+"-"+field_name+"-time", item ).first().text( time );
 			} else {
-				$( "."+short_type+"-"+field_name, item ).first().text( value )
+				$( "."+short_type+"-"+field_name, item ).first().text( value );
 			}
+		}
+		if( obj.ctime && obj.mtime && Math.round(obj.ctime/60)==Math.round(obj.mtime/60) ) {
+			$( "."+short_type+"-mtime", item ).first().hide();
 		}
 		for( permission in {"read":1,"write":1,"delete":1,"insert":1} ) {
 			if( $.inArray(permission, obj.permissions)==-1 ) {

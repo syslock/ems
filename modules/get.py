@@ -133,13 +133,10 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 			children = []
 			for row in c:
 				child_id = row[0]
-				if not limit or len(children)<limit:
-					children.append( child_id )
-				else:
-					break
+				children.append( child_id )
 			if children:
 				#                                                             \/ bei Rekursion nie wieder absteigen!
-				obj["children"] = get( app, children, limit=limit, recursive=(False,True), access_errors=False )
+				obj["children"] = get( app, children, recursive=(False,True), access_errors=False )
 		# Elternelemente ermitteln:
 		if recursive[0]:
 			c.execute( """select parent_id from membership m
@@ -150,13 +147,10 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 			parents = []
 			for row in c:
 				parent_id = row[0]
-				if not limit or len(parents)<limit:
-					parents.append( parent_id )
-				else:
-					break
+				parents.append( parent_id )
 			if parents:
 				#                                                                 \/ bei Rekusion nie wieder aufsteigen!
-				obj["parents"] = get( app, parents, limit=limit, recursive=(True,False), access_errors=False )
+				obj["parents"] = get( app, parents, recursive=(True,False), access_errors=False )
 		c.execute( """select data from titles where object_id=?""", 
 			[object_id] )
 		result = c.fetchone()

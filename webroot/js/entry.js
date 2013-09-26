@@ -210,7 +210,7 @@ function show_object( parms )
 			$(obj.dom_object).data( {obj: obj} );
 			var status = $('<span>').attr( {class: 'video-status'} )[0];
 			$(video_box).append( status );
-			var video = $('<video>').attr( {class: 'video', controls: '', preload: 'none'} )[0];
+			var video = $('<video>').attr( {class: 'video', controls: '', preload: 'metadata'} )[0];
 			video.onplay = function() { $(status).hide(); };
 			video.onmouseover = function() { video.preload='metadata'; };
 			$(video_box).append( video );
@@ -232,10 +232,8 @@ function show_object( parms )
 									$(status_text).append( $('<span>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
 									ready_source_count++;
 									// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
-									if( $('#source_'+conv_obj.id, video)[0]==undefined ) {
-										var source = $('<source>').attr({id: 'source_'+conv_obj.id, src: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'});
-										$(source).data( {obj: conv_obj} );
-										$(video).append( source );
+									if( !video.src && video.canPlayType(conv_obj.type) ) {
+										video.src = 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data';
 									}
 								} else {
 									$(status_text).append( $('<span>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
@@ -254,31 +252,28 @@ function show_object( parms )
 						}
 					}
 					// Original-Video-Daten als Fallback für unfertige/fehlgeschlagene Konvertierung:
-					if( $('#source_'+obj.id, video)[0]==undefined ) {
-						$(video).append( $('<source>').attr({id: 'source_'+obj.id, src: 'ems.wsgi?do=get&id='+obj.id+'&view=data'}) );
-					}
-					// Wir gehen unter folgender Bedingung von einem Erfolg aus, woraufhin eine weitere Statusprüfung
-					// unterlassen und die Statusanzeige versteckt werden kann:
-					// Entweder haben wir mindestens eine fertige Source (ready_source_count>0) und das Video-Element ist 
-					// NETWORK_IDLE, hat also eine gültige Quelle gefunden und wartet oder aber wir haben mindestens 
-					// eine fertige Source (ready_source_count>0) und keine unfertige (stale_source_count==0) und das 
-					// Video-Element glaubt nicht noch keine gültige Quelle gefunden zu haben (!=NETWORK_NO_SOURCE).
-					if( (ready_source_count>0 && stale_source_count==0 && $(video)[0].networkState!=HTMLMediaElement.NETWORK_NO_SOURCE) ) {
-						$(status).hide();
+					if( !video.src && video.canPlayType(obj.type) ) {
+						video.src = 'ems.wsgi?do=get&id='+obj.id+'&view=data';
 					} else {
 						if( ready_source_count+stale_source_count==0 ) {
 							// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
-							$.get( 'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', conversion_callback );
+							GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', success:conversion_callback}, "long" );
+							GlobalRequestQueue.process();
 						}
 						setTimeout( function() {
 							// Schnell-Lookup von bereits vorhandenen Konvertierungen wiederholen:
-							$.get( 'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', conversion_callback );
+							GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', success:conversion_callback} );
+							GlobalRequestQueue.process();
 						}, 5000 );
 					}
+					video.addEventListener( 'canplay', function(event) {
+						$(status).hide();
+					} );
 				}
 			};
 			// Schnell-Lookup von bereits vorhandenen Konvertierungen:
-			$.get( 'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', conversion_callback );
+			GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', success:conversion_callback} );
+			GlobalRequestQueue.process();
 			$(dom_parent).append( obj.dom_object );
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {

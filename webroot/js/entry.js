@@ -114,7 +114,7 @@ function load_visible_objects( parms ) {
 	var type = (parms.type ? "&type="+parms.type : "");
 	var parent_ids = (parms.parent_ids ? "&parent_id="+parms.parent_ids.join(",") : "");
 	var child_ids = (parms.child_ids ? "&child_id="+parms.child_ids.join(",") : "");
-	$.ajax({
+	GlobalRequestQueue.add( {
 		url : "ems.wsgi?do=get&view=all&recursive=true"+offset+limit+type+parent_ids+child_ids,
 		async : true,
 		success :
@@ -123,7 +123,8 @@ function load_visible_objects( parms ) {
 		for( i in result ) {
 			show_object( {obj: result[i], dom_parent: $(".ems-content")[0], limit: limit} )
 		}
-	}})
+	}} );
+	GlobalRequestQueue.process();
 }
 
 function show_object( parms )
@@ -367,33 +368,31 @@ function apply_page_filter( parms ) {
 	offsets_loaded = {};
 	offsets_loaded[ scroll_offset ] = true;
 	load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: child_ids, parent_ids: parent_ids} );
-	window.addEventListener(
-		'scroll',
-		function() {
-			var scrollTop = document.documentElement.scrollTop ||
-				document.body.scrollTop;
-			var offsetHeight = document.body.offsetHeight;
-			var clientHeight = document.documentElement.clientHeight;
-			if (offsetHeight <= scrollTop + clientHeight) {
-				// Scroll end detected
-				var new_scroll_time = (new Date()).getTime();
-				if( new_scroll_time-scroll_time > 1000 ) {
-					// Mindestwartezeit für Nachladeaktionen überschritten
-					scroll_time = new_scroll_time;
-					scroll_offset += scroll_step;
-					if( offsets_loaded[scroll_offset]!=true ) {
-						offsets_loaded[ scroll_offset ] = true;
-						var child_ids = []; for( var child_id in filters.child_ids ) { if(child_id) child_ids.push(child_id) };
-						var parent_ids = []; for( var parent_id in filters.parent_ids ) { if(parent_id) parent_ids.push(parent_id) };
-						load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: child_ids, parent_ids: parent_ids} );
-					} else {
-						// discard doublicate event
-					}
+	var handle_scroll_event = function() {
+		var scrollTop = document.documentElement.scrollTop ||
+			document.body.scrollTop;
+		var offsetHeight = document.body.offsetHeight;
+		var clientHeight = document.documentElement.clientHeight;
+		if (offsetHeight <= scrollTop + clientHeight) {
+			// Scroll end detected
+			var new_scroll_time = (new Date()).getTime();
+			if( new_scroll_time-scroll_time > 1000 ) {
+				// Mindestwartezeit für Nachladeaktionen überschritten
+				scroll_time = new_scroll_time;
+				scroll_offset += scroll_step;
+				if( offsets_loaded[scroll_offset]!=true ) {
+					offsets_loaded[ scroll_offset ] = true;
+					var child_ids = []; for( var child_id in filters.child_ids ) { if(child_id) child_ids.push(child_id) };
+					var parent_ids = []; for( var parent_id in filters.parent_ids ) { if(parent_id) parent_ids.push(parent_id) };
+					load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: child_ids, parent_ids: parent_ids} );
+				} else {
+					// discard doublicate event
 				}
 			}
-		},
-		false
-	);
+		}
+	};
+	window.removeEventListener( 'scroll', handle_scroll_event, false );
+	window.addEventListener( 'scroll', handle_scroll_event, false );
 }
 
 function edit_entry( button )

@@ -1,4 +1,4 @@
-import time, imp, os, shutil, io
+import time, imp, os, shutil, io, re
 from lib import errors
 errors = imp.reload( errors )
 
@@ -328,4 +328,25 @@ class File( DBObject ):
 			disposition_type = attachment and "attachment" or "inline"
 			# http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1
 			self.app.response.content_disposition = '%s; filename="%s"' % ( disposition_type, meta_obj["title"].replace('"','\\"') )
-		return open( self.storage_path, "rb" )
+		result = open( self.storage_path, "rb" )
+		if( self.app.query.range ):
+			# http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35
+			range_set = re.findall( '^bytes=(.*)', self.app.query.range )[0]
+			ranges = range_set.split(",")
+			if len(ranges)==1:
+				start, stop = ranges[0].split("-")
+				if start:
+					start = int(start)
+					result.seek( start )
+					full_size = self.get_size()
+					stop = stop and int(stop) or full_size-1
+					self.app.response.content_length = stop-start+1
+					# http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.16
+					self.app.response.content_range = "bytes %d-%d/%d" % (start,stop,full_size)
+				else:
+					stop = int(stop)
+					result.seek( -stop, 2 )
+					self.app.response.content_length = stop
+					full_size = self.get_size()
+					self.app.response.content_range = "bytes %d-%d/%d" % (full_size-stop,full_size-1,full_size)
+		return result

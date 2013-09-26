@@ -43,6 +43,9 @@ class Request:
 		if "HTTP_IF_MODIFIED_SINCE" in self.environ:
 			timestr = self.environ["HTTP_IF_MODIFIED_SINCE"]
 			self.if_modified_since = int( time.mktime(time.strptime(timestr,"%a, %d %b %Y %H:%M:%S")) )
+		self.range = None
+		if "HTTP_RANGE" in self.environ:
+			self.range = self.environ["HTTP_RANGE"]
 		self.xml_fix_parms() # XML-Kontrollzeichen ersetzen
 		
 	XML_FIXES = [
@@ -110,6 +113,8 @@ class Response:
 		self.content_disposition = None
 		self.last_modified = None
 		self.max_age = 60*60*24*30 # 30 Tage
+		self.accept_ranges = "bytes"
+		self.content_range = None
 	def encode_chunk( self, data ):
 		if type(data)==str and self.encoding:
 			return data.encode( self.encoding )
@@ -137,6 +142,11 @@ class Response:
 			self.response_headers.append( ('Cache-Control', 'max-age='+str(self.max_age)) )
 		if self.content_disposition:
 			self.response_headers.append( ('Content-Disposition', self.content_disposition) )
+		if self.accept_ranges:
+			self.response_headers.append( ('Accept-Ranges', self.accept_ranges) )
+		if self.content_range:
+			self.status = "206 Partial content"
+			self.response_headers.append( ('Content-Range', self.content_range) )
 		self.start_response( self.status, self.response_headers )
 		if not streaming:
 			yield encoded_output

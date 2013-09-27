@@ -210,7 +210,7 @@ function show_object( parms )
 			$(obj.dom_object).data( {obj: obj} );
 			var status = $('<span>').attr( {class: 'video-status'} )[0];
 			$(video_box).append( status );
-			var video = $('<video>').attr( {class: 'video', controls: '', preload: 'metadata'} )[0];
+			var video = $('<video>').attr( {class: 'video', controls: '', preload: 'none'} )[0];
 			video.onplay = function() { $(status).hide(); };
 			video.onmouseover = function() { video.preload='metadata'; };
 			$(video_box).append( video );
@@ -254,12 +254,16 @@ function show_object( parms )
 					// Original-Video-Daten als Fallback für unfertige/fehlgeschlagene Konvertierung:
 					if( !video.src && video.canPlayType(obj.type) ) {
 						video.src = 'ems.wsgi?do=get&id='+obj.id+'&view=data';
-					} else {
-						if( ready_source_count+stale_source_count==0 ) {
-							// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
-							GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', success:conversion_callback}, "long" );
-							GlobalRequestQueue.process();
-						}
+					}
+					
+					if( ready_source_count+stale_source_count==0 ) {
+						// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
+						GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', success:conversion_callback}, "long" );
+						GlobalRequestQueue.process();
+					} else if( stale_source_count==0 ) {
+						$(status).hide();
+					}
+					if( !video.src ) {
 						setTimeout( function() {
 							// Schnell-Lookup von bereits vorhandenen Konvertierungen wiederholen:
 							GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', success:conversion_callback} );

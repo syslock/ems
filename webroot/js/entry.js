@@ -114,14 +114,16 @@ function load_visible_objects( parms ) {
 	var type = (parms.type ? "&type="+parms.type : "");
 	var parent_ids = (parms.parent_ids ? "&parent_id="+parms.parent_ids.join(",") : "");
 	var child_ids = (parms.child_ids ? "&child_id="+parms.child_ids.join(",") : "");
+	var permissions = (parms.permissions ? "&permissions="+parms.permissions.join(",") : "");
+	var dom_parent = (parms.dom_parent ? parms.dom_parent : $(".ems-content")[0]);
 	GlobalRequestQueue.add( {
-		url : "ems.wsgi?do=get&view=all&recursive=true"+offset+limit+type+parent_ids+child_ids,
+		url : "ems.wsgi?do=get&view=all&recursive=true"+offset+limit+type+parent_ids+child_ids+permissions,
 		async : true,
 		success :
 	function( result ) {
 		result = parse_result( result )
 		for( i in result ) {
-			show_object( {obj: result[i], dom_parent: $(".ems-content")[0], limit: limit} )
+			show_object( {obj: result[i], dom_parent: dom_parent, limit: limit} )
 		}
 	}} );
 	GlobalRequestQueue.process();
@@ -687,7 +689,29 @@ function add_file( button ) {
 	range.insertNode( upload_dialog );
 	selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
 	upload_dialog.contentEditable = false; // verhindert Editierbarkeit des Dialogfeldes
+	
 	var preview_area = $(".upload-preview", upload_dialog)[0];
+	$(upload_dialog).data( {"replace_upload_preview": function( upload_id ) {
+		$.ajax({
+			url : "ems.wsgi?do=get&view=all&id="+String(upload_id),
+			success :
+		function( result ) {
+			result = parse_result( result );
+			if( result && result.length ) {
+				var meta = result[0];
+				if( meta.title ) $('.upload-title',upload_dialog).text( meta.title );
+				if( meta.type ) $('.upload-type',upload_dialog).text( "["+meta.type+"]" );
+				if( meta.size ) $('.upload-size',upload_dialog).text( prettyprint_size(meta.size) );
+				$(preview_area).empty();
+				show_object( {obj: meta, dom_parent: preview_area} );
+				if( meta.dom_object ) { 
+					$(meta.dom_object).addClass('upload-object');
+					$(meta.dom_object).addClass('upload-preview-content');
+				}
+			}
+		}});
+	}});
+	
 	var upload_progress = $(".upload-progress", upload_dialog)[0];
 	$(preview_area).bind( "dragover", function(event) {
 		return false;
@@ -733,24 +757,7 @@ function add_file( button ) {
 				result = parse_result( result );
 				if( result.succeeded ) {
 					var upload_id = result.id;
-					$.ajax({
-						url : "ems.wsgi?do=get&view=all&id="+String(upload_id),
-						success :
-					function( result ) {
-						result = parse_result( result );
-						if( result && result.length ) {
-							var meta = result[0];
-							if( meta.title ) $('.upload-title',upload_dialog).text( meta.title );
-							if( meta.type ) $('.upload-type',upload_dialog).text( "["+meta.type+"]" );
-							if( meta.size ) $('.upload-size',upload_dialog).text( prettyprint_size(meta.size) );
-						   $(preview_area).empty();
-							show_object( {obj: meta, dom_parent: preview_area} );
-							if( meta.dom_object ) { 
-								$(meta.dom_object).addClass('upload-object');
-								$(meta.dom_object).addClass('upload-preview-content');
-							}
-						}
-					}});
+					$(upload_dialog).data("replace_upload_preview")( upload_id );
 				}
 			}});
 		} catch( error ) {
@@ -763,6 +770,24 @@ function add_file( button ) {
 
 function close_upload_dialog( button ) {
 	$(button).closest(".upload-dialog").remove();
+}
+
+function show_recent_uploads( button ) {
+	var upload_dialog = $(button).closest(".upload-dialog")[0];
+	if( ! $(upload_dialog).hasClass("recent-uploads-visible") ) {
+		$(upload_dialog).addClass("recent-uploads-visible");
+		var upload_tools = $(".upload-tools", upload_dialog)[0];
+		var upload_tools_content = $(".upload-tools-content", upload_tools)[0];
+		load_visible_objects( {type: 'video/%,image/%,audio/%,application/octet-stream', permissions: ["write"], limit: 5, parent_ids: [global_user.id], dom_parent: upload_tools_content} );
+		$(upload_tools).bind( "click", function(event) {
+			var obj = $(event.target).closest(".entry-media").data("obj");
+			if( obj && obj.id ) {
+				$(upload_dialog).data("replace_upload_preview")( obj.id );
+			}
+		});
+	} else {
+		$(upload_dialog).removeClass("recent-uploads-visible");
+	}
 }
 
 function confirm_upload( button ) {

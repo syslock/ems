@@ -27,14 +27,17 @@ def process( app ):
 	parent_ids = []
 	if "parent_id" in query.parms:
 		parent_ids = [int(x) for x in query.parms["parent_id"].split(",") if x]
-	result = get( app, object_ids, child_ids=child_ids, parent_ids=parent_ids, offset=offset, limit=limit, recursive=(recursive,recursive) )
+	need_permissions = {"read"}
+	if "permssions" in query.parms:
+		need_permissions.update( query.parms["permissions"].split(",") )
+	result = get( app, object_ids, child_ids=child_ids, parent_ids=parent_ids, offset=offset, limit=limit, recursive=(recursive,recursive), need_permissions=need_permissions )
 	if result != None:
 		if hasattr(result,"read"):
 			response.output = result # Stream-lesbare File-Objekte durchreichen
 		else:
 			response.output = str( result )
 
-def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, recursive=(False,False), access_errors=True ):
+def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, recursive=(False,False), access_errors=True, need_permissions={"read"} ):
 	query = app.query
 	response = app.response
 	session = app.session
@@ -59,14 +62,14 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 	type_condition = ""
 	types = []
 	if "type" in query.parms and query.parms["type"]:
-		type_condition = "type in ("
+		type_condition = "("
 		types = query.parms["type"].split(",")
 		first = True
 		for t in types:
 			if not first:
-				type_condition += ","
+				type_condition += " or "
 			first = False
-			type_condition += "?"
+			type_condition += "type like ?"
 		type_condition += ")"
 	c = app.db.cursor()
 	if not object_ids:
@@ -98,7 +101,9 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 		view = query.parms["view"]
 	objects = []
 	for object_id in object_ids:
-		if not app.user.can_read( object_id ):
+		if not app.user.can_read(object_id) \
+		or ("write" in need_permissions and not app.user.can_write(object_id)) \
+		or ("delete" in need_permissions and not app.user.can_delete(object_id)):
 			if access_errors:
 				raise errors.PrivilegeError()
 			else:
@@ -135,7 +140,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 				child_id = row[0]
 				children.append( child_id )
 			if children:
-				#                                                             \/ bei Rekursion nie wieder absteigen!
+				#                                                \/ bei Rekursion nie wieder absteigen!
 				obj["children"] = get( app, children, recursive=(False,True), access_errors=False )
 		# Elternelemente ermitteln:
 		if recursive[0]:
@@ -149,7 +154,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 				parent_id = row[0]
 				parents.append( parent_id )
 			if parents:
-				#                                                                 \/ bei Rekusion nie wieder aufsteigen!
+				#                                                   \/ bei Rekusion nie wieder aufsteigen!
 				obj["parents"] = get( app, parents, recursive=(True,False), access_errors=False )
 		c.execute( """select data from titles where object_id=?""", 
 			[object_id] )

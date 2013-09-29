@@ -779,6 +779,50 @@ span.user-groups-selection {
 	float: right;
 }
 
+.upload-tools {
+	display: none;
+	float: right;
+	z-index: 1;
+}
+.recent-uploads-visible:hover .upload-tools {
+	display: inline-block;
+}
+.upload-tools-decorator-left {
+	position: absolute;
+	margin-top: 13px;
+	margin-left: -29px;
+	width: 0px;
+	height: 0px;
+	border-right: 30px solid red;
+	border-top: 60px solid transparent;
+	border-bottom: 60px solid transparent;
+}
+.upload-tools-content {
+	position: absolute;
+	min-height: 126px;
+	min-width: 140px;
+	max-width: 500px;
+	border-radius: 20px;
+	border: 1px solid red;
+	border-left: 3px solid red;
+	background-color: white;
+	padding: 10px;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.upload-tools-content button {
+	position: relative;
+	width: 100%;
+}
+.upload-tools-decorator-right {
+	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
+	position: absolute;
+	margin-left: -30px;
+	margin-top: -40px;
+	width: 200px;
+	height: 230px;
+	background-color: transparent;
+}
+
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- Downloads   ----------------------------- */
 /* ------------------------------------------------------------------------- */

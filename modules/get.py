@@ -89,15 +89,14 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 							order by ctime desc""" % (locals()) )
 		result_pos = 0
 		for row in c:
-			result_pos += 1
 			object_id = row[0]
 			if not limit or len(object_ids)<limit:
 				if app.user.can_read(object_id) \
 				and ("write" not in need_permissions or app.user.can_write(object_id)) \
 				and ("delete" not in need_permissions or app.user.can_delete(object_id)):
-					if result_pos<offset:
-						continue
-					object_ids.append( object_id )
+					result_pos += 1
+					if result_pos>offset:
+						object_ids.append( object_id )
 			else:
 				break
 	else:

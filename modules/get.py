@@ -73,9 +73,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 		type_condition += ")"
 	c = app.db.cursor()
 	if not object_ids:
-		# Wildcardsuche nach lesbaren Objekten
-		# hierfür müssen wir Zugriffsfehler abschalten, wodurch im Zweifelsfall eine leere Liste zurückgegeben wird:
-		access_errors=False
+		# Wildcardsuche inklusive Zugriffsprüfung nach lesbaren Objekten:
 		if types:
 			c.execute( """select distinct id from objects
 							%(child_join)s %(parent_join)s
@@ -89,25 +87,37 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 							where 1=1
 							%(child_condition)s %(parent_condition)s
 							order by ctime desc""" % (locals()) )
-		for i, row in enumerate(c):
-			if i<offset:
-				continue
+		result_pos = 0
+		for row in c:
+			result_pos += 1
+			object_id = row[0]
 			if not limit or len(object_ids)<limit:
-				object_ids.append( row[0] )
+				if app.user.can_read(object_id) \
+				and ("write" not in need_permissions or app.user.can_write(object_id)) \
+				and ("delete" not in need_permissions or app.user.can_delete(object_id)):
+					if result_pos<offset:
+						continue
+					object_ids.append( object_id )
 			else:
 				break
+	else:
+		filtered_object_ids = []
+		# Zugriffsprüfung und ggf. Filterung für gezielte Objektanfragen:
+		for object_id in object_ids:
+			if not app.user.can_read(object_id) \
+			or ("write" in need_permissions and not app.user.can_write(object_id)) \
+			or ("delete" in need_permissions and not app.user.can_delete(object_id)):
+				if access_errors:
+					raise errors.PrivilegeError()
+				else:
+					continue # aktuelle object_id verwerfen
+			filtered_object_ids.append( object_id )
+		object_ids = filtered_object_ids
 	view = "all"
 	if "view" in query.parms:
 		view = query.parms["view"]
 	objects = []
 	for object_id in object_ids:
-		if not app.user.can_read(object_id) \
-		or ("write" in need_permissions and not app.user.can_write(object_id)) \
-		or ("delete" in need_permissions and not app.user.can_delete(object_id)):
-			if access_errors:
-				raise errors.PrivilegeError()
-			else:
-				continue
 		c.execute( """select type, mtime, ctime
 						from objects where id=?""", 
 					[object_id] )

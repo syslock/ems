@@ -51,7 +51,7 @@
 					<span class="entry-edit-tools-decorator-left"></span>
 					<span class="entry-edit-tools-decorator-top"></span>
 					<span class="entry-edit-tools-content">
-						<button class="entry-edit-file-button" onclick="add_file(this)">
+						<button class="entry-edit-file-button" onclick="add_file($('.entry-content',$(this).closest('.ems-entry'))[0])">
 							${_("Datei einfügen")}
 						</button>
 						<span class="entry-tags"></span>

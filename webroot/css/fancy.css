@@ -729,9 +729,19 @@ span.user-groups-selection {
 	margin: 10px;
 	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
 }
+.mini.upload-dialog {
+	border: none;
+	padding: 0;
+	margin: 0;
+	margin-left: 15px;
+	background-color: transparent;
+}
 .upload-manual {
 	display: block;
 	margin-bottom: 15px;
+}
+.mini.upload-dialog .upload-manual {
+	display: none;
 }
 .upload-preview {
 	display: block;
@@ -741,6 +751,15 @@ span.user-groups-selection {
 	min-height: 200px;
 	padding: 10px;
 }
+.mini.upload-dialog .upload-preview {
+	margin: 0;
+	border: 1px dashed red;
+	min-width: 60px;
+	min-height: 60px;
+	max-width: 200px;
+	max-height: 60px;
+	padding: 0;
+}
 .upload-progress {
 	display: block;
 	min-height: 200px;
@@ -749,6 +768,11 @@ span.user-groups-selection {
 	color: darkgrey;
 	font-size: 40pt;
 	text-align: left;
+}
+.mini.upload-dialog .upload-progress {
+	min-height: 50px;
+	font-size: 8pt;
+	color: black;
 }
 .upload-preview-over {
 	background-color: lightblue;
@@ -764,6 +788,9 @@ span.user-groups-selection {
 	margin-bottom: 15px;
 	clear: both;
 }
+.mini.upload-dialog .upload-info {
+	display: none;
+}
 .upload-title {
 	display: inline;
 	font-weight: bold;
@@ -777,6 +804,9 @@ span.user-groups-selection {
 }
 .upload-dialog>button {
 	float: right;
+}
+.mini.upload-dialog>button {
+	display: none;
 }
 
 .upload-tools {
@@ -916,4 +946,31 @@ span.user-groups-selection {
 	to {
 		background-color: white;
 	}
+}
+
+/* ------------------------------------------------------------------------- */
+/* ----------------------- Minions! ---------------------------------------- */
+/* ------------------------------------------------------------------------- */
+.ems-minion .entry-media {
+	margin: 0;
+	border: none;
+	min-width: 0px;
+	min-height: 0px;
+	max-width: 200px;
+	max-height: 60px;
+	padding: 0;
+}
+.page-events {
+	position: absolute;
+	bottom: 0px;
+	z-index: -1;
+}
+.page-events .ems-item {
+	display: inline;
+}
+.ems-minion .video {
+	min-width: 0px;
+	min-height: 0px;
+	max-width: 200px;
+	max-height: 60px;
 }

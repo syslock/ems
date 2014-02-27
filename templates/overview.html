@@ -36,6 +36,7 @@
 						});
 					}
 					apply_page_filter();
+					Minions.show_latest( $('.page-events')[0], 10 );
 					/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
 					ws.onmessage = function( msg ) {
 						var result = parse_result( msg.data );
@@ -92,5 +93,6 @@
 		<%include file="/elements/entry_template.html" />
 		<%include file="/elements/text_template.html" />
 		<%include file="/elements/upload_dialog.html" />
+		<%include file="/elements/minion_template.html" />
 	</body>
 </html>

@@ -26,7 +26,7 @@ function new_item( parms ) {
 		function( result ) {
 			result = parse_result( result )
 			if( result.succeeded && result.id!=undefined ) {
-				obj.id = result.id
+				obj.id = Number(result.id)
 				if( !parms.dom_object ) {
 					// Neues Element im Browser anlegen:
 					var item = new_item( parms )
@@ -155,6 +155,13 @@ function show_object( parms )
 			}
 		})
 	} else if( obj.type == "application/x-obj.group" ) {
+		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
+		if( dom_parent ) {
+			for( var i in obj.children ) {
+				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
+			}
+		}
+	} else if( obj.type == "application/x-obj.minion" ) {
 		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
 			for( var i in obj.children ) {
@@ -444,7 +451,7 @@ function get_object_list( element, text_obj ) {
 		var finalize_plain_text = function( plain_text ) {
 			var obj = { 'type': 'text/plain', 'data': plain_text };
 			if( text_obj && text_obj.unassigned ) {
-				obj.id = text_obj.id;
+				obj.id = Number(text_obj.id);
 				text_obj.unassigned = false;
 				if( obj.data != text_obj.data ) {
 					obj.changed = true;
@@ -678,16 +685,30 @@ function discard_response( button ) {
 	}
 }
 
-function add_file( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	var content = $(".entry-content", entry)[0];
-	var selection = window.getSelection();
-	var range = selection.getRangeAt(0);
+function add_file( parms ) {
 	var upload_dialog = $(".upload-dialog-template").clone()[0];
-	upload_dialog.className = "upload-dialog";
+	$(upload_dialog).removeClass().addClass("upload-dialog");
+	if( parms.custom_class ) {
+		$(upload_dialog).addClass( parms.custom_class );
+	}
 	upload_dialog.style.display="";
-	range.insertNode( upload_dialog );
-	selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
+	var selection = window.getSelection();
+	var range = undefined;
+	try {
+		range = selection.getRangeAt(0);
+	} catch (error) {
+		//show_error( error );
+	}
+	if( range && $(parms.dom_parent).has(range.startContainer)[0] ) {
+		range.insertNode( upload_dialog );
+	} else {
+		$(parms.dom_parent).first().append( upload_dialog );
+	}
+	try {
+		selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
+	} catch (error ) {
+		//show_error( error );
+	}
 	upload_dialog.contentEditable = false; // verhindert Editierbarkeit des Dialogfeldes
 	
 	var preview_area = $(".upload-preview", upload_dialog)[0];
@@ -707,6 +728,9 @@ function add_file( button ) {
 				if( meta.dom_object ) { 
 					$(meta.dom_object).addClass('upload-object');
 					$(meta.dom_object).addClass('upload-preview-content');
+				}
+				if( parms.custom_callback ) {
+					parms.custom_callback( {obj: meta} );
 				}
 			}
 		}});
@@ -756,7 +780,7 @@ function add_file( button ) {
 			function( result ) {
 				result = parse_result( result );
 				if( result.succeeded ) {
-					var upload_id = result.id;
+					var upload_id = Number(result.id);
 					$(upload_dialog).data("replace_upload_preview")( upload_id );
 				}
 			}});
@@ -852,7 +876,7 @@ function add_tag( button ) {
 	function( result ) {
 		result = parse_result( result );
 		if( result.succeeded ) {
-			tag_id = result.id;
+			tag_id = Number(result.id);
 			tags_selection.style.display = 'none';
 			if( entry_id ) {
 				// Daten neu laden, um Änderungen zu übernehmen:

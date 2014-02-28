@@ -1,0 +1,19 @@
+				<span id="confirm-dialog-template" class="confirm-dialog" style="display:none">
+					<span class="confirm-tools">
+						<span class="confirm-tools-decorator-left"></span>
+						<span class="confirm-tools-decorator-top"></span>
+						<span class="confirm-tools-content">
+						</span>
+						<span class="confirm-tools-decorator-bottom"></span>
+						<span class="confirm-tools-decorator-right"></span>
+					</span>
+					<span class="confirm-message">
+						${_("Aktion wirklich durchführen?")}
+					</span>
+					<button class="confirm-ok" onclick="Confirm.ok( $(this).closest('.confirm-dialog')[0] );">
+						${_("OK")}
+					</button>
+					<button class="confirm-cancel" onclick="Confirm.cancel( $(this).closest('.confirm-dialog')[0] );">
+						${_("Abbrechen")}
+					</button>
+				</span>

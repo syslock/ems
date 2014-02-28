@@ -979,3 +979,26 @@ span.user-groups-selection {
 	max-width: 200px;
 	max-height: 60px;
 }
+
+/* -------------------------------------------------------------------------- */
+/* --------------------------------- Confirm -------------------------------- */
+/* -------------------------------------------------------------------------- */
+.confirm-dialog {
+	position: absolute;
+	display: inline-block;
+	text-align: center;
+	max-width: 90%;
+	background-color: white;
+	border: 3px dashed red;
+	border-radius: 10px;
+	padding: 10px;
+	margin: 10px;
+	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
+}
+.confirm--message {
+	display: block;
+	margin-bottom: 15px;
+}
+.upload-dialog>button {
+	float: right;
+}

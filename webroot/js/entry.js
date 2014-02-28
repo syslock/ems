@@ -712,7 +712,7 @@ function add_file( parms ) {
 	upload_dialog.contentEditable = false; // verhindert Editierbarkeit des Dialogfeldes
 	
 	var preview_area = $(".upload-preview", upload_dialog)[0];
-	$(upload_dialog).data( {"replace_upload_preview": function( upload_id ) {
+	$(upload_dialog).data( {"replace_upload_preview": function( upload_id, source_obj ) {
 		$.ajax({
 			url : "ems.wsgi?do=get&view=all&id="+String(upload_id),
 			success :
@@ -730,7 +730,7 @@ function add_file( parms ) {
 					$(meta.dom_object).addClass('upload-preview-content');
 				}
 				if( parms.custom_callback ) {
-					parms.custom_callback( {obj: meta} );
+					parms.custom_callback( {obj: meta, source_obj: source_obj} );
 				}
 			}
 		}});
@@ -751,42 +751,49 @@ function add_file( parms ) {
 	$(preview_area).bind( "drop", function(event) {
 		$(event.delegateTarget).removeClass('upload-preview-over');
 		var dt = event.originalEvent.dataTransfer;
-		try {
-			form_data = new FormData()
-			for( var i=0; i<dt.files.length; i++ ) {
-				var file = dt.files[i];
-				form_data.append( "file-"+String(i), file )
-			}
-			$.ajax({
-				url : "ems.wsgi?do=store",
-				type : "POST",
-				data : form_data,
-				contentType: false, /*form_data den Content-Type bestimmen lassen*/
-				processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
-				xhr :
-			function() {
-				var xhr = new window.XMLHttpRequest();
-				xhr.upload.addEventListener( "progress", function(evt) {
-					if( evt.lengthComputable ) {
-						var percentComplete = 100 * evt.loaded / evt.total;
-						var progress_string = String(Math.round(percentComplete))+"%";
-						$(upload_progress).width( progress_string );
-						$(upload_progress).text( progress_string );
-					}
-				}, false );
-				return xhr;
-			},
-				success :
-			function( result ) {
-				result = parse_result( result );
-				if( result.succeeded ) {
-					var upload_id = Number(result.id);
-					$(upload_dialog).data("replace_upload_preview")( upload_id );
+		if( dt.files && dt.files.length ) {
+			try {
+				form_data = new FormData()
+				for( var i=0; i<dt.files.length; i++ ) {
+					var file = dt.files[i];
+					form_data.append( "file-"+String(i), file )
 				}
-			}});
-		} catch( error ) {
-			show_message( "Beim Hochladen der Datei ist ein Fehler aufgetreten. Eventuell unterstützt dein Browser die verwendeten Schnittstellen noch nicht." )
-			show_error( error );
+				$.ajax({
+					url : "ems.wsgi?do=store",
+					type : "POST",
+					data : form_data,
+					contentType: false, /*form_data den Content-Type bestimmen lassen*/
+					processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
+					xhr :
+				function() {
+					var xhr = new window.XMLHttpRequest();
+					xhr.upload.addEventListener( "progress", function(evt) {
+						if( evt.lengthComputable ) {
+							var percentComplete = 100 * evt.loaded / evt.total;
+							var progress_string = String(Math.round(percentComplete))+"%";
+							$(upload_progress).width( progress_string );
+							$(upload_progress).text( progress_string );
+						}
+					}, false );
+					return xhr;
+				},
+					success :
+				function( result ) {
+					result = parse_result( result );
+					if( result.succeeded ) {
+						var upload_id = Number(result.id);
+						$(upload_dialog).data("replace_upload_preview")( upload_id );
+					}
+				}});
+			} catch( error ) {
+				show_message( "Beim Hochladen der Datei ist ein Fehler aufgetreten. Eventuell unterstützt dein Browser die verwendeten Schnittstellen noch nicht." )
+				show_error( error );
+			}
+		}
+		if( dt.mozSourceNode && $(dt.mozSourceNode).data("obj") && $(dt.mozSourceNode).data("obj").id ) {
+			// Droppen eines EMS-Objektes:
+			var source_id = Number( $(dt.mozSourceNode).data("obj").id );
+			$(upload_dialog).data("replace_upload_preview")( source_id, $(dt.mozSourceNode).data("obj") );
 		}
 		return false;
 	});

@@ -8,10 +8,13 @@ var Minions = {
 		load_visible_objects( {type: 'application/x-obj.minion', dom_parent: dom_parent} );
 		add_file( {dom_parent:dom_parent, custom_class:"mini", 
 		custom_callback: function( parms ) {
-			var minion_obj = $(parms.source_obj.dom_object).closest(".ems-minion")[0];
+			var minion_obj = undefined;
+			if( parms.source_obj ) {
+				minion_obj = $(parms.source_obj.dom_object).closest(".ems-minion")[0];
+			}
 			if( !minion_obj ) {
 				// Neues Minion anlegen:
-				var minion_obj = $('<span class="ems-minion"></span>')[0];
+				minion_obj = $('<span class="ems-minion"></span>')[0];
 				$(parms.obj.dom_object).wrap( minion_obj );
 				new_item( {obj:{type: "application/x-obj.minion"}, dom_object: minion_obj} );
 				var minion_id = $(minion_obj).data().obj.id;

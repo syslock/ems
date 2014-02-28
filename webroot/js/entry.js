@@ -651,15 +651,20 @@ function new_response( user, button ) {
 
 function delete_entry( button ) {
 	var entry = $(button).closest(".ems-entry")[0];
-	$.ajax({
-		url : "ems.wsgi?do=delete&id="+String($(entry).data().obj.id),
-		success :
-	function( result ) {
-		result = parse_result( result );
-		if( result.succeeded ) {
-			var item = $(entry).closest(".ems-item").remove();
+	Confirm.confirm( {message: 'Diesen Eintrag wirklich löschen?', before: $('.entry-tools',entry).first(),
+		ok_parms: {entry: entry}, ok_callback: function( parms ) {
+			var entry = parms.entry;
+			$.ajax({
+				url : "ems.wsgi?do=delete&id="+String($(entry).data().obj.id),
+				success :
+			function( result ) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					var item = $(entry).closest(".ems-item").remove();
+				}
+			}})
 		}
-	}})
+	});
 }
 
 function discard_response( button ) {

@@ -5,7 +5,7 @@ var Minions = {
 			return;
 		}
 		$(dom_parent).empty();
-		load_visible_objects( {type: 'application/x-obj.minion', dom_parent: dom_parent} );
+		load_visible_objects( {type: 'application/x-obj.minion', dom_parent: dom_parent, limit: limit} );
 		add_file( {dom_parent:dom_parent, custom_class:"mini", 
 		custom_callback: function( parms ) {
 			var minion_obj = undefined;

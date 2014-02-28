@@ -25,6 +25,10 @@ body {
 	float: right;
 	margin-right: 20px;
 	font-size: small;
+	background-color: rgba(223,223,223,0.9);
+	border-bottom: 1px solid rgba(223,223,223,1);
+	border-left: 1px solid rgba(223,223,223,1);
+	border-radius: 5px;
 }
 .menu-nick {
 	font-weight: bold;
@@ -964,6 +968,7 @@ span.user-groups-selection {
 	position: absolute;
 	bottom: 0px;
 	z-index: -1;
+	white-space: nowrap;
 }
 .page-events .ems-item {
 	display: inline;

@@ -704,7 +704,7 @@ function add_file( parms ) {
 	} catch (error) {
 		//show_error( error );
 	}
-	if( range && $(parms.dom_parent).has(range.startContainer)[0] ) {
+	if( range && ((parms.dom_parent==range.startContainer) || $(parms.dom_parent).has(range.startContainer)[0]) ) {
 		range.insertNode( upload_dialog );
 	} else {
 		$(parms.dom_parent).first().append( upload_dialog );

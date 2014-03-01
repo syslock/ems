@@ -426,6 +426,9 @@ input.entry-tag {
 .user-nick-label {
 	display: none;
 }
+.user-content {
+	display: inline;
+}
 .user-tools {
 	display: none;
 	position: absolute;

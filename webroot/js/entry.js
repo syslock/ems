@@ -62,7 +62,7 @@ function new_item( parms ) {
 					$(parms.dom_parent).first().append( item );
 				}
 				// Im DOM eingehängte Objekte kapseln wir auf der obersten Ebene mit .ems-item
-				$(item).wrap( '<span class="ems-item"></span>' );
+				$(item).wrap( '<div class="ems-item"></div>' );
 			} else if( parms.dom_child ) {
 				$(parms.dom_child).first().before( item );
 				$("."+short_type+"-content",item).append( parms.dom_child );
@@ -628,7 +628,7 @@ function new_response( user, button ) {
 	} else {
 		$(".ems-content").first().prepend( new_entry );
 	}
-	$(new_entry).wrap( '<span class="ems-item"></span>' )
+	$(new_entry).wrap( '<div class="ems-item"></div>' )
 	if( reference_item ) {
 		// Antworttitel aus Titel des Referenzbeitrages generieren:
 		reference_title = $(".entry-title", reference_item).first().text();

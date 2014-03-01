@@ -705,9 +705,19 @@ function add_file( parms ) {
 		//show_error( error );
 	}
 	if( range && ((parms.dom_parent==range.startContainer) || $(parms.dom_parent).has(range.startContainer)[0]) ) {
+		range.deleteContents();
 		range.insertNode( upload_dialog );
 	} else {
-		$(parms.dom_parent).first().append( upload_dialog );
+		var container = $(parms.dom_parent).first();
+		container.append( upload_dialog );
+	}
+	if( parms.wrap ) {
+		if( !upload_dialog.previousSibling || upload_dialog.previousSibling.nodeName!="BR" ) {
+			$(upload_dialog).before( "<br/>" );
+		}
+		if( !upload_dialog.nextSibling || upload_dialog.nextSibling.nodeName!="BR" ) {
+			$(upload_dialog).after( "<br/><br/>" );
+		}
 	}
 	try {
 		selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
@@ -715,6 +725,9 @@ function add_file( parms ) {
 		//show_error( error );
 	}
 	upload_dialog.contentEditable = false; // verhindert Editierbarkeit des Dialogfeldes
+	$(upload_dialog).on( "click select", function() {
+		window.getSelection().collapseToStart(); // verhindert Auswahl des Dialogfeldes
+	});
 	
 	var preview_area = $(".upload-preview", upload_dialog)[0];
 	$(upload_dialog).data( {"replace_upload_preview": function( upload_id, source_obj ) {

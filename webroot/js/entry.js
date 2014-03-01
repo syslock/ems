@@ -445,7 +445,7 @@ function get_plain_text( element ) {
 function get_object_list( element, text_obj ) {
 	var current_list = [];
 	if( element.nodeName=="#text" ) {
-		var token_list = element.textContent.match( /http:\/\/[^ ]+|./gim );
+		var token_list = element.textContent.match( /https?:\/\/[^ ]+|./gim );
 		token_list = token_list ? token_list : [];
 		var current_plain_text = "";
 		var finalize_plain_text = function( plain_text ) {

@@ -143,3 +143,13 @@ function prettyprint_size( size ) {
 	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+' '+({0:"Byte", 10:"KiB", 20:"MiB", 30:"GiB", 40:"TiB"})[two_powers];
 }
 
+function prettyprint_time( time ) {
+	var value = time;
+	var idx = 0;
+	while( value>60 && idx<1 ) {
+		value /= 60;
+		idx += 1;
+	}
+	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+' '+({0:"s", 1:"min"})[idx];
+}
+

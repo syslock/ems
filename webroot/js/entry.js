@@ -227,15 +227,44 @@ function show_object( parms )
 			var status_text = $('<span>').attr( {class: 'video-status-text'} );
 			$(status).append( status_text );
 			$(video_box).append( status );
+			var variants = $('<div>').attr( {class: 'video-variants'} )[0];
+			$(video_box).append( variants );
+			var identification_callback = function(result) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					$(variants).empty();
+					for( var i=0; i<result.objects.length; i++ ) {
+						var variant_obj = result.objects[i];
+						var variant = $('<div>').attr( {class: 'video-variant'} )[0];
+						if( video.canPlayType(variant_obj.type) ) {
+							$(variant).addClass( 'canplay' );
+						} else {
+							$(variant).addClass( 'cannotplay' );
+						}
+						$(variant).data( {obj: variant_obj} );
+						$(variant).bind( 'click', function(event) {
+							// FIXME: variant_obj.id hat immer den selben Wert!
+							// Wir müssen die Variant-Elemente mit ihren DB-Objekten assoziieren und diese hier aus
+							// dem DOM abrufen...
+							var variant_obj = $(event.target).data("obj");
+							video.src = 'ems.wsgi?do=get&id='+variant_obj.id+'&view=data';
+						});
+						var Bps = Number(variant_obj.size) / Number(variant_obj.mplayer.id.length);
+						$(variant).text( variant_obj.type+" "+String(variant_obj.mplayer.id.video.width)+"x"+String(variant_obj.mplayer.id.video.height)+" "+prettyprint_size(Bps)+"/s" );
+						$(variants).append( variant );
+					}
+				}
+			}
 			var conversion_callback = function(result) {
 				result = parse_result( result );
 				if( result.succeeded ) {
 					var stale_source_count = 0;
 					var ready_source_count = 0;
+					var identification_request_list = [ obj.id ];
 					$(status_text).empty();
 					if( result.objects.length ) {
 						for( var i=0; i<result.objects.length; i++ ) {
-							conv_obj = result.objects[i];
+							var conv_obj = result.objects[i];
 							if( conv_obj.type.match('^video/.*') ) {
 								if( conv_obj.size>0 ) {
 									$(status_text).append( $('<span>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
@@ -244,6 +273,7 @@ function show_object( parms )
 									if( !video.src && video.canPlayType(conv_obj.type) ) {
 										video.src = 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data';
 									}
+									identification_request_list.push( conv_obj.id );
 								} else {
 									$(status_text).append( $('<span>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
 									stale_source_count++;
@@ -260,6 +290,9 @@ function show_object( parms )
 							}
 						}
 					}
+					GlobalRequestQueue.add( {url:'ems.wsgi?do=identify&id='+String(identification_request_list), success:identification_callback} );
+					GlobalRequestQueue.process();
+					
 					// Original-Video-Daten als Fallback für unfertige/fehlgeschlagene Konvertierung:
 					if( !video.src && video.canPlayType(obj.type) ) {
 						video.src = 'ems.wsgi?do=get&id='+obj.id+'&view=data';

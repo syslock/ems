@@ -212,6 +212,28 @@ body {
 	display: block;
 	color: yellow;
 }
+.video-variants {
+	display: none;
+}
+.entry-media:hover .video-variants {
+	position: absolute;
+	display: block;
+	border: 2px solid darkgrey;
+	background-color: lightgrey;
+	border-radius: 10px;
+}
+.video-variant:hover {
+	background-color: white;
+}
+.video-variant.canplay {
+	color: darkgreen;
+}
+.video-variant.cannotplay {
+	color: darkred;
+}
+.video-variant.selected {
+	font-weight: bold;
+}
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */

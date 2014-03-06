@@ -68,7 +68,7 @@ def process( app ):
 							os.remove( new_tmp_name )
 						except Exception as e:
 							error_list.append( e )
-						errmsg = stderr.split("\n")[-1]
+						errmsg = stderr.decode().split("\n")[-1]
 						error_list.append( errors.InternalProgramError(errmsg) )
 					else:
 						os.rename( new_tmp_name, new_obj.storage_path )

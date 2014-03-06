@@ -31,69 +31,77 @@ def process( app ):
 	query = app.query
 	response = app.response
 	session = app.session
-	target_id = int( query.parms["id"] )
-	if app.user.can_read( target_id ):
-		target_obj = db_object.File( app, object_id=target_id )
-		if re.match( r"^video/.*", target_obj.media_type ) or re.match( r"^audio/.*", target_obj.media_type ):
-			mplayer_id = {}
-			p = subprocess.Popen( ["mplayer", "-identify", "-frames" , "0", "-ao", "null", "-vo", "null", 
-									target_obj.storage_path],
-									stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			stdout, stderr = p.communicate()
-			if p.returncode!=0:
-				errmsg = stderr.decode()
-				raise errors.InternalProgramError( errmsg )
+	target_ids = [int(x) for x in query.parms["id"].split(",")]
+	object_list = get_module.get( app, object_ids=target_ids )
+	metainfo_list = []
+	for target_id in target_ids:
+		if app.user.can_read( target_id ):
+			target_obj = db_object.File( app, object_id=target_id )
+			if re.match( r"^video/.*", target_obj.media_type ) or re.match( r"^audio/.*", target_obj.media_type ):
+				mplayer_id = {}
+				p = subprocess.Popen( ["mplayer", "-identify", "-frames" , "0", "-ao", "null", "-vo", "null", 
+										target_obj.storage_path],
+										stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+				stdout, stderr = p.communicate()
+				if p.returncode!=0:
+					errmsg = stderr.decode()
+					raise errors.InternalProgramError( errmsg )
+				else:
+					for line in stdout.decode().split("\n"):
+						if line.startswith("ID_") and not line.startswith("ID_FILENAME"):
+							parts = line.split("=")
+							key = parts[0].lower()
+							value = "=".join(parts[1:])
+							populate_dict( mplayer_id, key, value, delim="_" )
+					metainfo_list.append( {"id" : target_id, "mplayer" : mplayer_id} )
+			elif re.match( r"^image/.*", target_obj.media_type ):
+				exiv2_data = { "summary" : {} }
+				image_info = {} # Substruktur für dauerhaft verfügbare Metadaten (z.b. width, height)
+				p = subprocess.Popen( ["exiv2", target_obj.storage_path],
+										stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+				stdout, stderr = p.communicate()
+				if p.returncode not in (0, 253):
+					errmsg = stderr.decode()
+					raise errors.InternalProgramError( errmsg )
+				else:
+					for line in stdout.decode().split("\n"):
+						result = re.findall( "([^:]+):(.*)", line )
+						try:
+							key, value = result[0]
+						except IndexError:
+							continue
+						key = key.strip().replace(" ","_")
+						if( key in ["File_name"] ):
+							continue
+						value = value.strip()
+						exiv2_data[ "summary" ][ key ] = value
+						if( key=="Image_size" ):
+							x, y = value.split("x")
+							x=int(x.strip())
+							y=int(y.strip())
+							image_info["width"] = x #.image.width
+							image_info["height"] = y #.image.height
+				p = subprocess.Popen( ["exiv2", "-pa", target_obj.storage_path],
+										stdout=subprocess.PIPE, stderr=subprocess.PIPE )
+				stdout, stderr = p.communicate()
+				if p.returncode not in (0, 253):
+					errmsg = stderr.decode()
+					raise errors.InternalProgramError( errmsg )
+				else:
+					for line in stdout.decode().split("\n"):
+						result = re.findall( "([^ ]+)[ ]+([^ ]+)[ ]+([^ ]+)[ ]+([^ ].*)", line )
+						try:
+							key, type, count, value = result[0]
+						except IndexError:
+							continue
+						populate_dict( exiv2_data, key, value )
+				metainfo_list.append( {"id" : target_id, "exiv2":exiv2_data, "image":image_info} )
 			else:
-				for line in stdout.decode().split("\n"):
-					if line.startswith("ID_") and not line.startswith("ID_FILENAME"):
-						parts = line.split("=")
-						key = parts[0].lower()
-						value = "=".join(parts[1:])
-						populate_dict( mplayer_id, key, value, delim="_" )
-				response.output = str( {"succeeded":True, "mplayer":mplayer_id} )
-		elif re.match( r"^image/.*", target_obj.media_type ):
-			exiv2_data = { "summary" : {} }
-			image_info = {} # Substruktur für dauerhaft verfügbare Metadaten (z.b. width, height)
-			p = subprocess.Popen( ["exiv2", target_obj.storage_path],
-									stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			stdout, stderr = p.communicate()
-			if p.returncode not in (0, 253):
-				errmsg = stderr.decode()
-				raise errors.InternalProgramError( errmsg )
-			else:
-				for line in stdout.decode().split("\n"):
-					result = re.findall( "([^:]+):(.*)", line )
-					try:
-						key, value = result[0]
-					except IndexError:
-						continue
-					key = key.strip().replace(" ","_")
-					if( key in ["File_name"] ):
-						continue
-					value = value.strip()
-					exiv2_data[ "summary" ][ key ] = value
-					if( key=="Image_size" ):
-						x, y = value.split("x")
-						x=int(x.strip())
-						y=int(y.strip())
-						image_info["width"] = x #.image.width
-						image_info["height"] = y #.image.height
-			p = subprocess.Popen( ["exiv2", "-pa", target_obj.storage_path],
-									stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-			stdout, stderr = p.communicate()
-			if p.returncode not in (0, 253):
-				errmsg = stderr.decode()
-				raise errors.InternalProgramError( errmsg )
-			else:
-				for line in stdout.decode().split("\n"):
-					result = re.findall( "([^ ]+)[ ]+([^ ]+)[ ]+([^ ]+)[ ]+([^ ].*)", line )
-					try:
-						key, type, count, value = result[0]
-					except IndexError:
-						continue
-					populate_dict( exiv2_data, key, value )
-			response.output = str( {"succeeded":True, "exiv2":exiv2_data, "image":image_info} )
+				raise NotImplementedError( "unsupported media type: "+target_obj.media_type )
 		else:
-			raise NotImplementedError( "unsupported media type: "+target_obj.media_type )
-	else:
-		raise errors.PrivilegeError()
+			raise errors.PrivilegeError()
+	for metainfo in metainfo_list:
+		for obj in object_list:
+			if obj["id"] == metainfo["id"]:
+				obj.update( metainfo )
+	response.output = str( {"succeeded" : True, "objects" : object_list} )

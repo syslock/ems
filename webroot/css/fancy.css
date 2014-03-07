@@ -218,21 +218,39 @@ body {
 .entry-media:hover .video-variants {
 	position: absolute;
 	display: block;
-	border: 2px solid darkgrey;
-	background-color: lightgrey;
+	width: 100%;
+	border: none;
+	margin-top: -5px;
+	background-color: rgba(0,0,0,0.85);
+	border-radius: 10px;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+	text-align: center;
+	font-family: sans;
+	font-size: small;
+}
+.video-variant {
 	border-radius: 10px;
 }
 .video-variant:hover {
-	background-color: white;
+	background-color: rgba(200,200,200,0.85);
 }
 .video-variant.canplay {
-	color: darkgreen;
+	color: lightgreen;
+}
+.video-variant.canplay:hover {
+	color: black;
 }
 .video-variant.cannotplay {
+	color: red;
+}
+.video-variant.cannotplay:hover {
 	color: darkred;
 }
 .video-variant.selected {
+	font-size: medium;
 	font-weight: bold;
+	color: white;
 }
 
 /* ------------------------------------------------------------------------- */

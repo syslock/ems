@@ -229,8 +229,8 @@ function show_object( parms )
 			$(video_box).append( status );
 			var variants = $('<div>').attr( {class: 'video-variants'} )[0];
 			$(video_box).append( variants );
-			var identification_callback = function(result) {
-				result = parse_result( result );
+			var identification_callback = function(raw_result) {
+				var result = parse_result( raw_result );
 				if( result.succeeded ) {
 					$(variants).empty();
 					for( var i=0; i<result.objects.length; i++ ) {
@@ -241,6 +241,9 @@ function show_object( parms )
 						} else {
 							$(variant).addClass( 'cannotplay' );
 						}
+						if( $(video).data("selected_variant_id")==variant_obj.id ) {
+							$(variant).addClass( 'selected' );
+						}
 						$(variant).data( {obj: variant_obj} );
 						$(variant).bind( 'click', function(event) {
 							// FIXME: variant_obj.id hat immer den selben Wert!
@@ -248,6 +251,8 @@ function show_object( parms )
 							// dem DOM abrufen...
 							var variant_obj = $(event.target).data("obj");
 							video.src = 'ems.wsgi?do=get&id='+variant_obj.id+'&view=data';
+							$(video).data( {selected_variant_id: variant_obj.id} );
+							identification_callback( raw_result );
 						});
 						var Bps = Number(variant_obj.size) / Number(variant_obj.mplayer.id.length);
 						$(variant).text( variant_obj.type+" "+String(variant_obj.mplayer.id.video.width)+"x"+String(variant_obj.mplayer.id.video.height)+" "+prettyprint_size(Bps)+"/s" );
@@ -272,6 +277,7 @@ function show_object( parms )
 									// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
 									if( !video.src && video.canPlayType(conv_obj.type) ) {
 										video.src = 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data';
+										$(video).data( {selected_variant_id: conv_obj.id} );
 									}
 									identification_request_list.push( conv_obj.id );
 								} else {

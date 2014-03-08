@@ -100,7 +100,17 @@ function new_item( parms ) {
 }
 
 function create_download( obj ) {
-	var link = $( '<a href="ems.wsgi?do=get&view=data&id='+String(obj.id)+'&attachement=true" class="download-link" ><img src="tango-scalable/actions/document-save.svg" class="download-icon" /></a>' );
+	var prettyprint_title = function(obj) {
+		return (obj.title ? obj.title : 'file_'+String(obj.id)+'.'+obj.type.match(/.*\/(.*)/)[1])
+	}
+	var link = $('<a></a>').attr({
+		href: 'ems.wsgi?do=get&view=data&id='+String(obj.id)+'&attachment=true',
+		target: '_blank', title: prettyprint_title(obj)+' herunterladen...', 
+		class: 'download-link', download: prettyprint_title(obj)
+	}).append( $('<img />').attr({ 
+		src: 'tango-scalable/actions/document-save.svg', 
+		class: 'download-icon' 
+	}));
 	link.append( '<span class="download-title">'+obj.title+'</span><span class="download-size">('+prettyprint_size(obj.size)+')</span>' );
 	link = link[0];
 	$(link).data( {obj: obj} );
@@ -249,13 +259,15 @@ function show_object( parms )
 							// FIXME: variant_obj.id hat immer den selben Wert!
 							// Wir müssen die Variant-Elemente mit ihren DB-Objekten assoziieren und diese hier aus
 							// dem DOM abrufen...
-							var variant_obj = $(event.target).data("obj");
-							video.src = 'ems.wsgi?do=get&id='+variant_obj.id+'&view=data';
+							var variant_obj = $(event.target).closest('.video-variant').data("obj");
+							video.src = 'ems.wsgi?do=get&id='+String(variant_obj.id)+'&view=data';
 							$(video).data( {selected_variant_id: variant_obj.id} );
 							identification_callback( raw_result );
 						});
 						var Bps = Number(variant_obj.size) / Number(variant_obj.mplayer.id.length);
 						$(variant).text( variant_obj.type+" "+String(variant_obj.mplayer.id.video.width)+"x"+String(variant_obj.mplayer.id.video.height)+" "+prettyprint_size(Bps)+"/s" );
+						$(variant).append( '&nbsp;' );
+						$(variant).append( create_download(variant_obj) );
 						$(variants).append( variant );
 					}
 				}
@@ -276,7 +288,7 @@ function show_object( parms )
 									ready_source_count++;
 									// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
 									if( !video.src && video.canPlayType(conv_obj.type) ) {
-										video.src = 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data';
+										video.src = 'ems.wsgi?do=get&id='+String(conv_obj.id)+'&view=data';
 										$(video).data( {selected_variant_id: conv_obj.id} );
 									}
 									identification_request_list.push( conv_obj.id );

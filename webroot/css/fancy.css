@@ -252,6 +252,31 @@ body {
 	font-weight: bold;
 	color: white;
 }
+.video-variant .download-link {
+	padding: 0px;
+	padding-left: 5px;
+	padding-right: 5px;
+	margin: 1px;
+	margin-left: 20px;
+	background-color: rgba(255,255,255,0.3);
+	border-radius: 5px;
+	border: none;
+	color: black;
+	text-decoration: none;
+}
+
+.video-variant .download-icon {
+	height: 20px;
+	width: 20px;
+}
+.video-variant .download-title {
+	display: none;
+}
+.video-variant .download-size {
+	margin-left: -3px;
+	font-weight: normal;
+	font-size: x-small;
+}
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */

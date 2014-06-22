@@ -134,6 +134,7 @@ function onenter( event, dostuff, arg )
 }
 
 function prettyprint_size( size ) {
+	if( size==Infinity ) return "∞";
 	var value = size;
 	var two_powers = 0;
 	while( value>1000 ) {

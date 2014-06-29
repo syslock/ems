@@ -8,6 +8,7 @@
 		<script>
 			function init()
 			{
+				$('.menu-login-widget').hide();
 				hide_register()
 				$.get('ems.wsgi?do=status', 
 				function( result )
@@ -40,8 +41,8 @@
 				<%include file="/elements/overview_button.html" />
 			</span>
 		</span>
-		<div class="ems-content">
-			<div class="ems-login">
+		<div class="ems-content ems-login-content">
+			<div class="login-form">
 				<div class="login-nick">
 					<span class="login-nick">
 						${_("Benutzername:")}
@@ -61,7 +62,7 @@
 					${_("Noch nicht registriert?")}
 				</button>
 			</div>
-			<div class="ems-register" style="display:none">
+			<div class="register-form" style="display:none">
 				<div class="register-password">
 					<span class="register-password">
 						${_("Passwort wiederholen:")}

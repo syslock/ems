@@ -116,25 +116,25 @@ function hilight_error_fields( error )
 
 function hide_login()
 {
-	$(".ems-login")[0].style.display="none"
+	$(".login-form")[0].style.display="none"
 }
 
 function show_login()
 {
-	$(".ems-login")[0].style.display=""
+	$(".login-form")[0].style.display=""
 	$(".login-submit")[0].style.display=""
 }
 
 function hide_register()
 {
-	$(".ems-register")[0].style.display="none"
+	$(".register-form")[0].style.display="none"
 	$(".login-submit")[0].style.display=""
 	$(".login-register")[0].style.display=""
 }
 
 function show_register()
 {
-	$(".ems-register")[0].style.display=""
+	$(".register-form")[0].style.display=""
 	$(".login-submit")[0].style.display="none"
 	$(".login-register")[0].style.display="none"
 	$(".register-password")[0].style.display=""

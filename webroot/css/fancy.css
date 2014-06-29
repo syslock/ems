@@ -1070,3 +1070,13 @@ span.user-groups-selection {
 .upload-dialog>button {
 	float: right;
 }
+
+.ems-login-content {
+	display: inline-block;
+}
+.login-form, .login-form>div, .register-form, .register-form>div {
+	text-align: right;
+}
+.login-form>button, .register-form>button {
+	margin-top: 1em;
+}

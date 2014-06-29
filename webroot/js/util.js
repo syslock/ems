@@ -39,14 +39,14 @@ function parse_result( result )
 
 function show_message( text )
 {
-	$(".ems-message-content")[0].innerHTML += text
+	$(".ems-message-content").text(text)
 	$(".ems-message").addClass("ems-message-active");
 	show_status()
 }
 
 function show_error( text )
 {
-	$(".ems-error-content")[0].innerHTML += text
+	$(".ems-error-content").text(text)
 	$(".ems-error").addClass("ems-error-active");
 	show_status()
 }
@@ -61,8 +61,8 @@ function hide_status()
 	$(".ems-status").removeClass("ems-status-active");
 	$(".ems-message").removeClass("ems-message-active");
 	$(".ems-error").removeClass("ems-error-active");
-	$(".ems-message-content").html("");
-	$(".ems-error-content").html("");
+	$(".ems-message-content").text("");
+	$(".ems-error-content").text("");
 }
 
 function change_style( style )

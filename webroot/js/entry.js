@@ -119,21 +119,22 @@ function create_download( obj ) {
 }
 
 function load_visible_objects( parms ) {
-	var offset = (parms.offset ? "&offset="+parms.offset : "");
-	var limit = (parms.limit ? "&limit="+parms.limit : "");
+	var offset = (parms.offset ? "&offset="+String(parms.offset) : "");
+	var limit = (parms.limit ? "&limit="+String(parms.limit) : "");
 	var type = (parms.type ? "&type="+parms.type : "");
-	var parent_ids = (parms.parent_ids ? "&parent_id="+parms.parent_ids.join(",") : "");
-	var child_ids = (parms.child_ids ? "&child_id="+parms.child_ids.join(",") : "");
-	var permissions = (parms.permissions ? "&permissions="+parms.permissions.join(",") : "");
+	var ids = (parms.ids && parms.ids.length ? "&id="+parms.ids.join(",") : "");
+	var parent_ids = (parms.parent_ids && parms.parent_ids.length ? "&parent_id="+parms.parent_ids.join(",") : "");
+	var child_ids = (parms.child_ids && parms.child_ids.length ? "&child_id="+parms.child_ids.join(",") : "");
+	var permissions = (parms.permissions && parms.permissions.length ? "&permissions="+parms.permissions.join(",") : "");
 	var dom_parent = (parms.dom_parent ? parms.dom_parent : $(".ems-content")[0]);
 	GlobalRequestQueue.add( {
-		url : "ems.wsgi?do=get&view=all&recursive=true"+offset+limit+type+parent_ids+child_ids+permissions,
+		url : "ems.wsgi?do=get&view=all&recursive=true"+offset+limit+type+ids+parent_ids+child_ids+permissions,
 		async : true,
 		success :
 	function( result ) {
 		result = parse_result( result )
 		for( i in result ) {
-			show_object( {obj: result[i], dom_parent: dom_parent, limit: limit} )
+			show_object( {obj: result[i], dom_parent: dom_parent, limit: parms.limit} )
 		}
 	}} );
 	GlobalRequestQueue.process();
@@ -150,17 +151,14 @@ function show_object( parms )
 	var update = parms.update;
 	if( obj.id && !obj.type ) {
 		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
-		function( result )
-		{
+		function( result ) {
 			result = parse_result( result )
-			if( result.succeeded==undefined )
-			{
-				for( i in result )
-				{
+			if( result.succeeded==undefined ) {
+				for( i in result ) {
 					var merged_obj = {}
 					for( key in obj ) merged_obj[key] = obj[key];
 					for( key in result[i] ) merged_obj[key] = result[i][key];
-					show_object( {obj:merged_obj, dom_parent:dom_parent ? dom_parent : $(".ems-content")[0], limit:limit, prepend:prepend, update:update} )
+					show_object( {obj:merged_obj, dom_parent:(dom_parent ? dom_parent : (!dom_child) ? $(".ems-content")[0] : undefined), dom_child:dom_child, duplicates:duplicates, limit:limit, prepend:prepend, update:update} )
 				}
 			}
 		})
@@ -198,9 +196,16 @@ function show_object( parms )
 				var parent = obj.parents[i];
 				if( parent.type == "application/x-obj.group" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
+			var user_found = false;
 			for( var i in obj.parents ) {
 				var parent = obj.parents[i];
-				if( parent.type == "application/x-obj.user" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
+				if( parent.type == "application/x-obj.user" ) {
+					user_found = true;
+					show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
+				}
+			}
+			if( !user_found ) {
+				show_object( {obj:{id:3}, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
 		}
 	} else if( obj.type == "text/plain" ) {
@@ -367,6 +372,21 @@ function show_object( parms )
 			}
 			obj.dom_object.style.display="";
 		}
+	} else if ( obj.type && obj.type=="application/x-obj.publication" ) {
+		if( dom_parent ) {
+			obj.dom_object = $(dom_parent).closest('.ems-entry').find('.entry-publication')[0];
+			$(obj.dom_object).addClass('entry-publication-active');
+			$(obj.dom_object).data( {obj: obj} );
+			var pub_link_obj = $('.entry-publication-link', obj.dom_object)[0];
+			var entry_id = $(dom_parent).closest('.ems-entry').data("obj").id;
+			var url = get_tpl_url("overview.html")+"&id="+String(entry_id)+"&sid="+obj.data;
+			$(pub_link_obj).attr( {href: url} );
+			$(pub_link_obj).click( function() {
+				show_message( "Dieser Link würde dich ausloggen. Kopiere ihn daher über das Rechtslick-Menü oder gleich hier:" );
+				show_error( url );
+				return false;
+			});
+		}
 	} else if( dom_parent && obj.id ) {
 		var download_link = create_download( obj );
 		$(dom_parent).append( download_link );
@@ -383,10 +403,10 @@ function filter_user_content( button, mode ) {
 }
 
 var offsets_loaded = {};
-var filters = { child_ids:{}, parent_ids:{} };
+var filters = { ids:{}, child_ids:{}, parent_ids:{} };
 function apply_page_filter( parms ) {
-	if( parms==undefined ) parms={ child_ids:{}, parent_ids:{} };
-	for( var filter_type in {"child_ids":true, "parent_ids":true} ) {
+	if( parms==undefined ) parms={ ids:{}, child_ids:{}, parent_ids:{} };
+	for( var filter_type in {"ids":true, "child_ids":true, "parent_ids":true} ) {
 		for( var xid in parms[filter_type] ) {
 			if( filters[filter_type][ -xid ] ) {
 				delete filters[filter_type][ -xid ];
@@ -396,12 +416,12 @@ function apply_page_filter( parms ) {
 	}
 	var filter_view = $('.page-filter-view')[0];
 	$(filter_view).empty();
-	for( var filter_type in {"child_ids":true, "parent_ids":true} ) {
+	for( var filter_type in {"ids":true, "child_ids":true, "parent_ids":true} ) {
 		for( var xid in filters[filter_type] ) {
 			var obj = filters[filter_type][xid];
 			if( obj ) {
 				var filter_item = $('<span>').attr( {'class':(Number(xid)<0 ? 'filter-item filter-item-exclude' : 'filter-item filter-item-include')} )[0];
-				$(filter_item).text( obj.title ? obj.title : obj.nick );
+				$(filter_item).text( obj.title ? obj.title : obj.nick ? obj.nick : filter_type+String(xid) );
 				$(filter_item).data( {obj: obj, filter_type: filter_type, filter_id: xid} );
 				obj.dom_object = filter_item;
 				filter_item.onclick = function(ev) {
@@ -412,10 +432,11 @@ function apply_page_filter( parms ) {
 			}
 		}
 	}
+	var ids = []; for( var _id in filters.ids ) { if(_id) ids.push(_id) };
 	var child_ids = []; for( var child_id in filters.child_ids ) { if(child_id) child_ids.push(child_id) };
 	var parent_ids = []; for( var parent_id in filters.parent_ids ) { if(parent_id) parent_ids.push(parent_id) };
 	var page_filter = $('.page-filter')[0];
-	if( child_ids.length+parent_ids.length > 0 ) {
+	if( ids.length+child_ids.length+parent_ids.length > 0 ) {
 		$(page_filter).addClass( 'page-filter-active' );
 	} else {
 		$(page_filter).removeClass( 'page-filter-active' );
@@ -426,7 +447,7 @@ function apply_page_filter( parms ) {
 	var scroll_time = (new Date()).getTime();
 	offsets_loaded = {};
 	offsets_loaded[ scroll_offset ] = true;
-	load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: child_ids, parent_ids: parent_ids} );
+	load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', ids: ids, child_ids: child_ids, parent_ids: parent_ids} );
 	var handle_scroll_event = function() {
 		var scrollTop = document.documentElement.scrollTop ||
 			document.body.scrollTop;
@@ -441,9 +462,10 @@ function apply_page_filter( parms ) {
 				scroll_offset += scroll_step;
 				if( offsets_loaded[scroll_offset]!=true ) {
 					offsets_loaded[ scroll_offset ] = true;
+					var ids = []; for( var _id in filters.ids ) { if(_id) ids.push(_id) };
 					var child_ids = []; for( var child_id in filters.child_ids ) { if(child_id) child_ids.push(child_id) };
 					var parent_ids = []; for( var parent_id in filters.parent_ids ) { if(parent_id) parent_ids.push(parent_id) };
-					load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', child_ids: child_ids, parent_ids: parent_ids} );
+					load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', ids: ids, child_ids: child_ids, parent_ids: parent_ids} );
 				} else {
 					// discard doublicate event
 				}
@@ -989,6 +1011,30 @@ function remove_tag( button ) {
 		result = parse_result( result );
 		if( result.succeeded ) {
 			$(tag).remove();
+		}
+	});
+}
+
+function link_external( button, recursive ) {
+	var entry = $(button).closest(".ems-entry")[0];
+	var entry_id = $(entry).data().obj.id;
+	$.get( "ems.wsgi?do=get&type=application/x-obj.publication&parent_id="+String(entry_id),
+	function( result ) {
+		result = parse_result( result );
+		if( result.length ) {
+			var pub = result[0];
+			show_object( {dom_parent: entry, obj: pub, update: true} );
+			$( ".entry-publication-link", entry ).wrap( $("<span>").addClass("highlight") );
+		} else if( !recursive ) {
+			$.get( "ems.wsgi?do=store&type=application/x-obj.publication&parent_id="+String(entry_id),
+			function( result ) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					link_external( button, /*recursive=*/true );
+				}
+			});
+		} else {
+			show_message( "Externer Link konnte nicht erstellt werden" );
 		}
 	});
 }

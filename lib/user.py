@@ -108,7 +108,6 @@ class User( db_object.DBObject ):
 		User.check_email( email )
 		return True
 	
-	ACCESS_MASKS={ "read" : 1, "write" : 2 }
 	def can_read( self, object_id=None, limit=None ):
 		return self.can_access( object_id, "read", limit=limit )
 	def can_write( self, object_id=None, limit=None ):
@@ -139,7 +138,7 @@ class User( db_object.DBObject ):
 			raise NotImplementedError( "Unsupported access_type" )
 		access_mask = self.ACCESS_MASKS[ access_type ]
 		c = self.app.db.cursor()
-		next_subject_zone = next_subject_childs = { self.id }
+		next_subject_zone = next_subject_childs = { self.id }.union( set(map(int,self.app.session.parms["subject_id"].split(",")) if "subject_id" in self.app.session.parms else []) )
 		next_object_zone = next_object_childs = object_id and { object_id } or set()
 		if len(next_object_zone):
 			# Wir erweitern die Suchzonen solange, bis wir eine Entscheidung, oder
@@ -164,9 +163,9 @@ class User( db_object.DBObject ):
 						# wie wir Konflikte zwischen Erlaubnissen und expliziten Verboten lösen...
 						# TODO: Zugriffs-Caches der betroffenen Kindobjekte aktualisieren!
 						return True
-				# Eltern, der aktuellen Erweiterungsgruppe, bilden die nächste Erweiterungsgruppe
+				# Eltern-Gruppen(!), der aktuellen Erweiterungsgruppe, bilden die nächste Erweiterungsgruppe
 				self.app.trace( "current_subject_childs: "+str(next_subject_childs) )
-				next_subject_childs = self.closest_parents( next_subject_childs )
+				next_subject_childs = self.closest_parents( next_subject_childs, parent_type="application/x-obj.group" )
 				self.app.trace( "next_subject_childs: "+str(next_subject_childs) )
 				# Nächste Subjektzone ist aktuelle Subjektzone + Eltern derselben:
 				next_subject_zone = current_subject_zone.union( next_subject_childs )
@@ -203,25 +202,6 @@ class User( db_object.DBObject ):
 					break
 			return result
 		return False
-	
-	def grant_read( self, object_id ):
-		self.grant_access( object_id, "read" )
-	def grant_write( self, object_id ):
-		self.grant_access( object_id, "write" )
-	def grant_access( self, object_id, access_type ):
-		if access_type not in ("read", "write"):
-			raise NotImplementedError( "Unsupported access_type" )
-		access_mask = self.ACCESS_MASKS[ access_type ]
-		c = self.app.db.cursor()
-		c.execute( """select * from permissions where subject_id=? and object_id=?""", [self.id, object_id] )
-		if c.fetchone()!=None:
-			c.execute( """update permissions set access_mask=(access_mask|%(access_mask)d) where subject_id=? and object_id=?""" \
-							% locals(), [self.id, object_id] )
-			self.app.db.commit()
-		else:
-			c.execute( """insert into permissions (subject_id, object_id, access_mask) values (?,?,%(access_mask)d)""" \
-							% locals(), [self.id, object_id] )
-			self.app.db.commit()
 
 class SpecialUser( User ):
 	def __init__( self, app, nick ):

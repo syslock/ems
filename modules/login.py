@@ -3,20 +3,22 @@ from lib import password
 password = imp.reload( password )
 from lib import user
 user = imp.reload( user )
+from lib import application
+application = imp.reload( application )
 
 def process( app ):
 	"""Autorisierung der Session eines gültigen Nutzers, sonst Ausnahme"""
-	query = app.query
-	response = app.response
-	session = app.session
 	usr = check_login( app )
 	if not usr.can_read( usr.id ):
 		# deaktivierter Nutzer oder sonstiges Rechteproblem
 		raise Exception( "Insufficient privileges" )
 	else:
-		session.parms["user_id"] = str(usr.id)
-		session.store()
-		response.output = str( {"succeeded":True} )
+		# Um Upgrade fremder Sessions (z.B. Link-Sessions) zu vermeiden,
+		# legen wir für jeden erfolgreichen Login-Vorgang eine neue an:
+		app.session = application.Session( app )
+		app.session.parms["user_id"] = str(usr.id)
+		app.session.store()
+		app.response.output = str( {"succeeded":True} )
 
 def check_login( app ):
 	"""Gibt nach Prüfung von Nutzername und Passwort ein User-Objekt zurück, sonst Ausnahme"""

@@ -10,6 +10,7 @@
 			var global_user = undefined;
 			function init()
 			{
+				var query_parms = parse_result( "${str(app.query.parms).replace(r'\"',r'\\\"')}" );
 				$.get('ems.wsgi?do=status',
 				function(result)
 				{
@@ -35,7 +36,14 @@
 							global_user = result[0]
 						});
 					}
-					apply_page_filter();
+					filters = { ids:{}, parent_ids:{}, child_ids:{} }
+					id_list = query_parms.id ? query_parms.id.split(",").map(Number) : [];
+					for( x in id_list ) { filters.ids[id_list[x]] = {}; }
+					parent_id_list = query_parms.parent_id ? query_parms.parent_id.split(",").map(Number) : [];
+					for( x in parent_id_list ) { filters.parent_ids[parent_id_list[x]] = {}; }
+					child_id_list = query_parms.child_id ? query_parms.child_id.split(",").map(Number) : [];
+					for( x in child_id_list ) { filters.child_ids[child_id_list[x]] = {}; }
+					apply_page_filter( filters );
 					Minions.show_latest( $('.page-events')[0], 15 );
 					/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
 					ws.onmessage = function( msg ) {

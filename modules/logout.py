@@ -1,12 +1,12 @@
 import sqlite3
 
 def process( app ):
-	"""Löschung der Session-Autorisierung"""
+	"""Löschung aller Session-Parameter für an Nutzer gebundene Session"""
 	query = app.query
 	response = app.response
 	session = app.session
 	if "user_id" in session.parms:
-		del session.parms["user_id"]
+		session.parms = {}
 		session.store()
 		response.output = str( {"succeeded":True} )
 	else:

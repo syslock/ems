@@ -5,6 +5,8 @@ from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
+from lib import publication
+publication = imp.reload( publication )
 
 def process( app ):
 	query = app.query
@@ -102,15 +104,21 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 	else:
 		filtered_object_ids = []
 		# Zugriffsprüfung und ggf. Filterung für gezielte Objektanfragen:
+		result_pos = 0
 		for object_id in object_ids:
-			if not app.user.can_read(object_id) \
-			or ("write" in need_permissions and not app.user.can_write(object_id)) \
-			or ("delete" in need_permissions and not app.user.can_delete(object_id)):
-				if access_errors:
+			if not limit or len(filtered_object_ids)<limit:
+				if app.user.can_read(object_id) \
+				and ("write" not in need_permissions or app.user.can_write(object_id)) \
+				and ("delete" not in need_permissions or app.user.can_delete(object_id)):
+					result_pos += 1
+					if result_pos>offset:
+						filtered_object_ids.append( object_id )
+				elif access_errors:
 					raise errors.PrivilegeError()
 				else:
 					continue # aktuelle object_id verwerfen
-			filtered_object_ids.append( object_id )
+			else:
+				break
 		object_ids = filtered_object_ids
 	view = "all"
 	if "view" in query.parms:
@@ -205,6 +213,14 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					if not result:
 						raise errors.ObjectError( "Missing object data" )
 					obj["name"] = result[0]
+			if object_type == publication.Publication.media_type:
+				pub_obj = publication.Publication( app=app, object_id=object_id )
+				data = str(pub_obj.get_data())
+				if view=="data":
+					response.output += data
+					response.media_type = object_type
+				elif view=="all":
+					obj["data"] = data
 			if db_object.File.supports( app, object_type ):
 				file_obj = db_object.File( app, object_id=object_id )
 				if view=="data":

@@ -5,6 +5,8 @@ from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
+from lib import publication
+publication = imp.reload( publication )
 
 def process( app ):
 	"""Speichert neue Datenobjekte (Texte bzw. Textbestandteile, später evtl. 
@@ -97,6 +99,8 @@ def store_object( app, file_item=None ):
 			obj = db_object.HTML( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		elif media_type == user.User.media_type and object_id:
 			obj = user.User( app, user_id=object_id )
+		elif media_type == publication.Publication.media_type:
+			obj = publication.Publication( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		elif file_item!=None:
 			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
 			# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:

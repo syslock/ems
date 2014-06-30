@@ -100,13 +100,17 @@ class DBObject:
 							[self.id, title] )
 			self.app.db.commit()
 	
-	def closest_parents( self, child_ids=None ):
+	def closest_parents( self, child_ids=None, parent_type=None ):
 		result = set()
 		if child_ids==None:
 			child_ids = {self.id}
 		parent_condition = "child_id in %s" % str(tuple(child_ids)).replace(",)",")")
+		if parent_type:
+			parent_condition += " and p.type='%s'" % (parent_type.replace("'","''"))
 		c = self.app.db.cursor()
-		c.execute( """select distinct parent_id from membership where %s -- closest_parents""" % (parent_condition) )
+		c.execute( """select distinct parent_id from membership
+						inner join objects p on p.id=parent_id
+						where %s -- closest_parents""" % (parent_condition) )
 		for row in c:
 			parent_id = row[0]
 			result.add( parent_id )
@@ -136,6 +140,26 @@ class DBObject:
 			child_id = row[0]
 			result += [child_id] + self.resolve_children( child_id )
 		return result
+	
+	ACCESS_MASKS={ "read" : 1, "write" : 2 }
+	def grant_read( self, object_id ):
+		self.grant_access( object_id, "read" )
+	def grant_write( self, object_id ):
+		self.grant_access( object_id, "write" )
+	def grant_access( self, object_id, access_type ):
+		if access_type not in ("read", "write"):
+			raise NotImplementedError( "Unsupported access_type" )
+		access_mask = self.ACCESS_MASKS[ access_type ]
+		c = self.app.db.cursor()
+		c.execute( """select * from permissions where subject_id=? and object_id=?""", [self.id, object_id] )
+		if c.fetchone()!=None:
+			c.execute( """update permissions set access_mask=(access_mask|%(access_mask)d) where subject_id=? and object_id=?""" \
+							% locals(), [self.id, object_id] )
+			self.app.db.commit()
+		else:
+			c.execute( """insert into permissions (subject_id, object_id, access_mask) values (?,?,%(access_mask)d)""" \
+							% locals(), [self.id, object_id] )
+			self.app.db.commit()
 
 
 def get_root_object( app ):

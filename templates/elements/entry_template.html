@@ -3,8 +3,13 @@
 				<span class="entry-decorator-top"></span>
 				<div class="entry-data">
 					<div class="entry-heading">
-						<span class="entry-title-label">${_("Betreff:")}</span>
-						<div class="entry-title"></div>
+						<div class="entry-title-line">
+							<div class="entry-title-label">${_("Betreff:")}</div>
+							<div class="entry-title"></div>
+							<div class="entry-publication">
+								<a class="entry-publication-link">${_("Externer Link")}</a>
+							</div>
+						</div>
 						<span class="entry-time">
 							<span class="entry-ctime">
 								<span class="entry-ctime-label">${_("Erstellt:")}</span>
@@ -27,6 +32,11 @@
 						<button class="entry-response-button" onclick="new_response(global_user, this)">
 							${_("Antworten")}
 						</button>
+						<span class="require-permission-write-entry">
+							<button class="entry-link-button" onclick="link_external(this)">
+								${_("Extern verlinken")}
+							</button>
+						</span>
 						<span class="require-permission-write-entry">
 							<button class="entry-edit-button" onclick="edit_entry(this)">
 								${_("Bearbeiten")}

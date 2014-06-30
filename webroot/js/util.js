@@ -1,16 +1,20 @@
-function open_page( doc )
-{
-	document.location.href = doc
+function open_page( doc ) {
+	document.location.href = doc;
 }
 
-function open_tpl( tpl )
-{
-	/* FIXME: Wie können wir den WSGI-Handler konfigurierbar machen? */
-	open_page( 'ems.wsgi?do=render&tpl='+tpl )
+function get_tpl_url( tpl ) {
+	var l = document.location;
+	var pathname = l.pathname.replace(/\/$/,"/ems.wsgi")
+	debugger;
+	return l.protocol+"//"+l.hostname+l.port+pathname+'?do=render&tpl='+tpl;
+}
+
+function open_tpl( tpl ) {
+	open_page( get_tpl_url(tpl) );
 }
 
 function reload_page() {
-	document.location.href = document.location.href
+	document.location.href = document.location.href;
 }
 
 function parse_result( result )
@@ -33,6 +37,8 @@ function parse_result( result )
 	{
 		if( result.error.message ) show_message( result.error.message );
 		if( result.error.trace ) show_error( result.error.trace.join("") );
+		console.log( result.error.message );
+		console.log( result.error.trace.join("") );
 	}
 	return result;
 }

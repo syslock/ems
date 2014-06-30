@@ -18,7 +18,6 @@ def myapp( environ, start_response ):
 	app = application.Application( environ, start_response, name="ems", path=script_dir )
 	query = app.query
 	response = app.response
-	session = app.session
 	
 	if( "lang" in query.parms ):
 		lang = query.parms["lang"]
@@ -32,9 +31,6 @@ def myapp( environ, start_response ):
 	except FileNotFoundError:
 		gettext.install( "ems", localedir=os.path.join(script_dir,"locale"), codeset="utf-8" )
 	
-	# Session-Cookies aktualisieren:
-	response.cookies.update( session.get_cookies() )
-	
 	if "do" in query.parms:
 		mod_name = query.parms["do"]
 		if "." in mod_name:
@@ -44,6 +40,9 @@ def myapp( environ, start_response ):
 		module.process( app )
 	else:
 		raise errors.ParameterError()
+	
+	# Session-Cookies aktualisieren:
+	response.cookies.update( app.session.get_cookies() )
 	
 	return response.finalize()
 

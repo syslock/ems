@@ -73,6 +73,9 @@ body {
 .entry-title-label {
 	display: none;
 }
+.entry-title-line{
+	display: block;
+}
 .entry-title {
 	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
 	font-weight: bold;
@@ -83,6 +86,17 @@ body {
 }
 .entry-title:focus {
 	border: 2px solid orange;
+}
+.entry-publication {
+	display: none;
+	position: relative;
+	float:right;
+	top: -2em;
+	background-color: rgba(255,255,255,0.9);
+	border-radius: 5px;
+}
+.entry-publication-active {
+	display: inline;
 }
 .entry-time {
 	position: absolute;

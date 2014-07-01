@@ -346,7 +346,7 @@ function show_object( parms )
 			$(dom_parent).append( obj.dom_object );
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
-		if( dom_parent ) {
+		if( dom_parent && obj.title ) {
 			obj.dom_object = $('#entry-tag-template').clone().attr( {id: undefined, title: obj.title} )[0];
 			$(obj.dom_object).data( {obj: obj} );
 			var tag_label_obj = $('.entry-tag-label', obj.dom_object)[0];
@@ -938,7 +938,7 @@ function show_tag_selection( button ) {
 				class: 'entry-tag entry-tags-selection-item', title: 'Neues Thema',
 			})[0];
 			$(new_tag_input).data( {obj: {type:'application/x-obj.tag'}} );
-			new_tag_input.onkeypress = function(event) { onenter(event,add_tag,this); };
+			new_tag_input.onkeypress = function(event) { if(this.value) onenter(event,add_tag,this); };
 			$(tags_selection).append( new_tag_input );
 			
 			for( var i in result ) {
@@ -966,7 +966,7 @@ function add_tag( button ) {
 	tag = tag ? tag : button;
 	var tag_id = $(tag).data().obj.id;
 	var tag_id_query = tag_id ? "&id="+String(tag_id) : "";
-	var tag_title_query = tag_id ? "" : "&title="+$(tag)[0].value;
+	var tag_title_query = tag_id ? "" : tag.value ? "&title="+tag.value : "";
 	var tag_type_query = tag_id ? "" : "&type="+$(tag).data().obj.type;
 	var tags_selection = $(button).closest('.entry-tags-selection')[0];
 	var tags_content = $('.entry-edit-tools .entry-tags-content',entry)[0];

@@ -34,6 +34,8 @@
 						{
 							result = parse_result( result )
 							global_user = result[0]
+							player_net.connect();
+							player_net.init_my_player( global_user );
 						});
 					}
 					filters = { ids:{}, parent_ids:{}, child_ids:{} }

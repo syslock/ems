@@ -14,22 +14,24 @@ errors = imp.reload( errors )
 #	SetEnvIf Upgrade websocket HAVE_UpgradeWebSocket
 #	RequestHeader set Content-Length 4294967295 env=HAVE_UpgradeWebSocket
 class WebSocket:
-	def __init__( self, app, endpoint ):
+	def __init__( self, app, socket, endpoint=None ):
 		if not self.can_handle( app.query ):
 			raise errors.ParameterError( "HTTP Request does not seem to be a WebSocket handshake initiation" )
-		if not isinstance( endpoint, threading.Thread ):
+		if endpoint and not isinstance( endpoint, threading.Thread ):
 			raise errors.InternalProgramError( "WebSocket endpoint needs to be an instance of Thread" )
-		if not hasattr( endpoint, "stop" ):
+		if endpoint and not hasattr( endpoint, "stop" ):
 			self.app.trace( "Warning: WebSocket endpoint %s should implement stop()" % str(endpoint) )
 		self.app = app
-		endpoint.websocket = self
+		if endpoint:
+			endpoint.websocket = self
 		self.endpoint = endpoint
 		if hasattr(endpoint,"onmessage"):
 			self.onmessage = endpoint.onmessage
 		else:
 			self.onmessage = lambda x: None
 		self.prepare_handshake()
-		self.input = app.query.environ["wsgi.input"]
+		#self.input = app.query.environ["wsgi.input"]
+		self.socket = socket
 		self.client_data = b""
 		self.client_data_semaphore = threading.Semaphore()
 		self.server_data = b""
@@ -38,7 +40,6 @@ class WebSocket:
 		self.quitting = False
 		self.client_reader = threading.Thread( target=self.read_client_bytes )
 		self.client_reader.start()
-		self.endpoint.start()
 	
 	def prepare_handshake( self ):
 		response = self.app.response
@@ -47,11 +48,17 @@ class WebSocket:
 		# https://tools.ietf.org/html/rfc6455
 		ws_guid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 		ws_accept = base64.b64encode( hashlib.sha1( (ws_key+ws_guid).encode("utf-8") ).digest() ).decode("utf-8")
-		response.response_headers.append( ('Sec-WebSocket-Accept', ws_accept) )
-		response.response_headers.append( ('Connection', 'Upgrade') )
 		response.response_headers.append( ('Upgrade', 'websocket') )
-		response.content_length = 2**32-1 # FIXME: Hack to prevent Transfer-Coding: chunked
+		response.response_headers.append( ('Connection', 'Upgrade') )
+		response.response_headers.append( ('Sec-WebSocket-Accept', ws_accept) )
 		response.status = '101 Switching Protocols'
+	
+	def send_handshake( self ):
+		response = self.app.response
+		self.socket.send( ("HTTP/1.1 "+response.status+"\r\n").encode("utf-8") )
+		for h in response.response_headers:
+			self.socket.send( (": ".join(h)+"\r\n").encode("utf-8") )
+		self.socket.send( b"\r\n" )
 	
 	@classmethod
 	def can_handle( cls, query ):
@@ -139,7 +146,7 @@ class WebSocket:
 	def read_client_bytes( self ):
 		while not self.quitting:
 			try:
-				byte = self.input.read(1)
+				byte = self.socket.recv(1)
 			except OSError as e:
 				self.app.trace( "WebSocket client %s hung up? Initiating server-side shutdown." % (self.app.query.remote_addr) )
 				self.quitting = True
@@ -200,8 +207,9 @@ class WebSocket:
 	def close( self ):
 		self.app.trace( "WebSocket-Shutdown (closing %s)..." % (self.app.query.remote_addr) )
 		# request Termination on the server-side application endpoint:
-		self.endpoint.stop()
-		self.endpoint.join() # wait on the endpoint thread
+		if endpoint:
+			self.endpoint.stop()
+			self.endpoint.join() # wait on the endpoint thread
 		# signalize Termination to input and output subroutines:
 		self.quitting = True
 		self.client_reader.join() # wait on client reader thread

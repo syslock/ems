@@ -13,6 +13,12 @@ function open_tpl( tpl ) {
 	open_page( get_tpl_url(tpl) );
 }
 
+function get_ws_url( path ) {
+	var l = document.location;
+	var port = 8888;
+	return "ws://"+l.hostname+":"+String(port)+( path ? path : "" );
+}
+
 function reload_page() {
 	document.location.href = document.location.href;
 }

@@ -111,7 +111,7 @@ function create_download( obj ) {
 		src: 'tango-scalable/actions/document-save.svg', 
 		class: 'download-icon' 
 	}));
-	link.append( '<span class="download-title">'+obj.title+'</span><span class="download-size">('+prettyprint_size(obj.size)+')</span>' );
+	link.append( '<div class="download-title">'+obj.title+'</div><div class="download-size">('+prettyprint_size(obj.size)+')</div>' );
 	link = link[0];
 	$(link).data( {obj: obj} );
 	obj.dom_object = link;
@@ -188,24 +188,21 @@ function show_object( parms )
 		}
 	} else if( obj.type == "application/x-obj.entry" ) {
 		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
+		var entry_author = $('.entry-author', item)[0];
 		if( dom_parent ) {
 			for( var i in obj.children ) {
 				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
-			}
-			for( var i in obj.parents ) {
-				var parent = obj.parents[i];
-				if( parent.type == "application/x-obj.group" ) show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
 			}
 			var user_found = false;
 			for( var i in obj.parents ) {
 				var parent = obj.parents[i];
 				if( parent.type == "application/x-obj.user" ) {
 					user_found = true;
-					show_object( {obj:parent, dom_child:item, limit:limit, duplicates:true, update:update} );
+					show_object( {obj:parent, dom_parent:entry_author, limit:limit, duplicates:true, update:update} );
 				}
 			}
 			if( !user_found ) {
-				show_object( {obj:{id:3}, dom_child:item, limit:limit, duplicates:true, update:update} );
+				show_object( {obj:{id:3}, dom_parent:entry_author, limit:limit, duplicates:true, update:update} );
 			}
 		}
 	} else if( obj.type == "text/plain" ) {
@@ -229,17 +226,17 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {
-			var video_box = $('<span>').attr( {class: 'entry-media'} );
+			var video_box = $('<div>').attr( {class: 'entry-media'} );
 			obj.dom_object = video_box;
 			$(obj.dom_object).data( {obj: obj} );
-			var status = $('<span>').attr( {class: 'video-status'} )[0];
+			var status = $('<div>').attr( {class: 'video-status'} )[0];
 			$(video_box).append( status );
 			var video = $('<video>').attr( {class: 'video', controls: '', preload: 'none'} )[0];
 			video.onplay = function() { $(status).hide(); };
 			video.onmouseover = function() { video.preload='metadata'; };
 			$(video_box).append( video );
 			$(status).append( $('<img>').attr({class: 'video-status-image', src: 'tango-scalable/categories/applications-system.svg'}) );
-			var status_text = $('<span>').attr( {class: 'video-status-text'} );
+			var status_text = $('<div>').attr( {class: 'video-status-text'} );
 			$(status).append( status_text );
 			$(video_box).append( status );
 			var variants = $('<div>').attr( {class: 'video-variants'} )[0];
@@ -289,7 +286,7 @@ function show_object( parms )
 							var conv_obj = result.objects[i];
 							if( conv_obj.type.match('^video/.*') ) {
 								if( conv_obj.size>0 ) {
-									$(status_text).append( $('<span>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
+									$(status_text).append( $('<div>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
 									ready_source_count++;
 									// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
 									if( !video.src && video.canPlayType(conv_obj.type) ) {
@@ -298,16 +295,16 @@ function show_object( parms )
 									}
 									identification_request_list.push( conv_obj.id );
 								} else {
-									$(status_text).append( $('<span>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
+									$(status_text).append( $('<div>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
 									stale_source_count++;
 								}
 							} else if( conv_obj.type.match('^image/.*') ) {
 								if( conv_obj.size>0 ) {
-									$(status_text).append( $('<span>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
+									$(status_text).append( $('<div>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
 									ready_source_count++;
 									$(video).attr( {poster: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'} );
 								} else {
-									$(status_text).append( $('<span>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
+									$(status_text).append( $('<div>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
 									stale_source_count++;
 								}
 							}
@@ -420,7 +417,7 @@ function apply_page_filter( parms ) {
 		for( var xid in filters[filter_type] ) {
 			var obj = filters[filter_type][xid];
 			if( obj ) {
-				var filter_item = $('<span>').attr( {'class':(Number(xid)<0 ? 'filter-item filter-item-exclude' : 'filter-item filter-item-include')} )[0];
+				var filter_item = $('<div>').attr( {'class':(Number(xid)<0 ? 'filter-item filter-item-exclude' : 'filter-item filter-item-include')} )[0];
 				$(filter_item).text( obj.title ? obj.title : obj.nick ? obj.nick : filter_type+String(xid) );
 				$(filter_item).data( {obj: obj, filter_type: filter_type, filter_id: xid} );
 				obj.dom_object = filter_item;
@@ -495,7 +492,8 @@ function edit_entry( button )
 	var std_tools = $( ".entry-tools", entry )[0];
 	$(std_tools.style).hide();
 	var edit_tools = $( ".entry-edit-tools", entry )[0];
-	$(edit_tools).show();
+	//$(edit_tools).show();
+	$(edit_tools).css( {display:'inline-block'} );
 	// Themen des Beitrages kopieren:
 	$(".entry-tags",edit_tools).empty().append( $(".entry-tags",std_tools).clone(true,true).contents() );
 }
@@ -599,7 +597,7 @@ function save_entry( button ) {
 	var entry = $(button).closest(".ems-entry")[0];
 	var upload_dialog = $( ".upload-dialog", entry )[0];
 	if( upload_dialog ) {
-		$( "button", upload_dialog ).wrap( $("<span>").addClass("highlight") );
+		$( "button", upload_dialog ).wrap( $("<div>").addClass("highlight") );
 		return;
 	}
 	$(entry).removeClass("new-entry");
@@ -715,7 +713,8 @@ function new_response( user, button ) {
 		$(".entry-tags",new_tools).empty().append( $(".entry-tags",ref_tools).clone(true,true).contents() );
 	}
 	new_entry.style.display="";
-	user_element = new_item( {obj:user, duplicates: true, dom_child: new_entry} );
+	var entry_author = $( ".entry-author", new_entry )[0];
+	user_element = new_item( {obj:user, duplicates: true, dom_parent: entry_author} );
 	if( user_element && user.avatar_id ) {
 		replace_user_image( user_element, user.avatar_id );
 	}
@@ -1024,7 +1023,7 @@ function link_external( button, recursive ) {
 		if( result.length ) {
 			var pub = result[0];
 			show_object( {dom_parent: entry, obj: pub, update: true} );
-			$( ".entry-publication-link", entry ).wrap( $("<span>").addClass("highlight") );
+			$( ".entry-publication-link", entry ).wrap( $("<div>").addClass("highlight") );
 		} else if( !recursive ) {
 			$.get( "ems.wsgi?do=store&type=application/x-obj.publication&parent_id="+String(entry_id),
 			function( result ) {

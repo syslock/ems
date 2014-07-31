@@ -18,15 +18,15 @@
 					global_status = result
 					if( !result.login || result.login.nick=='anonymous' ) {
 						$(".menu-login")[0].style.display="";
-						$(".menu-nick-caption")[0].style.display="none";
-						$(".menu-nick")[0].innerHTML="";
+						$(".menu-account-info")[0].style.display="none";
+						$(".menu-account-nick")[0].innerHTML="";
 						$(".menu-logout")[0].style.display="none";
 					}
 					if( result.login ) {
 						if( result.login.nick!='anonymous' ) {
 							$(".menu-login")[0].style.display="none";
-							$(".menu-nick-caption")[0].style.display="";
-							$(".menu-nick")[0].innerHTML=result.login.nick;
+							$(".menu-account-info")[0].style.display="";
+							$(".menu-account-nick")[0].innerHTML=result.login.nick;
 							$(".menu-logout")[0].style.display="";
 						} 
 						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
@@ -81,19 +81,19 @@
 		</script>
 	</head>
 	<body>
-		<span class="page-menu">
+		<div class="page-menu">
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename" />
-			<span class="page-widgets">
+			<div class="page-widgets">
 				<button class="new-entry-button" onclick="new_response(global_user)">
 					${_("Beitrag erstellen")}
 				</button>
-				<span class="page-filter">
-					<span class="page-filter-title">${_("Filter:")}</span>
-					<span class="page-filter-view"></span>
-				</span>
-				<span class="page-events"></span>
-			</span>
-		</span>
+				<div class="page-filter">
+					<div class="page-filter-title">${_("Filter:")}</div>
+					<div class="page-filter-view"></div>
+				</div>
+				<div class="page-events"></div>
+			</div>
+		</div>
 		<div class="ems-content"></div>
 		<%include file="/elements/status_box.html" />
 		<%include file="/elements/group_template.html" />

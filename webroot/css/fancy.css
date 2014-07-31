@@ -19,9 +19,11 @@ body {
 	margin-bottom: 10px;
 }
 .menu-title {
+	display: inline-block;
 	font-weight: bold;
 }
 .menu-widgets {
+	display: inline-block;
 	float: right;
 	margin-right: 20px;
 	font-size: small;
@@ -30,7 +32,29 @@ body {
 	border-left: 1px solid rgba(223,223,223,1);
 	border-radius: 5px;
 }
-.menu-nick {
+.menu-language-widget {
+	display: inline-block;
+}
+.menu-language-label {
+	display: inline-block;
+}
+.menu-style-widget {
+	display: inline-block;
+}
+.menu-style-label {
+	display: inline-block;
+}
+.menu-login-widget {
+	display: inline-block;
+}
+.menu-account-info {
+	display: inline-block;
+}
+.menu-account-label {
+	display: inline-block;
+}
+.menu-account-nick {
+	display: inline-block;
 	font-weight: bold;
 }
 
@@ -41,24 +65,31 @@ body {
 
 
 .ems-item {
-	display: block;
+	display: inline;
 }
 
 /* ------------------------------------------------------------------------- */
 /* --------------------------------- Entries ------------------------------- */
 /* ------------------------------------------------------------------------- */
 .ems-entry {
+	display: block;
+}
+.entry-metadata {
+	width: 110px;
 	display: inline;
+}
+.entry-author {
+	display: inline-block;
 }
 .entry-decorator-left {
 	position: absolute;
 	margin-top: 30px;
-	margin-left: -16px;
+	margin-left: 90px;
 	width: 35px;
 	height: 52px;
 	background:url(../images/speech-connector.svg) no-repeat 0 0;
 }
-.entry-data {
+.entry-bubble {
 	display: inline-block;
 	vertical-align: top;
 	margin-left: 17px;
@@ -99,9 +130,10 @@ body {
 	display: inline;
 }
 .entry-time {
+	display: inline-block;
 	position: absolute;
-	margin-top: 80px;
-	margin-left: -130px;
+	margin-top: 140px;
+	left: 10px;
 }
 .entry-mtime {
 	display: block;
@@ -192,6 +224,7 @@ body {
 }
 
 .entry-media {
+	display: inline-block;
 	max-width: 100%;
 	position: relative;
 }
@@ -287,6 +320,7 @@ body {
 	display: none;
 }
 .video-variant .download-size {
+	display: inline;
 	margin-left: -3px;
 	font-weight: normal;
 	font-size: x-small;
@@ -296,13 +330,16 @@ body {
 /* ------------------------------- New Entries ----------------------------- */
 /* ------------------------------------------------------------------------- */
 .new-entry .entry-decorator-left {
+	position: absolute;
+	margin-top: 30px;
+	margin-left: 90px;
 	width: 20px;
 	height: 20px;
 	background-color: white;
 	border: 2px solid orange;
 	border-radius: 50%;
 }
-.new-entry .entry-data {
+.new-entry .entry-bubble {
 	border: 2px solid orange;
 }
 .ems-item:hover .new-entry .entry-tools {
@@ -484,6 +521,9 @@ input.entry-tag {
 /* ------------------------------------------------------------------------- */
 /* ---------------------------------- Users -------------------------------- */
 /* ------------------------------------------------------------------------- */
+.ems-user {
+	display: inline-block;
+}
 .user-image {
 	display: block;
 	width: 100px;
@@ -567,7 +607,7 @@ input.entry-tag {
 	padding: 10px;
 	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
 }
-.user-password-dialog span {
+.user-password-dialog div {
 	display: block;
 	margin-bottom: 15px;
 }
@@ -588,7 +628,7 @@ input.entry-tag {
 	padding: 10px;
 	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
 }
-.user-image-dialog span {
+.user-image-dialog div {
 	display: block;
 	margin-bottom: 15px;
 }
@@ -636,7 +676,7 @@ input.entry-tag {
 	padding: 10px;
 	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
 }
-.user-details-dialog span {
+.user-details-dialog div {
 	display: block;
 	margin-bottom: 15px;
 }
@@ -656,7 +696,7 @@ input.entry-tag {
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
-.user-details-groups span {
+.user-details-groups div {
 	display: inline;
 	margin: 0px;
 }
@@ -669,7 +709,7 @@ input.entry-tag {
 	padding: 3px;
 }
 
-span.user-groups-selection {
+div.user-groups-selection {
 	display: block;
 	margin-top: 10px;
 	background-color: lightgreen;
@@ -819,7 +859,7 @@ span.user-groups-selection {
 	border: none;
 	padding: 0;
 	margin: 0;
-	margin-left: 15px;
+	margin-left: 10px;
 	background-color: transparent;
 }
 .upload-manual {
@@ -1047,13 +1087,15 @@ span.user-groups-selection {
 	padding: 0;
 }
 .page-events {
+	display: inline-block;
 	position: absolute;
 	bottom: 0px;
 	z-index: -1;
 	white-space: nowrap;
 }
 .page-events .ems-item {
-	display: inline;
+	display: inline-block;
+	padding-left: 5px;
 }
 .ems-minion .video {
 	min-width: 0px;
@@ -1094,3 +1136,16 @@ span.user-groups-selection {
 .login-form>button, .register-form>button {
 	margin-top: 1em;
 }
+.login-nick-label {
+	display: inline-block;
+}
+.login-password-label {
+	display: inline-block;
+}
+.register-password-label {
+	display: inline-block;
+}
+.register-email-label {
+	display: inline-block;
+}
+

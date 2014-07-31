@@ -14,7 +14,7 @@ var Minions = {
 			}
 			if( !minion_obj ) {
 				// Neues Minion anlegen:
-				minion_obj = $('<span class="ems-minion"></span>')[0];
+				minion_obj = $('<div class="ems-minion"></div>')[0];
 				$(parms.obj.dom_object).wrap( minion_obj );
 				new_item( {obj:{type: "application/x-obj.minion"}, dom_object: minion_obj} );
 				var minion_id = $(minion_obj).data().obj.id;

@@ -4,9 +4,9 @@ function open_page( doc ) {
 
 function get_tpl_url( tpl ) {
 	var l = document.location;
+	var port = l.port ? ":"+String(l.port) : "";
 	var pathname = l.pathname.replace(/\/$/,"/ems.wsgi")
-	debugger;
-	return l.protocol+"//"+l.hostname+l.port+pathname+'?do=render&tpl='+tpl;
+	return l.protocol+"//"+l.hostname+port+pathname+'?do=render&tpl='+tpl;
 }
 
 function open_tpl( tpl ) {

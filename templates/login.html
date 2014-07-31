@@ -35,24 +35,24 @@
 		</script>
 	</head>
 	<body>
-		<span class="page-menu">
+		<div class="page-menu">
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename+' - '+_('Anmeldung')" />
-			<span class="page-widgets">
+			<div class="page-widgets">
 				<%include file="/elements/overview_button.html" />
-			</span>
-		</span>
+			</div>
+		</div>
 		<div class="ems-content ems-login-content">
 			<div class="login-form">
 				<div class="login-nick">
-					<span class="login-nick">
+					<div class="login-nick-label">
 						${_("Benutzername:")}
-					</span>
+					</div>
 					<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
 				</div>
 				<div class="login-password">
-					<span class="login-password">
+					<div class="login-password-label">
 						${_("Passwort:")}
-					</span>
+					</div>
 					<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
 				</div>
 				<button class="login-submit" onclick="login()">
@@ -64,15 +64,15 @@
 			</div>
 			<div class="register-form" style="display:none">
 				<div class="register-password">
-					<span class="register-password">
+					<div class="register-password-label">
 						${_("Passwort wiederholen:")}
-					</span>
+					</div>
 					<input type="password" class="register-password"/>
 				</div>
 				<div class="register-email">
-					<span class="register-email">
+					<div class="register-email-label">
 						${_("E-Mail-Adresse:")}
-					</span>
+					</div>
 					<input type="text" class="register-email"/>
 				</div>
 				<button class="register-submit" onclick="register()">

@@ -18,8 +18,8 @@
 					if( result.login && result.login.nick!='anonymous' )
 					{
 						$(".menu-login")[0].style.display="none";
-						$(".menu-nick-caption")[0].style.display="";
-						$(".menu-nick")[0].innerHTML=result.login.nick;
+						$(".menu-account-info")[0].style.display="";
+						$(".menu-account-nick")[0].innerHTML=result.login.nick;
 						$(".menu-logout")[0].style.display="";
 						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
 						function(result)
@@ -178,24 +178,24 @@
 		</script>
 	</head>
 	<body>
-		<span class="page-menu">
+		<div class="page-menu">
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename+' - '+_('Bewerbung')" />
-			<span class="page-widgets">
+			<div class="page-widgets">
 				<%include file="/elements/overview_button.html" />
-			</span>
-		</span>
+			</div>
+		</div>
 		<div class="ems-content" style="display:none" >
 			<div class="application-study">
 				<div class="application-field" id="application-university-name">
-					<span class="application-label" id="application-university-name-label">${_("Deine Universität")}</span>
+					<div class="application-label" id="application-university-name-label">${_("Deine Universität")}</div>
 					<input class="application-input" id="application-university-name-input" />
 				</div>
 				<div class="application-field" id="application-study-field">
-					<span class="application-label" id="application-study-field-label">${_("Dein Studienfach")}</span>
+					<div class="application-label" id="application-study-field-label">${_("Dein Studienfach")}</div>
 					<input class="application-input" id="application-study-field-input" />
 				</div>
 				<div class="application-field" id="application-study-finish">
-					<span class="application-label" id="application-study-finish-label">${_("Voraussichtlicher Abschlusszeitpunkt")}</span>
+					<div class="application-label" id="application-study-finish-label">${_("Voraussichtlicher Abschlusszeitpunkt")}</div>
 					<select class="application-input" id="application-study-finish-year-input">
 						% for year in range(2013,2021):
 							<option value="${year}">${year}</option>
@@ -209,7 +209,7 @@
 			<div class="ems-entry" id="application-statement" >
 				<div class="entry-heading">
 					${_("Titel:")}
-					<span class="entry-title">Statement</span>
+					<div class="entry-title">Statement</div>
 				</div>
 				<div class="entry-content"></div>
 				<button class="entry-edit" id="application-statement-input" onclick="create_or_edit_entry(this)">
@@ -222,7 +222,7 @@
 			<div class="ems-entry" id="application-motivation" >
 				<div class="entry-heading">
 					${_("Titel:")}
-					<span class="entry-title">Motivation</span>
+					<div class="entry-title">Motivation</div>
 				</div>
 				<div class="entry-content"></div>
 				<button class="entry-edit" id="application-motivation-input" onclick="create_or_edit_entry(this)">
@@ -235,7 +235,7 @@
 			<div class="ems-entry" id="application-motto" >
 				<div class="entry-heading">
 					${_("Titel:")}
-					<span class="entry-title">Motto</span>
+					<div class="entry-title">Motto</div>
 				</div>
 				<div class="entry-content"></div>
 				<button class="entry-edit" id="application-motto-input" onclick="create_or_edit_entry(this)">
@@ -247,16 +247,16 @@
 			</div>
 			<div class="application-talk">
 				<div class="application-field" id="application-talk-request">
-					<span class="application-label" id="application-talk-request-label">${_("Möchtest du einen Vortrag halten?")}</span>
-					<span class="application-input" id="application-talk-request-input">
+					<div class="application-label" id="application-talk-request-label">${_("Möchtest du einen Vortrag halten?")}</div>
+					<div class="application-input" id="application-talk-request-input">
 						<input type="radio" name="application-talk-request-input" id="application-talk-request-true" value="true" onchange="toggle_abstract(this)" />${_("Ja")}
 						<input type="radio" name="application-talk-request-input" id="application-talk-request-false" value="false" onchange="toggle_abstract(this)" checked="true" />${_("Nein")}
-					</span>
+					</div>
 				</div>
 				<div class="ems-entry" id="application-abstract" style="display:none">
 					<div class="entry-heading">
 						${_("Vortragstitel:")}
-						<span class="entry-title"></span>
+						<div class="entry-title"></div>
 					</div>
 					<!--<div class="entry-content"></div>-->
 					<button class="entry-edit" id="application-abstract-input" onclick="create_or_edit_entry(this)">
@@ -269,7 +269,7 @@
 			</div>
 			<div class="application-wishes">
 				<div class="application-field" id="application-accommodation">
-					<span class="application-label" id="application-accommodation-label">${_("Unterbringungsuwnsch")}</span>
+					<div class="application-label" id="application-accommodation-label">${_("Unterbringungsuwnsch")}</div>
 					<select class="application-input" id="application-accommodation-input">
 						<option value="any">${_("egal")}</option>
 						<option value="male">${_("männlicher Host")}</option>
@@ -277,7 +277,7 @@
 					</select>
 				</div>
 				<div class="application-field" id="application-food">
-					<span class="application-label" id="application-food-label">${_("Verpflegungswunsch")}</span>
+					<div class="application-label" id="application-food-label">${_("Verpflegungswunsch")}</div>
 					<select class="application-input" id="application-food-input">
 						<option value="any">${_("egal")}</option>
 						<option value="vegetarian">${_("vegetarisch")}</option>

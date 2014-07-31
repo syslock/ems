@@ -1,7 +1,23 @@
 			<div id="ems-entry-template" class="ems-entry" style="display:none">
-				<span class="entry-decorator-left"></span>
-				<span class="entry-decorator-top"></span>
-				<div class="entry-data">
+				<div class="entry-decorator-left"></div>
+				<div class="entry-decorator-top"></div>
+				<div class="entry-metadata">
+					<div class="entry-author">
+					</div>
+					<div class="entry-time">
+						<div class="entry-ctime">
+							<div class="entry-ctime-label">${_("Erstellt:")}</div>
+							<div class="entry-ctime-day"></div>
+							<div class="entry-ctime-time"></div>
+						</div>
+						<div class="entry-mtime">
+							<div class="entry-mtime-label">${_("Zuletzt geändert:")}</div>
+							<div class="entry-mtime-day"></div>
+							<div class="entry-mtime-time"></div>
+						</div>
+					</div>
+				</div>
+				<div class="entry-bubble">
 					<div class="entry-heading">
 						<div class="entry-title-line">
 							<div class="entry-title-label">${_("Betreff:")}</div>
@@ -10,91 +26,79 @@
 								<a class="entry-publication-link">${_("Externer Link")}</a>
 							</div>
 						</div>
-						<span class="entry-time">
-							<span class="entry-ctime">
-								<span class="entry-ctime-label">${_("Erstellt:")}</span>
-								<span class="entry-ctime-day"></span>
-								<span class="entry-ctime-time"></span>
-							</span>
-							<span class="entry-mtime">
-								<span class="entry-mtime-label">${_("Zuletzt geändert:")}</span>
-								<span class="entry-mtime-day"></span>
-								<span class="entry-mtime-time"></span>
-							</span>
-						</span>
 					</div>
 					<div class="entry-content"></div>
 				</div>
-				<span class="entry-tools">
-					<span class="entry-tools-decorator-left"></span>
-					<span class="entry-tools-decorator-top"></span>
-					<span class="entry-tools-content">
+				<div class="entry-tools">
+					<div class="entry-tools-decorator-left"></div>
+					<div class="entry-tools-decorator-top"></div>
+					<div class="entry-tools-content">
 						<button class="entry-response-button" onclick="new_response(global_user, this)">
 							${_("Antworten")}
 						</button>
-						<span class="require-permission-write-entry">
+						<div class="require-permission-write-entry">
 							<button class="entry-link-button" onclick="link_external(this)">
 								${_("Extern verlinken")}
 							</button>
-						</span>
-						<span class="require-permission-write-entry">
+						</div>
+						<div class="require-permission-write-entry">
 							<button class="entry-edit-button" onclick="edit_entry(this)">
 								${_("Bearbeiten")}
 							</button>
-						</span>
-						<span class="require-permission-delete-entry">
+						</div>
+						<div class="require-permission-delete-entry">
 							<button class="entry-delete-button" onclick="delete_entry(this)">
 								${_("Löschen")}
 							</button>
-						</span>
-						<span class="entry-tags">
-							<span class="entry-tags-label">${_("Thema:")}</span>
+						</div>
+						<div class="entry-tags">
+							<div class="entry-tags-label">${_("Thema:")}</div>
 							<button class="entry-tags-show-selection-button" title="${_('Weiteres Thema anfügen')}" onclick="show_tag_selection(this);" >${_("...")}</button>
-							<span class="entry-tags-selection" style="display:none" ></span>
-							<span class="entry-tags-content"></span>
-						</span>
-					</span>
-					<span class="entry-tools-decorator-bottom"></span>
-					<span class="entry-tools-decorator-right"></span>
-				</span>
-				<span class="entry-edit-tools" style="display:none" >
-					<span class="entry-edit-tools-decorator-left"></span>
-					<span class="entry-edit-tools-decorator-top"></span>
-					<span class="entry-edit-tools-content">
+							<div class="entry-tags-selection" style="display:none" ></div>
+							<div class="entry-tags-content"></div>
+						</div>
+					</div>
+					<div class="entry-tools-decorator-bottom"></div>
+					<div class="entry-tools-decorator-right"></div>
+				</div>
+				<div class="entry-edit-tools" style="display:none" >
+					<div class="entry-edit-tools-decorator-left"></div>
+					<div class="entry-edit-tools-decorator-top"></div>
+					<div class="entry-edit-tools-content">
 						<button class="entry-edit-file-button" onclick="add_file( {dom_parent: $('.entry-content',$(this).closest('.ems-entry'))[0], wrap: true} )">
 							${_("Datei einfügen")}
 						</button>
-						<span class="entry-tags"></span>
+						<div class="entry-tags"></div>
 						<button class="entry-edit-send-button" onclick="save_entry(this)">
 							${_("Abschicken")}
 						</button>
 						<button class="entry-edit-discard-button" onclick="discard_response(this)">
 							${_("Verwerfen")}
 						</button>
-					</span>
-					<span class="entry-edit-tools-decorator-bottom"></span>
-					<span class="entry-edit-tools-decorator-right"></span>
-				</span>
-				<span class="entry-decorator-bottom"></span>
-				<span class="entry-decorator-right"></span>
+					</div>
+					<div class="entry-edit-tools-decorator-bottom"></div>
+					<div class="entry-edit-tools-decorator-right"></div>
+				</div>
+				<div class="entry-decorator-bottom"></div>
+				<div class="entry-decorator-right"></div>
 			</div>
 
-			<span id="entry-tag-template" class="entry-tag" style="display:none" >
-				<span class="entry-tag-tools">
-					<span class="entry-tag-tools-decorator-left"></span>
-					<span class="entry-tag-tools-decorator-top"></span>
-					<span class="entry-tag-tools-content">
-						<span class="entry-tag-tool entry-tag-tool-filter-for" title="${_('Nur Beiträge mit diesem Thema darstellen')}" >
+			<div id="entry-tag-template" class="entry-tag" style="display:none" >
+				<div class="entry-tag-tools">
+					<div class="entry-tag-tools-decorator-left"></div>
+					<div class="entry-tag-tools-decorator-top"></div>
+					<div class="entry-tag-tools-content">
+						<div class="entry-tag-tool entry-tag-tool-filter-for" title="${_('Nur Beiträge mit diesem Thema darstellen')}" >
 							<button>${_("Thema suchen")}</button>
-						</span>
-						<span class="entry-tag-tool entry-tag-tool-filter-exclude" title="${_('Beiträge mit diesem Thema ausblenden')}" >
+						</div>
+						<div class="entry-tag-tool entry-tag-tool-filter-exclude" title="${_('Beiträge mit diesem Thema ausblenden')}" >
 							<button>${_("Thema ausblenden")}</button>
-						</span>
-					</span>
-					<span class="entry-tag-tools-decorator-bottom"></span>
-					<span class="entry-tag-tools-decorator-right"></span>
-				</span>
-				<span class="entry-tag-label"></span>
+						</div>
+					</div>
+					<div class="entry-tag-tools-decorator-bottom"></div>
+					<div class="entry-tag-tools-decorator-right"></div>
+				</div>
+				<div class="entry-tag-label"></div>
 				<button class="entry-tag-add" style="display:none" onclick="add_tag(this)">${_("+")}</button>
 				<button class="entry-tag-remove" style="display:none" onclick="remove_tag(this)">${_("-")}</button>
-			</span>
+			</div>

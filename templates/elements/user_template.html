@@ -1,109 +1,108 @@
 			<div id="ems-user-template" class="ems-user" style="display:none">
-				<span class="user-heading">
-					<span class="user-image"></span>
-					<span class="user-nick-label">${_("Nutzer:")}</span>
-					<span class="user-nick"></span>
-				</span>
-				<span class="user-tools">
-					<span class="user-tools-decorator-left"></span>
-					<span class="user-tools-decorator-top"></span>
-					<span class="user-tools-content">
+				<div class="user-heading">
+					<div class="user-image"></div>
+					<div class="user-nick-label">${_("Nutzer:")}</div>
+					<div class="user-nick"></div>
+				</div>
+				<div class="user-tools">
+					<div class="user-tools-decorator-left"></div>
+					<div class="user-tools-decorator-top"></div>
+					<div class="user-tools-content">
 						<button class="user-filter-for" onclick="filter_user_content(this,'for')" >
 							${_("Beiträge suchen")}
 						</button>
 						<button class="user-filter-exclude" onclick="filter_user_content(this,'exclude')" >
 							${_("Beiträge ausblenden")}
 						</button>
-						<span class="require-permission-write-user">
+						<div class="require-permission-write-user">
 							<button class="user-change-image" onclick="change_user_image(this)">
 								${_("Bild ändern")}
 							</button>
 							<button class="user-change-password" onclick="edit_password(this)">
 								${_("Passwort ändern")}
 							</button>
-						</span>
+						</div>
 						<button class="user-show-details" onclick="show_user_details(this)">
 							${_("Details")}
 						</button>
-					</span>
-					<span class="user-tools-decorator-bottom"></span>
-					<span class="user-tools-decorator-right"></span>
-				</span>
-				<span class="user-password-dialog" style="display:none">
-					<span class="user-old-password">
+					</div>
+					<div class="user-tools-decorator-bottom"></div>
+					<div class="user-tools-decorator-right"></div>
+				</div>
+				<div class="user-password-dialog" style="display:none">
+					<div class="user-old-password">
 						<label>${_("Altes Passwort:")}</label>
 						<input class="user-old-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my)})"></input>
-					</span>
-					<span class="user-new-password">
+					</div>
+					<div class="user-new-password">
 						<label>${_("Neues Passwort:")}</label>
 						<input class="user-new-password-input" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my)})"></input>
-					</span>
-					<span class="user-new-password-2">
+					</div>
+					<div class="user-new-password-2">
 						<label>${_("Neues Passwort (wiederholen):")}</label>
 						<input class="user-new-password-input-2" type="password" onkeypress="var my=this; onenter(event,function(){change_password(my)})"></input>
-					</span>
+					</div>
 					<button class="user-new-password-save" onclick="change_password(this)">
 						${_("Passwort ändern")}
 					</button>
 					<button class="user-new-password-cancel" onclick="$(this).closest('.user-password-dialog')[0].style.display='none';">
 						${_("Abbrechen")}
 					</button>
-				</span>
-				<span class="user-image-dialog" style="display:none">
-					<span class="user-image-manual">
+				</div>
+				<div class="user-image-dialog" style="display:none">
+					<div class="user-image-manual">
 						${_("Ziehe ein Bild auf den markierten Bereich!")}
-					</span>
-					<span class="user-image-preview">
-					</span>
-					<span class="user-image-info">
-						<span class="user-image-title"></span>
-						<span class="user-image-type"></span>
-						<span class="user-image-size"></span>
-					</span>
+					</div>
+					<div class="user-image-preview">
+					</div>
+					<div class="user-image-info">
+						<div class="user-image-title"></div>
+						<div class="user-image-type"></div>
+						<div class="user-image-size"></div>
+					</div>
 					<button class="user-image-save" onclick="confirm_user_image(this);">
 						${_("Bild verwenden")}
 					</button>
 					<button class="user-image-cancel" onclick="close_user_image_dialog(this);">
 						${_("Abbrechen")}
 					</button>
-				</span>
-				<span class="user-details-dialog" style="display:none">
-					<span class="user-details-nick">
+				</div>
+				<div class="user-details-dialog" style="display:none">
+					<div class="user-details-nick">
 						<label>${_("Nutzername")}</label>
 						<input class="user-details-nick-input" disabled="true"></input>
-					</span>
-					<span class="user-details-id">
+					</div>
+					<div class="user-details-id">
 						<label>${_("ID")}</label>
 						<input class="user-details-id-input" disabled="true"></input>
-					</span>
-					<span class="user-details-ctime">
+					</div>
+					<div class="user-details-ctime">
 						<label>${_("Erstellt")}</label>
 						<input class="user-details-ctime-input" disabled="true"></input>
-					</span>
-					<span class="user-details-mtime">
+					</div>
+					<div class="user-details-mtime">
 						<label>${_("Geändert")}</label>
 						<input class="user-details-mtime-input" disabled="true"></input>
-					</span>
-					<span class="user-details-groups">
-						<span class="user-groups-label">${_("Gruppenzuweisung:")}</span>
+					</div>
+					<div class="user-details-groups">
+						<div class="user-groups-label">${_("Gruppenzuweisung:")}</div>
 						<button class="user-groups-show-selection-button" title="${_('Weitere Gruppe zuweisen')}" onclick="show_group_selection(this);" >${_("...")}</button>
-						<span class="user-groups-selection" style="display:none" ></span>
-						<span class="user-groups-content"></span>
-					</span>
-					<span class="require-permission-delete-user">
+						<div class="user-groups-selection" style="display:none" ></div>
+						<div class="user-groups-content"></div>
+					</div>
+					<div class="require-permission-delete-user">
 						<button class="user-delete" onclick="delete_user(this)" disabled="true" >
 							${_("Benutzer löschen")}
 						</button>
-					</span>
+					</div>
 					<button class="user-details-cancel" onclick="close_user_details(this);">
 						${_("Abbrechen")}
 					</button>
-				</span>
-				<div class="user-content"></div>
+				</div>
 			</div>
 
-			<span id="user-group-template" class="user-group" style="display:none" >
-				<span class="user-group-label"></span>
+			<div id="user-group-template" class="user-group" style="display:none" >
+				<div class="user-group-label"></div>
 				<button class="user-group-add" style="display:none" onclick="add_group(this)">${_("+")}</button>
 				<button class="user-group-remove" style="display:none" onclick="remove_group(this)">${_("-")}</button>
-			</span>
+			</div>

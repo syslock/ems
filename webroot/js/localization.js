@@ -14,7 +14,7 @@ function L( key, result )
 
 function LS( key, result )
 {
-	return '<span id="'+key+'" class="L">'+L(key, result)+'</span>'
+	return '<div id="'+key+'" class="L">'+L(key, result)+'</div>'
 }
 
 function localize_element( e )

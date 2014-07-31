@@ -18,8 +18,8 @@
 					if( result.login && result.login.nick!='anonymous' )
 					{
 						$(".menu-login")[0].style.display="none";
-						$(".menu-nick-caption")[0].style.display="";
-						$(".menu-nick")[0].innerHTML=result.login.nick;
+						$(".menu-account-info")[0].style.display="";
+						$(".menu-account-nick")[0].innerHTML=result.login.nick;
 						$(".menu-logout")[0].style.display="";
 						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
 						function(result)
@@ -105,28 +105,28 @@
 		</script>
 	</head>
 	<body>
-		<span class="page-menu">
+		<div class="page-menu">
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename+' - '+_('Kontaktdaten')" />
-			<span class="page-widgets">
+			<div class="page-widgets">
 				<%include file="/elements/overview_button.html" />
-			</span>
-		</span>
+			</div>
+		</div>
 		<div class="ems-content" style="display:none" >
 			<div class="contact-personal">
 				<div class="contact-field" id="contact-name-title">
-					<span class="contact-label" id="contact-name-title-label">${_("Namenstitel")}</span>
+					<div class="contact-label" id="contact-name-title-label">${_("Namenstitel")}</div>
 					<input class="contact-input" id="contact-name-title-input" />
 				</div>
 				<div class="contact-field" id="contact-first-name">
-					<span class="contact-label" id="contact-first-name-label">${_("Vorname")}</span>
+					<div class="contact-label" id="contact-first-name-label">${_("Vorname")}</div>
 					<input class="contact-input" id="contact-first-name-input" />
 				</div>
 				<div class="contact-field" id="contact-surname">
-					<span class="contact-label" id="contact-surname-label">${_("Nachname")}</span>
+					<div class="contact-label" id="contact-surname-label">${_("Nachname")}</div>
 					<input class="contact-input" id="contact-surname-input" />
 				</div>
 				<div class="contact-field" id="contact-birth">
-					<span class="contact-label" id="contact-birth-label">${_("Geburtsdatum")}</span>
+					<div class="contact-label" id="contact-birth-label">${_("Geburtsdatum")}</div>
 					<select class="contact-input" id="contact-birth-year-input">
 						% for year in range(1950,2000):
 							<option value="${year}">${year}</option>
@@ -142,7 +142,7 @@
 					</select>
 				</div>
 				<div class="contact-field" id="contact-gender">
-					<span class="contact-label" id="contact-gender-label">${_("Geschlecht")}</span>
+					<div class="contact-label" id="contact-gender-label">${_("Geschlecht")}</div>
 					<select class="contact-input" id="contact-gender-input">
 						<option value="undefined"></option>
 						<option value="female">${_("weiblich")}</option>
@@ -150,13 +150,13 @@
 					</select>
 				</div>
 				<div class="contact-field" id="contact-nationality">
-					<span class="contact-label" id="contact-nationality-label">${_("Nationalität")}</span>
+					<div class="contact-label" id="contact-nationality-label">${_("Nationalität")}</div>
 					<input class="contact-input" id="contact-nationality-input" />
 				</div>
 			</div>
 			<div class="contact-address">
 				<div class="contact-field" id="contact-country">
-					<span class="contact-label" id="contact-country-label">${_("Staat")}</span>
+					<div class="contact-label" id="contact-country-label">${_("Staat")}</div>
 					<% import os %>
 					<select class="contact-input" id="contact-country-input" >
 					% for line in [x.strip() for x in open(os.path.join(app.path,"country_en.txt"),"r")]:
@@ -165,27 +165,27 @@
 					</select>
 				</div>
 				<div class="contact-field" id="contact-region">
-					<span class="contact-label" id="contact-region-label">${_("Region")}</span>
+					<div class="contact-label" id="contact-region-label">${_("Region")}</div>
 					<input class="contact-input" id="contact-region-input" />
 				</div>
 				<div class="contact-field" id="contact-city">
-					<span class="contact-label" id="contact-city-label">${_("Stadt")}</span>
+					<div class="contact-label" id="contact-city-label">${_("Stadt")}</div>
 					<input class="contact-input" id="contact-city-input" />
 				</div>
 				<div class="contact-field" id="contact-street">
-					<span class="contact-label" id="contact-street-label">${_("Straße und Hausnummer")}</span>
+					<div class="contact-label" id="contact-street-label">${_("Straße und Hausnummer")}</div>
 					<input class="contact-input" id="contact-street-input" />
 				</div>
 				<div class="contact-field" id="contact-postal-code">
-					<span class="contact-label" id="contact-postal-code-label">${_("Postleitzahl")}</span>
+					<div class="contact-label" id="contact-postal-code-label">${_("Postleitzahl")}</div>
 					<input class="contact-input" id="contact-postal-code-input" />
 				</div>
 				<div class="contact-field" id="contact-telephone1">
-					<span class="contact-label" id="contact-telephone1-label">${_("Telefonnummer")}</span>
+					<div class="contact-label" id="contact-telephone1-label">${_("Telefonnummer")}</div>
 					<input class="contact-input" id="contact-telephone1-input" />
 				</div>
 				<div class="contact-field" id="contact-telephone2">
-					<span class="contact-label" id="contact-telephone2-label">${_("Telefonnummer (alternativ)")}</span>
+					<div class="contact-label" id="contact-telephone2-label">${_("Telefonnummer (alternativ)")}</div>
 					<input class="contact-input" id="contact-telephone2-input" />
 				</div>
 			</div>

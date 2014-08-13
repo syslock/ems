@@ -927,7 +927,7 @@ function show_tag_selection( button ) {
 	var entry_tools = $(button).closest(".entry-tools")[0];
 	var entry_tags = $(button).closest(".entry-tags")[0];
 	var tags_selection = $(".entry-tags-selection", entry_tags)[0];
-	$.get( "ems.wsgi?do=get&type=application/x-obj.tag&limit=50", 
+	$.get( "ems.wsgi?do=get&type=application/x-obj.tag&limit=1000", 
 	function( result ) {
 		result = parse_result( result );
 		if( !result.error ) {

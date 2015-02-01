@@ -116,19 +116,23 @@ class DBObject:
 			result.add( parent_id )
 		return result
 	
-	def resolve_parents( self, child_id=None, cache=None ):
+	def resolve_parents( self, child_id=None, cache=None, parent_type_set={} ):
 		if cache==None:
 			cache = {}
 		result = []
 		child_id = child_id or self.id
 		c = self.app.db.cursor()
-		c.execute( """select parent_id from membership where child_id=? -- resolve_parents""", [child_id] )
+		c.execute( """select parent_id, p.type from membership 
+						inner join objects p on p.id=parent_id
+						where child_id=? -- resolve_parents""", [child_id] )
 		for row in c:
 			parent_id = row[0]
-			result += [parent_id]
+			curr_parent_type = row[1]
+			if not parent_type_set or curr_parent_type in parent_type_set:
+				result += [parent_id]
 			if parent_id not in cache:
 				cache[ parent_id ] = True
-				result += self.resolve_parents( parent_id, cache )
+				result += self.resolve_parents( parent_id, cache, parent_type_set )
 		return result
 	
 	def resolve_children( self, parent_id=None, cache=None ):

@@ -1156,3 +1156,38 @@ div.user-groups-selection {
 	position: absolute;
 	z-index: 20;
 }
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------------- Chess --------------------------------- */
+/* -------------------------------------------------------------------------- */
+.chess_frame {
+	display: inline-block;
+	background-color: #ffa040;
+	padding: 0.4em;
+}
+.chess_border {
+	display: inline-block;
+	background-color: #ffff80;
+	padding: 0.4em;
+}
+.chess_inner_border {
+	display: inline-block;
+	background-color: #ffa040;
+	padding: 0.2em;
+}
+.chess_field {
+	border: none;
+	border-spacing: 0;
+}
+.chess_white {
+	width: 3em;
+	height: 3em;
+	padding: 0;
+	background-color: #ffff80;
+}
+.chess_black {
+	width: 3em;
+	height: 3em;
+	padding: 0;
+	background-color: #ffa040;
+}

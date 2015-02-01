@@ -41,10 +41,14 @@ function parse_result( result )
 	}
 	if( result.error )
 	{
-		if( result.error.message ) show_message( result.error.message );
-		if( result.error.trace ) show_error( result.error.trace.join("") );
-		console.log( result.error.message );
-		console.log( result.error.trace.join("") );
+		if( result.error.message ) {
+			show_message( result.error.message );
+			console.log( result.error.message );
+		}
+		if( result.error.trace ) {
+			show_error( result.error.trace.join("") );
+			console.log( result.error.trace.join("") );
+		}
 	}
 	return result;
 }

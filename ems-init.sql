@@ -29,6 +29,29 @@ CREATE INDEX i_permissions_obj_id ON permissions(object_id ASC);
 CREATE TABLE type_hierarchy (base_type TEXT, derived_type TEXT, UNIQUE (base_type, derived_type) ON CONFLICT REPLACE);
 CREATE INDEX i_typehier_base ON type_hierarchy(base_type ASC);
 CREATE INDEX i_typehier_derived ON type_hierarchy(derived_type ASC);
+CREATE TABLE `player_positions` (
+	`object_id`	INTEGER NOT NULL,
+	`x`	INTEGER NOT NULL DEFAULT '0',
+	`y`	INTEGER NOT NULL DEFAULT '0'
+);
+CREATE TABLE `keywords` (
+	`key_id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	`word`	TEXT NOT NULL,
+	`object_id`	INTEGER NOT NULL,
+	`pos`	INTEGER NOT NULL DEFAULT '0',
+	`rank`	INTEGER NOT NULL DEFAULT '1',
+	`scan_source`	TEXT,
+	`scan_time`	INTEGER
+);
+CREATE TABLE "chess_games" (
+	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	`game_id`	NUMERIC,
+	`player_id`	NUMERIC,
+	`mtime`	NUMERIC,
+	`figure`	NUMERIC,
+	`from_field`	NUMERIC,
+	`to_field`	NUMERIC
+);
 
 INSERT INTO objects (id,type) VALUES(1,'application/x-obj.group');
 INSERT INTO groups (object_id,name,description) VALUES(1,'root','Root object for everything else');

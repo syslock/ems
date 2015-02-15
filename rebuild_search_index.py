@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
+
 import os, sys, time, re
 from lib import application
 
 scan_sources = [
 	("title", "titles", "object_id", "data", 3),
 	("text", "text", "object_id", "data", 2),
+	("user", "users", "object_id", "nick", 2),
 	("type", "objects", "id", "type", 1),
 ]
 

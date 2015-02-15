@@ -2,15 +2,33 @@ function open_page( doc ) {
 	document.location.href = doc;
 }
 
-function get_tpl_url( tpl ) {
+function get_module_url( module, args ) {
 	var l = document.location;
 	var port = l.port ? ":"+String(l.port) : "";
 	var pathname = l.pathname.replace(/\/$/,"/ems.wsgi")
-	return l.protocol+"//"+l.hostname+port+pathname+'?do=render&tpl='+tpl;
+	return l.protocol+"//"+l.hostname+port+pathname+'?' + $.param($.extend({'do':module}, args));
 }
 
-function open_tpl( tpl ) {
-	open_page( get_tpl_url(tpl) );
+function get_tpl_url( tpl, args ) {
+	return get_module_url('render', $.extend({'tpl':tpl}, args) );
+}
+
+function open_tpl( tpl, args ) {
+	open_page( get_tpl_url(tpl, args) );
+}
+
+function get_tpl( tpl, parms ) {
+	$.get( get_tpl_url(tpl, parms.args) )
+		.done(parms.done)
+		.fail(parms.fail)
+		.always(parms.always);
+}
+
+function get_module( module, parms ) {
+	$.get( get_module_url(module, parms.args) )
+		.done(parms.done)
+		.fail(parms.fail)
+		.always(parms.always);
 }
 
 function get_ws_url( path ) {
@@ -170,3 +188,40 @@ function prettyprint_time( time ) {
 	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+' '+({0:"s", 1:"min"})[idx];
 }
 
+// https://stackoverflow.com/questions/2897155/get-cursor-position-in-characters-within-a-text-input-field
+/*
+** Returns the caret (cursor) position of the specified text field.
+** Return value range is 0-oField.value.length.
+*/
+function get_cursor_pos( oField ) {
+  // Initialize
+  var iCaretPos = 0;
+  // IE Support
+  if (document.selection) {
+    // Set focus on the element
+    oField.focus ();
+    // To get cursor position, get empty selection range
+    var oSel = document.selection.createRange ();
+    // Move selection start to 0 position
+    oSel.moveStart ('character', -oField.value.length);
+    // The caret position is selection length
+    iCaretPos = oSel.text.length;
+  }
+  // Firefox support
+  else if (oField.selectionStart || oField.selectionStart == '0')
+    iCaretPos = oField.selectionStart;
+  // Return results
+  return (iCaretPos);
+}
+
+function get_cursor_word( text_input ) {
+	var cursor_pos = get_cursor_pos( text_input );
+	var word = '';
+	for( var pos=cursor_pos; pos<$(text_input).val().length && $(text_input).val().substr(pos,1)!=' '; pos++ ) {
+		word += $(text_input).val().substr(pos,1);
+	}
+	for( var pos=cursor_pos-1; pos>=0 && $(text_input).val().substr(pos,1)!=' '; pos-- ) {
+		word = $(text_input).val().substr(pos,1) + word;
+	}
+	return word;
+}

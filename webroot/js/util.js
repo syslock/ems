@@ -214,23 +214,38 @@ function get_cursor_pos( oField ) {
   return (iCaretPos);
 }
 
-function get_cursor_word( text_input ) {
+function get_cursor_word( text_input, parms ) {
+	if( !parms ) {
+		parms = {};
+	}
+	if( !parms.separators ) {
+		parms.separators = " \t\r\n";
+	}
 	var cursor_pos = get_cursor_pos( text_input );
 	var word = '';
-	for( var pos=cursor_pos; pos<$(text_input).val().length && $(text_input).val().substr(pos,1)!=' '; pos++ ) {
+	for( var pos=cursor_pos; pos<$(text_input).val().length && parms.separators.indexOf($(text_input).val().substr(pos,1))==-1; pos++ ) {
 		word += $(text_input).val().substr(pos,1);
 	}
-	for( var pos=cursor_pos-1; pos>=0 && $(text_input).val().substr(pos,1)!=' '; pos-- ) {
+	for( var pos=cursor_pos-1; pos>=0 && parms.separators.indexOf($(text_input).val().substr(pos,1))==-1; pos-- ) {
 		word = $(text_input).val().substr(pos,1) + word;
 	}
 	return word;
 }
 
 function get_input_text_before_cursor( text_input, parms ) {
+	if( !parms ) {
+		parms = {};
+	}
+	if( !parms.separators ) {
+		parms.separators = " \t\r\n";
+	}
 	var cursor_pos = get_cursor_pos( text_input );
 	var result = $(text_input).val().substr(0,cursor_pos);
-	if( parms && parms.remove_trailing_word ) {
-		result = result.replace( /\S*$/, "" );
+	if( parms.remove_trailing_word ) {
+		result+="x" // dummy trail
+		var pos=cursor_pos;
+		for( ; pos>=0 && parms.separators.indexOf(result.substr(pos,1))==-1; pos-- );
+		result = result.substr(0,pos+1);
 	}
 	return result;
 }

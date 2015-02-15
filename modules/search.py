@@ -11,20 +11,51 @@ def process( app ):
 		prefix = q.parms["apropos"]
 		apropos( app, prefix )
 
+search_type_alias = {
+	"text" : "text/plain",
+	"video" : "video/%",
+	"audio" : "audio/%",
+	"image" : "image/%",
+	"entry" : "application/x-obj.entry",
+	"minion" : "application/x-obj.minion",
+	"publication" : "application/x-obj.publication",
+	"tag" : "application/x-obj.tag",
+	"user" : "application/x-obj.user",
+	"group" : "application/x-obj.group",
+	"jpg" : "image/jpeg",
+	"png" : "image/png",
+	"svg" : "image/svg+xml",
+	"html" : "text/html",
+	"mp4" : "video/mp4",
+	"webm" : "video/webm",
+}
+
 def search( app, search_phrase ):
 	q = app.query
-	words = [ word.lower() for word in re.split(r'[^a-zA-Z0-9äöüßÄÖÜ%]',search_phrase) if word ]
+	words = [ word.lower() for word in re.split(r'[^a-zA-Z0-9äöüßÄÖÜ%:]',search_phrase) if word ]
 	valid_types = q.parms["types"].split(",") if "types" in q.parms else []
-	valid_sources = q.parms["sources"].split(",") if "sources" in q.parms else []
-	source_query = ""
-	if valid_sources:
-		source_query = " and source in ?" #FIXME: sqlite-api kann keine tuple binden!
 	raw_results = {}
 	c = app.db.cursor()
-	for word in words:
+	for i, word in enumerate(words):
+		parts = word.split(":")
+		word_types = parts[:-1]
+		word = parts[-1]
+		words[i] = word # Wort für spätere Trefferbewertung ohne Type-Präfix abspeichern
+		type_query = ""
+		type_names = []
+		for j, word_type in enumerate(word_types):
+			if j:
+				type_query += " or "
+			type_query += "o.type like ?"
+			if word_type in search_type_alias:
+				type_names.append( search_type_alias[word_type] )
+			else:
+				type_names.append( "%"+word_type+"%" )
+		if type_query:
+			type_query = "and (" + type_query + ")"
 		c.execute( """select object_id, word, pos, scan_source, o.type from keywords 
 						inner join objects o on o.id=object_id
-						where word like ? %(source_query)s order by object_id, pos""" % locals(), [word] )
+						where word like ? %(type_query)s order by object_id, pos""" % locals(), [word]+type_names )
 		for row in c:
 			object_id, word, pos, scan_source, object_type = row
 			if object_id in raw_results:

@@ -35,13 +35,13 @@ var SearchBar = function ( parms ) {
 	
 	my.apropos_word = null;
 	my.show_apropos_hints = function() {
-		var word = get_cursor_word( my.entry[0] );
+		var word = get_cursor_word( my.entry[0], {separators:" \t\n\r:"} );
 		if( word && word != my.apropos_word ) {
 			my.apropos_word = word;
 			get_module( 'search', {args : {apropos : word},
 				done : function(result) {
 					result = parse_result( result );
-					my.apropos_spacer.text( get_input_text_before_cursor(my.entry[0], {remove_trailing_word: true}) );
+					my.apropos_spacer.text( get_input_text_before_cursor(my.entry[0], {remove_trailing_word: true, separators:" \t\n\r:"}) );
 					my.apropos_hints.empty();
 					my.apropos_hints.show();
 					for( var i=0; i<result.length; i++ ) {

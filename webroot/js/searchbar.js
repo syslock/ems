@@ -6,17 +6,20 @@ var SearchBar = function ( parms ) {
 	my.handle_key_event = function( evt ) {
 		switch( evt.which )
 		{
-			case 13:
+			case 13: // Enter
 				my.search();
 				break;
-			case 40:
-				my.select_hint('next');
+			case 27: // Escape
+				my.hide_apropos_hints();
 				break;
-			case 38:
-				my.select_hint('prev');
+			case 40: // Down
+				my.select_apropos_hint('next');
+				break;
+			case 38: // Up
+				my.select_apropos_hint('prev');
 				break;
 			default:
-				my.apropos();
+				my.show_apropos_hints();
 				if( my.auto_search_timeout ) window.clearTimeout( my.auto_search_timeout );
 				my.auto_search_timeout = window.setTimeout( function(){my.search()}, 2000 );
 		}
@@ -31,7 +34,7 @@ var SearchBar = function ( parms ) {
 	};
 	
 	my.apropos_word = null;
-	my.apropos = function() {
+	my.show_apropos_hints = function() {
 		var word = get_cursor_word( my.entry[0] );
 		if( word && word != my.apropos_word ) {
 			my.apropos_word = word;
@@ -40,6 +43,7 @@ var SearchBar = function ( parms ) {
 					result = parse_result( result );
 					my.apropos_spacer.text( get_input_text_before_cursor(my.entry[0], {remove_trailing_word: true}) );
 					my.apropos_hints.empty();
+					my.apropos_hints.show();
 					for( var i=0; i<result.length; i++ ) {
 						my.apropos_hints.append( $('<div>').text(result[i][0]).addClass('apropos-hint') )
 					}
@@ -53,7 +57,11 @@ var SearchBar = function ( parms ) {
 		}
 	};
 	
-	my.select_hint = function() {};
+	my.select_apropos_hint = function() {};
+	
+	my.hide_apropos_hints = function() {
+		my.apropos_hints.hide();
+	};
 	
 	get_tpl( "elements/searchbar.html", { done : function(result) {
 		my.entry_parent.html( result );

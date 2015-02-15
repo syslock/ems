@@ -225,3 +225,12 @@ function get_cursor_word( text_input ) {
 	}
 	return word;
 }
+
+function get_input_text_before_cursor( text_input, parms ) {
+	var cursor_pos = get_cursor_pos( text_input );
+	var result = $(text_input).val().substr(0,cursor_pos);
+	if( parms && parms.remove_trailing_word ) {
+		result = result.replace( /\S*$/, "" );
+	}
+	return result;
+}

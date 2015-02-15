@@ -1191,3 +1191,46 @@ div.user-groups-selection {
 	padding: 0;
 	background-color: #ffa040;
 }
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------- Searchbar ------------------------------- */
+/* -------------------------------------------------------------------------- */
+div.searchbar {
+	display: inline-block;
+}
+input.searchbar {
+	display: block;
+	font-size: 10pt;
+	font-family: sans-serif;
+}
+/* Font and left offsets of apropos-spacer needs to be similar to input.searchbar, to
+ * achieve current words hint to be displayed under the current word! */
+.apropos-spacer {
+	display: inline-block;
+	visibility: hidden;
+	font-size: 10pt;
+	font-family: sans-serif;
+	white-space: pre; 
+	border: 0px;
+	padding: 0px;
+}
+.apropos {
+	display: block;
+	position: absolute;
+}
+.apropos-hints {
+	display: inline-block;
+	background-color: white;
+	margin-top: -2px;
+	border: 1px solid grey;
+	border-top: 0px;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+	padding: 3px;
+	padding-top: 0px;
+}
+.apropos-hint {
+	display: block;
+	font-size: 10pt;
+	font-family: sans-serif;
+}

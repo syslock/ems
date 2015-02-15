@@ -1,4 +1,4 @@
-require( ["jquery","jquery.cookie","request","util","confirm","login","entry","localization","user","minions","player"], 
+require( ["jquery","jquery.cookie","request","util","confirm","login","entry","localization","user","minions","player","searchbar"], 
 	function($) {
 		$(document).ready( function(){ 
 			try {

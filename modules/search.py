@@ -35,8 +35,9 @@ def search( app, search_phrase ):
 	for word in words:
 		word_hits[word] = 0
 	# 1.) Wir machen eine Zugriffsprüfung, filtern die Trefferliste entsprechend und 
-	#     konsolidieren die Trefferliste ggf. auf Elternobjekte mit passendem Typ, sodass z.b.
-	#     Blog-Einträge für auf die Volltextsuche passende plain/text-Objekte gefunden werden:
+	#     erweitern die Trefferliste ggf. um Eltern- und Kindobjekte mit passendem Typ, sodass z.b.
+	#     Blog-Einträge für auf die Volltextsuche passende plain/text-Objekte oder Beiträge
+	#     von passenden Nutzernamen gefunden werden:
 	filtered_results = {}
 	for result_id in raw_results:
 		for hit in raw_results[result_id]:
@@ -51,13 +52,13 @@ def search( app, search_phrase ):
 						word_hits[word] += 1
 				else:
 					obj = db_object.DBObject( app, object_id )
-					matching_parents = obj.resolve_parents( parent_type_set=valid_types )
-					for parent_id in matching_parents:
-						if app.user.can_read( parent_id ):
-							if parent_id in filtered_results:
-								filtered_results[parent_id].append( hit )
+					matching_associates = obj.resolve_parents( parent_type_set=valid_types ) + obj.resolve_children( child_type_set=valid_types )
+					for alt_obj_id in matching_associates:
+						if app.user.can_read( alt_obj_id ):
+							if alt_obj_id in filtered_results:
+								filtered_results[alt_obj_id].append( hit )
 							else:
-								filtered_results[parent_id] = [ hit ]
+								filtered_results[alt_obj_id] = [ hit ]
 							if word in word_hits:
 								word_hits[word] += 1
 	# 2.) Treffer sinnvoll sortieren, wobei:

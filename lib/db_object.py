@@ -117,6 +117,7 @@ class DBObject:
 		return result
 	
 	def resolve_parents( self, child_id=None, cache=None, parent_type_set={} ):
+		# FIXME: Hat das einen grund cache hier zu initialisieren und nicht in der Parameterliste?
 		if cache==None:
 			cache = {}
 		result = []
@@ -135,14 +136,24 @@ class DBObject:
 				result += self.resolve_parents( parent_id, cache, parent_type_set )
 		return result
 	
-	def resolve_children( self, parent_id=None, cache=None ):
+	def resolve_children( self, parent_id=None, cache=None, child_type_set={} ):
+		# FIXME: Hat das einen grund cache hier zu initialisieren und nicht in der Parameterliste?
+		if cache==None:
+			cache = {}
 		result = []
 		parent_id = parent_id or self.id
 		c = self.app.db.cursor()
-		c.execute( """select child_id from membership where parent_id=?""", [parent_id] )
+		c.execute( """select child_id, c.type from membership 
+						inner join objects c on c.id=child_id
+						where parent_id=? -- resolve_children""", [parent_id] )
 		for row in c:
 			child_id = row[0]
-			result += [child_id] + self.resolve_children( child_id )
+			curr_child_type = row[1]
+			if not child_type_set or curr_child_type in child_type_set:
+				result += [child_id]
+			if child_id not in cache:
+				cache[ child_id ] = True
+				result += self.resolve_children( child_id, cache, child_type_set )
 		return result
 	
 	ACCESS_MASKS={ "read" : 1, "write" : 2 }

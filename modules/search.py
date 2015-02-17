@@ -12,7 +12,7 @@ def process( app ):
 		apropos( app, prefix )
 
 search_type_alias = {
-	"text" : "text/plain",
+#(schon durch text-source)	"text" : "text/plain",
 	"video" : "video/%",
 	"audio" : "audio/%",
 	"image" : "image/%",
@@ -32,11 +32,17 @@ search_type_alias = {
 
 def search( app, search_phrase ):
 	q = app.query
-	words = [ word.lower() for word in re.split(r'[^a-zA-Z0-9äöüßÄÖÜ%:]',search_phrase) if word ]
+	words = [ word.lower() for word in re.split(r'[^a-zA-Z0-9äöüßÄÖÜ%:\-+]',search_phrase) if word ]
 	valid_types = q.parms["types"].split(",") if "types" in q.parms else []
 	raw_results = {}
 	c = app.db.cursor()
 	for i, word in enumerate(words):
+		# optionales Wertungs-Präfix aus '-' und '+' parsen, wobei 
+		# jedes '-' die Wertigkeit der Treffer des Wortes halbiert und jedes '+' diese verdoppelt:
+		weight_prefix = re.findall( "^([-+]*)", word )[0]
+		word_weight = sum( [(lambda x: 10 if x=='+' else -10)(c) for c in weight_prefix] )
+		word = word[len(weight_prefix):]
+		# optionalen Typ-Selektor der Form <[typ1:[typ2:[...]]]wort> parsen:
 		parts = word.split(":")
 		word_types = parts[:-1]
 		word = parts[-1]
@@ -46,25 +52,35 @@ def search( app, search_phrase ):
 		for j, word_type in enumerate(word_types):
 			if j:
 				type_query += " or "
-			type_query += "o.type like ?"
 			if word_type in search_type_alias:
+				type_query += "o.type like ?"
 				type_names.append( search_type_alias[word_type] )
 			else:
-				type_names.append( "%"+word_type+"%" )
+				type_query += "scan_source=?"
+				type_names.append( word_type )
 		if type_query:
 			type_query = "and (" + type_query + ")"
 		c.execute( """select object_id, word, pos, scan_source, o.type from keywords 
 						inner join objects o on o.id=object_id
 						where word like ? %(type_query)s order by object_id, pos""" % locals(), [word]+type_names )
 		for row in c:
-			object_id, word, pos, scan_source, object_type = row
+			object_id, result_word, pos, scan_source, object_type = row
+			hit = {
+				"object_id" : object_id,
+				"result_word" : result_word,
+				"pos" : pos,
+				"scan_source" : scan_source,
+				"object_type" : object_type,
+				"search_word" : word,
+				"weight" : word_weight
+			}
 			if object_id in raw_results:
-				raw_results[object_id].append( row )
+				raw_results[object_id].append( hit )
 			else:
-				raw_results[object_id] = [ row ]
+				raw_results[object_id] = [ hit ]
 	word_hits = {} # hiermit zählen wir Treffer pro Suchwort im gefilterten Endergebnis
-	for word in words:
-		word_hits[word] = 0
+	for search_word in words:
+		word_hits[search_word] = 0
 	# 1.) Wir machen eine Zugriffsprüfung, filtern die Trefferliste entsprechend und 
 	#     erweitern die Trefferliste ggf. um Eltern- und Kindobjekte mit passendem Typ, sodass z.b.
 	#     Blog-Einträge für auf die Volltextsuche passende plain/text-Objekte oder Beiträge
@@ -72,15 +88,15 @@ def search( app, search_phrase ):
 	filtered_results = {}
 	for result_id in raw_results:
 		for hit in raw_results[result_id]:
-			object_id, word, pos, scan_source, object_type = hit
+			object_id = hit["object_id"]
+			search_word = hit["search_word"]
 			if app.user.can_read( object_id ):
 				if object_type in valid_types or not valid_types:
 					if object_id in filtered_results:
 						filtered_results[object_id].append( hit )
 					else:
 						filtered_results[object_id] = [ hit ]
-					if word in word_hits:
-						word_hits[word] += 1
+					word_hits[search_word] += 1
 				else:
 					obj = db_object.DBObject( app, object_id )
 					matching_associates = obj.resolve_parents( parent_type_set=valid_types ) + obj.resolve_children( child_type_set=valid_types )
@@ -90,16 +106,18 @@ def search( app, search_phrase ):
 								filtered_results[alt_obj_id].append( hit )
 							else:
 								filtered_results[alt_obj_id] = [ hit ]
-							if word in word_hits:
-								word_hits[word] += 1
+							word_hits[search_word] += 1
 	# 2.) Treffer sinnvoll sortieren, wobei:
 	# - Anzahl treffender Suchbegriffe verstärkend wirken: len(filtered_results[x])
 	# - Gesamtzahl der Treffer aller treffenden Suchbegriffe abschwächend wirken: /sum(...)
 	# TODO: Testen ob das hilfreiche Trefferlisten ergibt und optimale Wichtung finden
-	hitlist = sorted( filtered_results, key=(lambda x: len(filtered_results[x]) / sum([(word_hits[w] if w in word_hits else 1) for w in set([r[1] for r in filtered_results[x]])])), reverse=True )
+	sort_key = lambda x: (1+sum([h["weight"] for h in filtered_results[x]])) * len(filtered_results[x]) / max(1,sum([word_hits[sw] for sw in set([h["search_word"] for h in filtered_results[x]])]))
+	hitlist = sorted( filtered_results, key=sort_key, reverse=True )
+	sort_keys = sorted( [sort_key(x) for x in filtered_results], reverse=True )
 	result = {
 		"hitlist" : hitlist,
-		"reasons" : {}
+		"reasons" : {},
+		"sort_keys" : sort_keys
 	}
 	
 	for hit_id in hitlist:

@@ -58,7 +58,7 @@ def application( environ, start_response ):
 	try:
 		return myapp( environ, start_response )
 	except Exception as e:
-		start_response( "200 OK", [('Content-Type','text/plain')] )
+		start_response( "500 Internal Server Error", [('Content-Type','text/plain')] )
 		trace = traceback.format_exception( Exception, e, e.__traceback__ )
 		return [str( {	"succeeded":False, 
 						"error":{	"message":str(e), 

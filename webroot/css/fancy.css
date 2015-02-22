@@ -1195,6 +1195,18 @@ div.user-groups-selection {
 /* -------------------------------------------------------------------------- */
 /* -------------------------------- Searchbar ------------------------------- */
 /* -------------------------------------------------------------------------- */
+div.main-searchbar {
+	display: inline-block;
+	vertical-align: top;
+}
+div.main-searchbar-title {
+	display: inline-block;
+	vertical-align: super;
+}
+div.main-searchbar-content {
+	display: inline-block;
+	vertical-align: bottom;
+}
 div.searchbar {
 	display: inline-block;
 }

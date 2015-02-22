@@ -34,10 +34,14 @@
 						{
 							result = parse_result( result )
 							global_user = result[0]
-							player_net.connect();
-							player_net.init_my_player( global_user );
+							// experimenteller WebSocket-basierter, animierter Avatar, der von anderen Besuchern gesehen werden kann:
+							//player_net.connect();
+							//player_net.init_my_player( global_user );
 						});
 					}
+					
+					// alter Filter-Bar-Code:
+					/*
 					filters = { ids:{}, parent_ids:{}, child_ids:{} }
 					id_list = query_parms.id ? query_parms.id.split(",").map(Number) : [];
 					for( x in id_list ) { filters.ids[id_list[x]] = {}; }
@@ -46,7 +50,15 @@
 					child_id_list = query_parms.child_id ? query_parms.child_id.split(",").map(Number) : [];
 					for( x in child_id_list ) { filters.child_ids[child_id_list[x]] = {}; }
 					apply_page_filter( filters );
+					*/
+					
+					// Searchbar initialisieren und mit aktuellem Filter suchen:
+					var search = new SearchBar( {entry_parent: $('.main-searchbar-content'), result_callback: show_search_result} );
+					
+					// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
 					Minions.show_latest( $('.page-events')[0], 15 );
+					
+					// alter WebSocket-Code zur experimentellen Echtzeitanzeige von Ereignissen:
 					/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
 					ws.onmessage = function( msg ) {
 						var result = parse_result( msg.data );
@@ -89,9 +101,13 @@
 				<button class="new-entry-button" onclick="new_response(global_user)">
 					${_("Beitrag erstellen")}
 				</button>
-				<div class="page-filter">
+				<!--<div class="page-filter">
 					<div class="page-filter-title">${_("Filter:")}</div>
 					<div class="page-filter-view"></div>
+				</div>-->
+				<div class="main-searchbar">
+					<div class="main-searchbar-title">${_("Suchen:")}</div>
+					<div class="main-searchbar-content"></div>
 				</div>
 				<div class="page-events"></div>
 			</div>

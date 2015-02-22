@@ -1,7 +1,7 @@
 var SearchBar = function ( parms ) {
 	var my = this;
 	my.entry_parent = parms.entry_parent;
-	my.result_parent = parms.result_parent;
+	my.result_callback = parms.result_callback;
 	
 	my.handle_key_event = function( evt ) {
 		switch( evt.which )
@@ -28,7 +28,8 @@ var SearchBar = function ( parms ) {
 	my.search = function() {
 		get_module( 'search', {args : {phrase : my.entry.val(), types : 'application/x-obj.entry'},
 			done : function(result) {
-				my.result_parent.text( result );
+				result = parse_result( result );
+				my.result_callback( result );
 			}
 		} );
 	};

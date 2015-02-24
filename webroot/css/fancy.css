@@ -1,31 +1,32 @@
 body {
 	background-color: #f0f0f0;
+	font-family: sans-serif;
 }
-
 
 .page-menu {
 	position: absolute;
 	display: block;
-	left: 0px;
 	top: 0px;
+	left: 0px;
 	width: 100%;
 	background-color: #dfdfdf;
 	border-bottom: 1px solid #bfbfbf;
-	padding: 10px;
+	padding-top: 5px;
+	padding-left: 5px;
 	z-index: 50;
 }
 .ems-menu {
 	display: block;
-	margin-bottom: 10px;
 }
 .menu-title {
 	display: inline-block;
 	font-weight: bold;
 }
 .menu-widgets {
+	position: absolute;
 	display: inline-block;
-	float: right;
-	margin-right: 20px;
+	top: 5px;
+	right: 20px;
 	font-size: small;
 	background-color: rgba(223,223,223,0.9);
 	border-bottom: 1px solid rgba(223,223,223,1);
@@ -58,6 +59,21 @@ body {
 	font-weight: bold;
 }
 
+.page-widgets {
+	display: block;
+	white-space: nowrap;
+}
+.page-widgets .page-widgets-left-stack {
+	display: inline-block;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+.page-widgets .page-widgets-right-stack {
+	display: inline; /* wtf, somehow need this for child absolute positioning to work */
+}
+.page-widgets .new-entry-button {
+	display: block;
+}
 
 .ems-content {
 	margin-top: 8em;
@@ -1088,10 +1104,10 @@ div.user-groups-selection {
 }
 .page-events {
 	display: inline-block;
-	position: absolute;
-	bottom: 0px;
 	z-index: -1;
 	white-space: nowrap;
+	position: absolute;
+	bottom: 0px;
 }
 .page-events .ems-item {
 	display: inline-block;
@@ -1196,22 +1212,20 @@ div.user-groups-selection {
 /* -------------------------------- Searchbar ------------------------------- */
 /* -------------------------------------------------------------------------- */
 div.main-searchbar {
-	display: inline-block;
-	vertical-align: top;
-}
-div.main-searchbar-title {
-	display: inline-block;
-	vertical-align: super;
-}
-div.main-searchbar-content {
-	display: inline-block;
-	vertical-align: bottom;
+	display: block;
+	margin-top: 5px;
 }
 div.searchbar {
 	display: inline-block;
 }
 input.searchbar {
 	display: block;
+	border: 1px solid gray;
+	border-radius: 4px;
+	background-color: white;
+	color: black;
+	padding: 2px;
+	padding-left: 8px;
 	font-size: 10pt;
 	font-family: sans-serif;
 }

@@ -33,8 +33,10 @@ ems/
             entry.js : entry handling (get, store, display)
             localization.js : translations and related code
             login.js : login specific code
-            main.js : RequireJS main file, used to include the rest of the code
-            require-jquery.js : combination of JQuery and RequireJS libraries
+            main.js : RequireJS main file, currently used to include the rest of the code
+            require.js : RequireJS library
+            jquery.js : jQuery libary
+            jquery.cookie.js : jQuery Cookie Plugin
             util.js : some generic routines used throughout the code
         ems.wsgi : application entry point (FIXME: should this be here?)
         index.html : redirects to overview template

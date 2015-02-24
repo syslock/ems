@@ -2,6 +2,7 @@ var SearchBar = function ( parms ) {
 	var my = this;
 	my.entry_parent = parms.entry_parent;
 	my.result_callback = parms.result_callback;
+	my.outer_width = parms.outer_width;
 	
 	my.handle_key_event = function( evt ) {
 		switch( evt.which )
@@ -68,6 +69,7 @@ var SearchBar = function ( parms ) {
 		my.entry_parent.html( result );
 		my.entry = $( ".searchbar", my.entry_parent );
 		my.entry.on( 'keyup', my.handle_key_event );
+		my.entry.outerWidth( my.outer_width );
 		my.apropos_hints = $( ".apropos-hints", my.entry_parent );
 		my.apropos_spacer = $( ".apropos-spacer", my.entry_parent );
 	}, fail : function(result) {

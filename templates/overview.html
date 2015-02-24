@@ -4,7 +4,7 @@
 		<meta charset="utf-8" />
 		<title>${app.config.sitename}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="" />
-		<script data-main="js/main.js" src="js/require-jquery.js"></script>
+		<script data-main="js/main.js" src="js/require.js"></script>
 		<script>
 			var global_status = undefined;
 			var global_user = undefined;
@@ -53,7 +53,11 @@
 					*/
 					
 					// Searchbar initialisieren und mit aktuellem Filter suchen:
-					var search = new SearchBar( {entry_parent: $('.main-searchbar-content'), result_callback: show_search_result} );
+					var search = new SearchBar( {
+						entry_parent: $('.main-searchbar'), 
+						result_callback: show_search_result,
+						outer_width: $('.new-entry-button').outerWidth()
+					} );
 					
 					// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
 					Minions.show_latest( $('.page-events')[0], 15 );
@@ -98,18 +102,19 @@
 		<div class="page-menu">
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename" />
 			<div class="page-widgets">
-				<button class="new-entry-button" onclick="new_response(global_user)">
-					${_("Beitrag erstellen")}
-				</button>
-				<!--<div class="page-filter">
-					<div class="page-filter-title">${_("Filter:")}</div>
-					<div class="page-filter-view"></div>
-				</div>-->
-				<div class="main-searchbar">
-					<div class="main-searchbar-title">${_("Suchen:")}</div>
-					<div class="main-searchbar-content"></div>
+				<div class="page-widgets-left-stack">
+					<button class="new-entry-button" onclick="new_response(global_user)">
+						${_("Beitrag erstellen")}
+					</button>
+					<!--<div class="page-filter">
+						<div class="page-filter-title">${_("Filter:")}</div>
+						<div class="page-filter-view"></div>
+					</div>-->
+					<div class="main-searchbar"></div>
 				</div>
-				<div class="page-events"></div>
+				<div class="page-widgets-right-stack">
+					<div class="page-events"></div>
+				</div>
 			</div>
 		</div>
 		<div class="ems-content"></div>

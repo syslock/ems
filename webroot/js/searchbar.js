@@ -4,7 +4,19 @@ var SearchBar = function ( parms ) {
 	my.result_callback = parms.result_callback;
 	my.outer_width = parms.outer_width;
 	
-	my.handle_key_event = function( evt ) {
+	my.handle_keydown_event = function( evt ) {
+		var propagate = true;
+		switch( evt.which )
+		{
+			case 13: // Enter
+				propagate = false; // prevent line breaks in contentEditable div
+				break;
+		}
+		return propagate;
+	};
+	
+	my.handle_keyup_event = function( evt ) {
+		var propagate = true;
 		switch( evt.which )
 		{
 			case 13: // Enter
@@ -24,6 +36,7 @@ var SearchBar = function ( parms ) {
 				if( my.auto_search_timeout ) window.clearTimeout( my.auto_search_timeout );
 				my.auto_search_timeout = window.setTimeout( function(){my.search()}, 2000 );
 		}
+		return propagate;
 	};
 	
 	my.search = function() {
@@ -72,7 +85,8 @@ var SearchBar = function ( parms ) {
 		my.entry.outerWidth( my.outer_width );
 		my.entry.css( 'min-width', my.entry.css('width') );
 		my.entry.css( 'width', '' );
-		my.entry.on( 'keyup', my.handle_key_event );
+		my.entry.on( 'keydown', my.handle_keydown_event );
+		my.entry.on( 'keyup', my.handle_keyup_event );
 		my.apropos_hints = $( ".apropos-hints", my.entry_parent );
 		my.apropos_spacer = $( ".apropos-spacer", my.entry_parent );
 	}, fail : function(result) {

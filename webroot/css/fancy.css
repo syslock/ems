@@ -1220,7 +1220,7 @@ div.searchbar {
 }
 div.searchbar-extender {
 	min-height: 1.3em;
-	padding: 3px;
+	padding-bottom: 3px;
 }
 div.searchbar-entry {
 	position: absolute;

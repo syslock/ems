@@ -27,7 +27,7 @@ var SearchBar = function ( parms ) {
 	};
 	
 	my.search = function() {
-		get_module( 'search', {args : {phrase : my.entry.val(), types : 'application/x-obj.entry'},
+		get_module( 'search', {args : {phrase : my.entry.text(), types : 'application/x-obj.entry'},
 			done : function(result) {
 				result = parse_result( result );
 				my.result_callback( result );
@@ -67,9 +67,12 @@ var SearchBar = function ( parms ) {
 	
 	get_tpl( "elements/searchbar.html", { done : function(result) {
 		my.entry_parent.html( result );
-		my.entry = $( ".searchbar", my.entry_parent );
-		my.entry.on( 'keyup', my.handle_key_event );
+		my.entry = $( ".searchbar-entry", my.entry_parent );
+		my.entry[0].contentEditable = true;
 		my.entry.outerWidth( my.outer_width );
+		my.entry.css( 'min-width', my.entry.css('width') );
+		my.entry.css( 'width', '' );
+		my.entry.on( 'keyup', my.handle_key_event );
 		my.apropos_hints = $( ".apropos-hints", my.entry_parent );
 		my.apropos_spacer = $( ".apropos-spacer", my.entry_parent );
 	}, fail : function(result) {

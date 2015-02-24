@@ -223,11 +223,11 @@ function get_cursor_word( text_input, parms ) {
 	}
 	var cursor_pos = get_cursor_pos( text_input );
 	var word = '';
-	for( var pos=cursor_pos; pos<$(text_input).val().length && parms.separators.indexOf($(text_input).val().substr(pos,1))==-1; pos++ ) {
-		word += $(text_input).val().substr(pos,1);
+	for( var pos=cursor_pos; pos<$(text_input).text().length && parms.separators.indexOf($(text_input).text().substr(pos,1))==-1; pos++ ) {
+		word += $(text_input).text().substr(pos,1);
 	}
-	for( var pos=cursor_pos-1; pos>=0 && parms.separators.indexOf($(text_input).val().substr(pos,1))==-1; pos-- ) {
-		word = $(text_input).val().substr(pos,1) + word;
+	for( var pos=cursor_pos-1; pos>=0 && parms.separators.indexOf($(text_input).text().substr(pos,1))==-1; pos-- ) {
+		word = $(text_input).text().substr(pos,1) + word;
 	}
 	return word;
 }
@@ -240,7 +240,7 @@ function get_input_text_before_cursor( text_input, parms ) {
 		parms.separators = " \t\r\n";
 	}
 	var cursor_pos = get_cursor_pos( text_input );
-	var result = $(text_input).val().substr(0,cursor_pos);
+	var result = $(text_input).text().substr(0,cursor_pos);
 	if( parms.remove_trailing_word ) {
 		result+="x" // dummy trail
 		var pos=cursor_pos;

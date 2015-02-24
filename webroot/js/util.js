@@ -193,7 +193,7 @@ function prettyprint_time( time ) {
 ** Returns the caret (cursor) position of the specified text field.
 ** Return value range is 0-oField.value.length.
 */
-function get_cursor_pos( oField ) {
+function get_input_cursor_pos( oField ) {
   // Initialize
   var iCaretPos = 0;
   // IE Support
@@ -213,6 +213,37 @@ function get_cursor_pos( oField ) {
   // Return results
   return (iCaretPos);
 }
+
+/* https://stackoverflow.com/questions/3972014/get-caret-position-in-contenteditable-div
+The following code assumes:
+- There is always a single text node within the editable <div> and no other nodes
+- The editable div does not have the CSS white-space property set to pre */
+function get_element_cursor_pos( editableDiv ) {
+  var caretPos = 0,
+    sel, range;
+  if (window.getSelection) {
+    sel = window.getSelection();
+    if (sel.rangeCount) {
+      range = sel.getRangeAt(0);
+      if (range.commonAncestorContainer.parentNode == editableDiv) {
+        caretPos = range.endOffset;
+      }
+    }
+  } else if (document.selection && document.selection.createRange) {
+    range = document.selection.createRange();
+    if (range.parentElement() == editableDiv) {
+      var tempEl = document.createElement("span");
+      editableDiv.insertBefore(tempEl, editableDiv.firstChild);
+      var tempRange = range.duplicate();
+      tempRange.moveToElementText(tempEl);
+      tempRange.setEndPoint("EndToEnd", range);
+      caretPos = tempRange.text.length;
+    }
+  }
+  return caretPos;
+}
+
+var get_cursor_pos = get_element_cursor_pos;
 
 function get_cursor_word( text_input, parms ) {
 	if( !parms ) {

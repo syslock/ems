@@ -1244,7 +1244,7 @@ div.searchbar-entry {
 	font-family: sans-serif;
 	white-space: pre; 
 	border: 0px;
-	padding: 0px;
+	padding-left: 2px;
 }
 .apropos {
 	display: block;
@@ -1253,7 +1253,7 @@ div.searchbar-entry {
 .apropos-hints {
 	display: inline-block;
 	background-color: white;
-	margin-top: -2px;
+	margin-top: 0px;
 	border: 1px solid grey;
 	border-top: 0px;
 	border-bottom-left-radius: 5px;

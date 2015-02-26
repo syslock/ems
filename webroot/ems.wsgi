@@ -1,4 +1,4 @@
-import time, os, sys, imp, traceback, gettext
+import time, os, sys, imp, traceback, gettext, json
 
 def myapp( environ, start_response ):
 	"""Anfragebehandlung der Webanwendung"""
@@ -60,10 +60,10 @@ def application( environ, start_response ):
 	except Exception as e:
 		start_response( "500 Internal Server Error", [('Content-Type','text/plain')] )
 		trace = traceback.format_exception( Exception, e, e.__traceback__ )
-		return [str( {	"succeeded":False, 
-						"error":{	"message":str(e), 
-									"class":e.__class__.__name__, 
-									"trace":trace}} ).encode("utf-8")]
+		return [ json.dumps({	"succeeded":False, 
+					"error":{	"message":str(e), 
+								"class":e.__class__.__name__, 
+								"trace":trace}} ).encode("utf-8") ]
 	finally:
 		if pdb:
 			debugger.quitting = 1

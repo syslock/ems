@@ -1,6 +1,8 @@
 import imp, re, json
 from lib import db_object
 db_object = imp.reload( db_object )
+from lib import errors
+errors = imp.reload( errors )
 from modules import get
 get = imp.reload( get )
 
@@ -115,18 +117,18 @@ def search( app, search_phrase ):
 	# - Gesamtzahl der Treffer aller treffenden Suchbegriffe abschwächend wirken: /sum(...)
 	# TODO: Testen ob das hilfreiche Trefferlisten ergibt und optimale Wichtung finden
 	sort_key = lambda x: (1+sum([h["weight"] for h in filtered_results[x]])) * len(filtered_results[x]) / max(1,sum([word_hits[sw] for sw in set([h["search_word"] for h in filtered_results[x]])]))
-	hit_ids = sorted( filtered_results, key=sort_key, reverse=True )
+	hit_ids = sorted( filtered_results.keys(), key=sort_key, reverse=True )
 	sort_keys = sorted( [sort_key(x) for x in filtered_results], reverse=True )
 	result = {
 		"hit_ids" : hit_ids,
 		"reasons" : {},
 		"sort_keys" : sort_keys,
-		"hitlist" : get.get( app, object_ids=hit_ids, recursive=[True,True] )
+		"hitlist" : get.get( app, object_ids=[x for x in hit_ids] if hit_ids else [0], recursive=[True,True], access_errors=False )
 	}
 	
 	for hit_id in hit_ids:
 		result["reasons"][hit_id] = filtered_results[hit_id]
-	app.response.output += json.dumps( result )
+	app.response.output = json.dumps( result )
 
 def apropos( app, prefix ):
 	q = app.query

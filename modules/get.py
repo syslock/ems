@@ -130,7 +130,10 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					[object_id] )
 		result = c.fetchone()
 		if not result:
-			raise errors.ParameterError( "Invalid object id: %d" % (object_id) )
+			if access_errors:
+				raise errors.ParameterError( "Invalid object id: %d" % (object_id) )
+			else:
+				continue
 		object_type = result[0]
 		obj = {
 			"id" : object_id,

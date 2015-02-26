@@ -40,11 +40,14 @@ def search( app, search_phrase ):
 	valid_types = q.parms["types"].split(",") if "types" in q.parms else []
 	raw_results = {}
 	c = app.db.cursor()
-	for i, word in enumerate(words):
+	search_words = [w for w in words]
+	search_word_rows = {}
+	for i, search_word in enumerate(search_words):
+		word = search_word
 		# optionales Wichtungs-Präfix aus '-' und '+' parsen, wobei ein positiveres Präfix Treffer des Suchwortes
 		# höher bewertet und ein negativeres Präfix Treffer der Ausschlussmenge des Suchwortes höher bewertet:
 		weight_prefix = re.findall( "^([-+]*)", word )[0]
-		word_weight = sum( [(lambda x: 10 if x=='+' else -10)(c) for c in weight_prefix] )
+		word_weight = sum( [(lambda x: 10 if x=='+' else -10)(c) for c in weight_prefix] ) + (10 if not weight_prefix else 0)
 		word = word[len(weight_prefix):]
 		# optionalen Typ-Selektor der Form <[typ1:[typ2:[...]]]wort> parsen:
 		parts = word.split(":")
@@ -67,7 +70,9 @@ def search( app, search_phrase ):
 		c.execute( """select object_id, word, pos, scan_source, o.type from keywords 
 						inner join objects o on o.id=object_id
 						where word like ? %(type_query)s order by object_id, pos""" % locals(), [word]+type_names )
+		search_word_rows[ search_word ] = 0
 		for row in c:
+			search_word_rows[ search_word ] += 1
 			object_id, result_word, pos, scan_source, object_type = row
 			hit = {
 				"object_id" : object_id,
@@ -75,16 +80,18 @@ def search( app, search_phrase ):
 				"pos" : pos,
 				"scan_source" : scan_source,
 				"object_type" : object_type,
-				"search_word" : word,
-				"weight" : word_weight
+				"search_word" : search_word,
+				"keyword" : word,
+				"weight" : word_weight,
+				"extra_reasons" : { "valid_types" : [], "associated_to" : [] }
 			}
 			if object_id in raw_results:
 				raw_results[object_id].append( hit )
 			else:
 				raw_results[object_id] = [ hit ]
-	word_hits = {} # hiermit zählen wir Treffer pro Suchwort im gefilterten Endergebnis
-	for search_word in words:
-		word_hits[search_word] = 0
+	search_word_hits = {} # hiermit zählen wir Treffer pro Suchwort im gefilterten Endergebnis
+	for search_word in search_words:
+		search_word_hits[search_word] = 0
 	# 1.) Wir machen eine Zugriffsprüfung, filtern die Trefferliste entsprechend und 
 	#     erweitern die Trefferliste ggf. um Eltern- und Kindobjekte mit passendem Typ, sodass z.b.
 	#     Blog-Einträge für auf die Volltextsuche passende plain/text-Objekte oder Beiträge
@@ -93,37 +100,41 @@ def search( app, search_phrase ):
 	for result_id in raw_results:
 		for hit in raw_results[result_id]:
 			object_id = hit["object_id"]
+			object_type = hit["object_type"]
 			search_word = hit["search_word"]
 			if app.user.can_read( object_id ):
 				if object_type in valid_types or not valid_types:
+					hit["extra_reasons"]["valid_types"].append( object_type )
 					if object_id in filtered_results:
 						filtered_results[object_id].append( hit )
 					else:
 						filtered_results[object_id] = [ hit ]
-					word_hits[search_word] += 1
+					search_word_hits[search_word] += 1
 				else:
 					obj = db_object.DBObject( app, object_id )
 					matching_associates = obj.resolve_parents( parent_type_set=valid_types ) + obj.resolve_children( child_type_set=valid_types )
 					for alt_obj_id in matching_associates:
 						if app.user.can_read( alt_obj_id ):
-							hit["related_object_id"] = alt_obj_id
+							hit["extra_reasons"]["associated_to"].append( alt_obj_id )
 							if alt_obj_id in filtered_results:
 								filtered_results[alt_obj_id].append( hit )
 							else:
 								filtered_results[alt_obj_id] = [ hit ]
-							word_hits[search_word] += 1
+							search_word_hits[search_word] += 1
 	# 2.) Treffer sinnvoll sortieren, wobei:
 	# - Anzahl treffender Suchbegriffe verstärkend wirken: len(filtered_results[x])
 	# - Gesamtzahl der Treffer aller treffenden Suchbegriffe abschwächend wirken: /sum(...)
 	# TODO: Testen ob das hilfreiche Trefferlisten ergibt und optimale Wichtung finden
-	sort_key = lambda x: (1+sum([h["weight"] for h in filtered_results[x]])) * len(filtered_results[x]) / max(1,sum([word_hits[sw] for sw in set([h["search_word"] for h in filtered_results[x]])]))
+	sort_key = lambda x: (1+sum([h["weight"] for h in filtered_results[x]])) * len(filtered_results[x]) / max(1,sum([search_word_hits[sw] for sw in set([h["search_word"] for h in filtered_results[x]])]))
 	hit_ids = sorted( filtered_results.keys(), key=sort_key, reverse=True )
 	sort_keys = sorted( [sort_key(x) for x in filtered_results], reverse=True )
 	result = {
 		"hit_ids" : hit_ids,
 		"reasons" : {},
 		"sort_keys" : sort_keys,
-		"hitlist" : get.get( app, object_ids=[x for x in hit_ids] if hit_ids else [0], recursive=[True,True], access_errors=False )
+		"hitlist" : get.get( app, object_ids=[x for x in hit_ids] if hit_ids else [0], recursive=[True,True], access_errors=False ),
+		"search_word_rows" : search_word_rows,
+		"search_word_hits" : search_word_hits,
 	}
 	
 	for hit_id in hit_ids:

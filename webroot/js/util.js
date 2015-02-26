@@ -19,15 +19,15 @@ function open_tpl( tpl, args ) {
 
 function get_tpl( tpl, parms ) {
 	$.get( get_tpl_url(tpl, parms.args) )
-		.done(parms.done)
-		.fail(parms.fail)
+		.done(parms.done ? parms.done : parse_result)
+		.fail(parms.fail ? parms.fail : parse_result)
 		.always(parms.always);
 }
 
 function get_module( module, parms ) {
 	$.get( get_module_url(module, parms.args) )
-		.done(parms.done)
-		.fail(parms.fail)
+		.done(parms.done ? parms.done : parse_result)
+		.fail(parms.fail ? parms.fail : parse_result)
 		.always(parms.always);
 }
 
@@ -43,22 +43,28 @@ function reload_page() {
 
 function parse_result( result )
 {
-	try
-	{
-		var False = false;
-		var True = true;
-		var None = undefined;
-		result = eval( "("+result+")" )
-		hide_status()
+	if( typeof(result)=="object" ) {
+		var xhr = result;
+		result = xhr.responseText;
 	}
-	catch( e )
-	{
-		show_message( "Error parsing response: " )
-		show_error( e+"\nwithin:\n\n("+result+")" );
-		throw e;
+	if( typeof(result)=="string" ) {
+		try {
+			result = JSON.parse( result );
+		} catch( e ) {
+			try {
+				var False = false;
+				var True = true;
+				var None = undefined;
+				result = eval( "("+result+")" );
+			} catch( e ) {
+				show_message( "Error parsing response: " )
+				show_error( e+"\nwithin:\n\n("+result+")" );
+				throw e;
+			}
+		}
 	}
-	if( result.error )
-	{
+	hide_status();
+	if( result.error ) {
 		if( result.error.message ) {
 			show_message( result.error.message );
 			console.log( result.error.message );

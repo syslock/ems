@@ -20,6 +20,7 @@ var SearchBar = function ( parms ) {
 		switch( evt.which )
 		{
 			case 13: // Enter
+				my.hide_apropos_hints();
 				my.search();
 				break;
 			case 27: // Escape
@@ -34,7 +35,10 @@ var SearchBar = function ( parms ) {
 			default:
 				my.show_apropos_hints();
 				if( my.auto_search_timeout ) window.clearTimeout( my.auto_search_timeout );
-				my.auto_search_timeout = window.setTimeout( function(){my.search()}, 2000 );
+				my.auto_search_timeout = window.setTimeout( function() {
+					my.hide_apropos_hints();
+					my.search();
+				}, 2000 );
 		}
 		return propagate;
 	};

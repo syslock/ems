@@ -38,13 +38,15 @@ def search( app, search_phrase ):
 	q = app.query
 	
 	# 1.) Suchausdruck und Parameter parsen und Datenstrukturen initialisieren:
-	words = [ word.lower() for word in re.split(r'[^a-zA-Z0-9äöüßÄÖÜ%:\-+]',search_phrase) if word ]
+	words = [ word.lower() for word in re.split(r'[ \t\r\n]',search_phrase) if word ]
 	valid_types = q.parms["types"].split(",") if "types" in q.parms else []
 	min_weight = q.parms["min_weight"] if "min_weight" in q.parms else 0
 	if str(min_weight).lower()=="none":
 		min_weight = None
 	else:
 		min_weight = int(min_weight)
+	order_by = q.parms["order_by"] if "order_by" in q.parms else None
+	order_reverse = q.parms["reverse"].lower()=="true" if "reverse" in q.parms else True
 	raw_results = {}
 	c = app.db.cursor()
 	search_words = [w for w in words]
@@ -143,15 +145,22 @@ def search( app, search_phrase ):
 	# 5.) Treffer nach Minimalgewicht filtern, falls definiert:
 	hit_weights = [x for x in hit_weights if min_weight==None or x[1]>min_weight]
 	
-	# 6.) Objektabfrage für Treffer-Objekt-IDs durchführen und in JSON verpacken:
+	# 6.) Objektabfrage für Treffer-Objekt-IDs durchführen:
+	hitlist = get.get( app, object_ids=[x[0] for x in hit_weights] if hit_weights else [0], recursive=[True,True], access_errors=False )
+	
+	# 7.) Objektliste sortieren, falls gefordert:
+	if order_by and hitlist:
+		if order_by in hitlist[0]:
+			hitlist = sorted( hitlist, key=lambda x: x[order_by], reverse=order_reverse )
+			
+	# 8.) Ergebnis JSON-kodieren:
 	result = {
 		"hit_weights" : hit_weights,
 		"reasons" : {},
-		"hitlist" : get.get( app, object_ids=[x[0] for x in hit_weights] if hit_weights else [0], recursive=[True,True], access_errors=False ),
+		"hitlist" : hitlist,
 		"search_word_rows" : search_word_rows,
 		"search_word_hits" : search_word_hits,
 	}
-	
 	for hit_id,hit_weight in hit_weights:
 		result["reasons"][hit_id] = filtered_results[hit_id]
 	app.response.output = json.dumps( result )

@@ -36,12 +36,22 @@ search_type_alias = {
 
 def search( app, search_phrase ):
 	q = app.query
+	
+	# 1.) Suchausdruck und Parameter parsen und Datenstrukturen initialisieren:
 	words = [ word.lower() for word in re.split(r'[^a-zA-Z0-9äöüßÄÖÜ%:\-+]',search_phrase) if word ]
 	valid_types = q.parms["types"].split(",") if "types" in q.parms else []
+	min_weight = q.parms["min_weight"] if "min_weight" in q.parms else 0
+	if str(min_weight).lower()=="none":
+		min_weight = None
+	else:
+		min_weight = int(min_weight)
 	raw_results = {}
 	c = app.db.cursor()
 	search_words = [w for w in words]
 	search_word_rows = {}
+	
+	# 2.) Einzelne Suchbegriffe mit optionaler Typbindung im Wortindex nachschlagen und 
+	#     getroffene Objekt-Ids mit der Suchbegriffwichtung verknüpft zwischenspeichern:
 	for i, search_word in enumerate(search_words):
 		word = search_word
 		# optionales Wichtungs-Präfix aus '-' und '+' parsen, wobei ein positiveres Präfix Treffer des Suchwortes
@@ -92,7 +102,8 @@ def search( app, search_phrase ):
 	search_word_hits = {} # hiermit zählen wir Treffer pro Suchwort im gefilterten Endergebnis
 	for search_word in search_words:
 		search_word_hits[search_word] = 0
-	# 1.) Wir machen eine Zugriffsprüfung, filtern die Trefferliste entsprechend und 
+	
+	# 3.) Wir machen eine Zugriffsprüfung, filtern die Trefferliste entsprechend und 
 	#     erweitern die Trefferliste ggf. um Eltern- und Kindobjekte mit passendem Typ, sodass z.b.
 	#     Blog-Einträge für auf die Volltextsuche passende plain/text-Objekte oder Beiträge
 	#     von passenden Nutzernamen gefunden werden:
@@ -121,23 +132,27 @@ def search( app, search_phrase ):
 							else:
 								filtered_results[alt_obj_id] = [ hit ]
 							search_word_hits[search_word] += 1
-	# 2.) Treffer sinnvoll sortieren, wobei:
+	
+	# 4.) Treffer sinnvoll sortieren, wobei:
 	# - Anzahl treffender Suchbegriffe verstärkend wirken: len(filtered_results[x])
 	# - Gesamtzahl der Treffer aller treffenden Suchbegriffe abschwächend wirken: /sum(...)
-	# TODO: Testen ob das hilfreiche Trefferlisten ergibt und optimale Wichtung finden
 	sort_key = lambda x: (1+sum([h["weight"] for h in filtered_results[x]])) * len(filtered_results[x]) / max(1,sum([search_word_hits[sw] for sw in set([h["search_word"] for h in filtered_results[x]])]))
-	hit_ids = sorted( filtered_results.keys(), key=sort_key, reverse=True )
-	sort_keys = sorted( [sort_key(x) for x in filtered_results], reverse=True )
+	hit_weights = [(hit_id,sort_key(hit_id)) for hit_id in filtered_results]
+	hit_weights = sorted( hit_weights, key=lambda x: x[1], reverse=True )
+	
+	# 5.) Treffer nach Minimalgewicht filtern, falls definiert:
+	hit_weights = [x for x in hit_weights if min_weight==None or x[1]>min_weight]
+	
+	# 6.) Objektabfrage für Treffer-Objekt-IDs durchführen und in JSON verpacken:
 	result = {
-		"hit_ids" : hit_ids,
+		"hit_weights" : hit_weights,
 		"reasons" : {},
-		"sort_keys" : sort_keys,
-		"hitlist" : get.get( app, object_ids=[x for x in hit_ids] if hit_ids else [0], recursive=[True,True], access_errors=False ),
+		"hitlist" : get.get( app, object_ids=[x[0] for x in hit_weights] if hit_weights else [0], recursive=[True,True], access_errors=False ),
 		"search_word_rows" : search_word_rows,
 		"search_word_hits" : search_word_hits,
 	}
 	
-	for hit_id in hit_ids:
+	for hit_id,hit_weight in hit_weights:
 		result["reasons"][hit_id] = filtered_results[hit_id]
 	app.response.output = json.dumps( result )
 

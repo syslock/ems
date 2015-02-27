@@ -44,7 +44,7 @@ var SearchBar = function ( parms ) {
 	};
 	
 	my.search = function() {
-		get_module( 'search', {args : {phrase : my.entry.text(), types : 'application/x-obj.entry'},
+		get_module( 'search', {args : {phrase : my.entry.text(), types : 'application/x-obj.entry', order_by: 'ctime', reverse: 'true'},
 			done : function(result) {
 				result = parse_result( result );
 				my.result_callback( result );

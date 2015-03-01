@@ -8,6 +8,7 @@
 		<script>
 			var global_status = undefined;
 			var global_user = undefined;
+			var global_search = undefined;
 			function init()
 			{
 				var query_parms = parse_result( "${str(app.query.parms).replace(r'\"',r'\\\"')}" );
@@ -54,29 +55,30 @@
 					
 					var range_scroll_loader = null;
 					// Searchbar initialisieren und mit aktuellem Filter suchen:
-					var search = new SearchBar( {
+					global_search = new SearchBar( {
 						entry_parent : $('.main-searchbar'), 
-						result_handler : show_search_result,
+						result_handler : function( result ) {
+							show_search_result( result );
+							range_scroll_loader.range_start = result.hitlist.length;
+							range_scroll_loader.scroll_handler_parms = { search_count : global_search.search_count };
+							range_scroll_loader.start();
+						},
 						outer_width : $('.new-entry-button').outerWidth(),
 						result_types : 'application/x-obj.entry',
 						empty_search : 'type:entry',
 						order_by : 'ctime',
 						order_reverse : 'true',
 						range_limit : 10,
+						new_search_handler : function( parms ) {
+							$(".ems-content").empty();
+							if( range_scroll_loader ) range_scroll_loader.stop();
+							range_scroll_loader = new RangeScrollLoader( {
+								scroll_container : window,
+								scroll_handler : global_search.search
+							} );
+						},
 						on_ready : function() {
-							search.search( {
-								done : function( result ) {
-									range_scroll_loader = new RangeScrollLoader( {
-										scroll_container : window,
-										scroll_handler : search.search,
-										range_start : result.hitlist.length
-									} );
-									search.new_search_handler = function( parms ) { 
-										$(".ems-content").empty();
-										range_scroll_loader.scroll_handler_parms.search_count = parms.new_search_count;
-									};
-								}
-							} ); 
+							global_search.search();
 						}
 					} );
 					

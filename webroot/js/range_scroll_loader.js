@@ -32,5 +32,10 @@ var RangeScrollLoader = function ( parms ) {
 		}
 	};
 	
-	$(my.scroll_container).on( 'scroll', my.handle_scroll_event );
+	my.start = function() {
+		$(my.scroll_container).on( 'scroll', my.handle_scroll_event );
+	}
+	my.stop = function() {
+		$(my.scroll_container).off( 'scroll', null, my.handle_scroll_event );
+	}
 } //RangeScrollLoader

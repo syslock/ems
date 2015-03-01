@@ -358,12 +358,18 @@ function show_object( parms )
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
 			$(tag_label_obj).text( tag_label );
 			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
-				var parms = { child_ids:{}, parent_ids:{} }; parms.child_ids[obj.id] = obj;
-				apply_page_filter( parms );
+				/*var parms = { child_ids:{}, parent_ids:{} }; parms.child_ids[obj.id] = obj;
+				apply_page_filter( parms );*/
+				global_search.entry.text( global_search.entry.text()+' tag:'+tag_label );
+				global_search.search();
 			};
 			$('.entry-tag-tool-filter-exclude', obj.dom_object)[0].onclick = function(ev) {
-				var parms = { child_ids:{}, parent_ids:{} }; parms.child_ids[-obj.id] = obj;
-				apply_page_filter( parms );
+				/*var parms = { child_ids:{}, parent_ids:{} }; parms.child_ids[-obj.id] = obj;
+				apply_page_filter( parms );*/
+				var search_phrase = global_search.entry.text();
+				if( search_phrase=='' ) search_phrase = 'type:entry';
+				global_search.entry.text( search_phrase+' --tag:'+tag_label );
+				global_search.search();
 			};
 			if( $(dom_parent).hasClass('entry-tags-selection') ) {
 				$(dom_parent).append( obj.dom_object );
@@ -397,13 +403,27 @@ function show_object( parms )
 	}
 }
 
-function filter_user_content( button, mode ) {
+/*function filter_user_content( button, mode ) {
 	var user_element = $(button).closest('.ems-user')[0];
 	var user_id = $(user_element).data().obj.id;
 	var mode_factor = mode=='for' ? 1 : -1;
 	var parms = { child_ids:{}, parent_ids:{} }; 
 	parms.parent_ids[mode_factor*user_id] = $(user_element).data().obj;
 	apply_page_filter( parms );
+}*/
+function filter_user_content( button, mode ) {
+	var user_element = $(button).closest('.ems-user')[0];
+	var user_nick = $(user_element).data().obj.nick;
+	var search_phrase = global_search.entry.text();
+	if( mode=='for' ) {
+		if( search_phrase.length ) search_phrase += ' ';
+		search_phrase += 'user:'+user_nick;
+	} else {
+		if( !search_phrase.length ) search_phrase += 'type:entry';
+		search_phrase += ' --user:'+user_nick;
+	}
+	global_search.entry.text( search_phrase );
+	global_search.search();
 }
 
 var offsets_loaded = {};

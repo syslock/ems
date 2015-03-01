@@ -1,4 +1,6 @@
-require( ["jquery","jquery.cookie","request","util","confirm","login","entry","localization","user","minions","player","searchbar"], 
+require( [	"jquery","jquery.cookie",
+			"request","util","confirm","login","entry","localization",
+			"user","minions","player","searchbar","range_scroll_loader" ], 
 	function($) {
 		$(document).ready( function(){ 
 			try {

@@ -142,7 +142,6 @@ function load_visible_objects( parms ) {
 
 function show_search_result( parms ) {
 	var dom_parent = (parms.dom_parent ? parms.dom_parent : $(".ems-content")[0]);
-	$(dom_parent).empty();
 	for( i in parms.hitlist ) {
 		show_object( {obj: parms.hitlist[i], dom_parent: dom_parent, limit: parms.limit} )
 	}

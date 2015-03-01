@@ -52,11 +52,32 @@
 					apply_page_filter( filters );
 					*/
 					
+					var range_scroll_loader = null;
 					// Searchbar initialisieren und mit aktuellem Filter suchen:
 					var search = new SearchBar( {
-						entry_parent: $('.main-searchbar'), 
-						result_callback: show_search_result,
-						outer_width: $('.new-entry-button').outerWidth()
+						entry_parent : $('.main-searchbar'), 
+						result_handler : show_search_result,
+						outer_width : $('.new-entry-button').outerWidth(),
+						result_types : 'application/x-obj.entry',
+						empty_search : 'type:entry',
+						order_by : 'ctime',
+						order_reverse : 'true',
+						range_limit : 10,
+						on_ready : function() {
+							search.search( {
+								done : function( result ) {
+									range_scroll_loader = new RangeScrollLoader( {
+										scroll_container : window,
+										scroll_handler : search.search,
+										range_start : result.hitlist.length
+									} );
+									search.new_search_handler = function( parms ) { 
+										$(".ems-content").empty();
+										range_scroll_loader.scroll_handler_parms.search_count = parms.new_search_count;
+									};
+								}
+							} ); 
+						}
 					} );
 					
 					// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:

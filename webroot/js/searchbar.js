@@ -1,8 +1,18 @@
 var SearchBar = function ( parms ) {
 	var my = this;
 	my.entry_parent = parms.entry_parent;
-	my.result_callback = parms.result_callback;
+	my.result_handler = parms.result_handler;
 	my.outer_width = parms.outer_width;
+	my.result_types = parms.result_types;
+	my.order_by = parms.order_by;
+	my.order_reverse = parms.order_reverse;
+	my.range_limit = parms.range_limit;
+	my.on_ready = parms.on_ready;
+	my.empty_search = parms.empty_search ? parms.empty_search : '';
+	my.new_search_handler = parms.new_search_handler ? parms.new_search_handler : function() {};
+	my.recent_phrase = '';
+	my.auto_search_timeout = parms.auto_search_timeout ? parms.auto_search_timeout : 2000; //ms
+	my.search_count = 0;
 	
 	my.handle_keydown_event = function( evt ) {
 		var propagate = true;
@@ -20,7 +30,6 @@ var SearchBar = function ( parms ) {
 		switch( evt.which )
 		{
 			case 13: // Enter
-				my.hide_apropos_hints();
 				my.search();
 				break;
 			case 27: // Escape
@@ -34,20 +43,39 @@ var SearchBar = function ( parms ) {
 				break;
 			default:
 				my.show_apropos_hints();
-				if( my.auto_search_timeout ) window.clearTimeout( my.auto_search_timeout );
-				my.auto_search_timeout = window.setTimeout( function() {
-					my.hide_apropos_hints();
+				if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
+				my.auto_search_timeout_obj = window.setTimeout( function() {
 					my.search();
-				}, 2000 );
+				}, my.auto_search_timeout );
 		}
 		return propagate;
 	};
 	
-	my.search = function() {
-		get_module( 'search', {args : {phrase : my.entry.text(), types : 'application/x-obj.entry', order_by: 'ctime', reverse: 'true'},
+	my.search = function( parms ) {
+		var parms = parms ? parms : {};
+		parms.phrase = parms.phrase ? parms.phrase : my.entry.text();
+		parms.phrase = parms.phrase.length ? parms.phrase : my.empty_search
+		parms.range_offset = parms.range_offset ? parms.range_offset : 0;
+		var new_search_count = parms.search_count==my.search_count ? my.search_count : my.search_count+1;
+		if( my.recent_phrase != parms.phrase ||  my.search_count != new_search_count ) {
+			my.new_search_handler( {old_phrase: my.recent_phrase, new_phrase: parms.phrase, 
+									old_search_count: my.search_count, new_search_count: new_search_count} );
+			my.recent_phrase = parms.phrase;
+			my.search_count = new_search_count;
+		}
+		if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
+		get_module( 'search', {
+			args : {
+				phrase : parms.phrase, result_types : my.result_types, 
+				order_by: my.order_by, order_reverse: my.order_reverse,
+				range_limit: my.range_limit, range_offset:parms.range_offset
+			},
 			done : function(result) {
 				result = parse_result( result );
-				my.result_callback( result );
+				my.hide_apropos_hints();
+				var bubble = true;
+				if( parms.done ) bubble = parms.done( result ); // optional single search result handler
+				if( bubble==undefined || bubble ) my.result_handler( result ); // generic searchbar result handler
 			}
 		} );
 	};
@@ -93,6 +121,9 @@ var SearchBar = function ( parms ) {
 		my.entry.on( 'keyup', my.handle_keyup_event );
 		my.apropos_hints = $( ".apropos-hints", my.entry_parent );
 		my.apropos_spacer = $( ".apropos-spacer", my.entry_parent );
+		if( my.on_ready ) {
+			my.on_ready();
+		}
 	}, fail : function(result) {
 		show_error( result )
 	} } );

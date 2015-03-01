@@ -8,12 +8,25 @@ get = imp.reload( get )
 
 def process( app ):
 	q = app.query
+	result_types = q.parms["result_types"].split(",") if "result_types" in q.parms else []
+	range_offset = int(q.parms["range_offset"]) if "range_offset" in q.parms else 0
+	range_limit = q.parms["range_limit"] if "range_limit" in q.parms else None
+	range_limit = None if str(range_limit).lower()=="none" else int(range_limit)
 	if "phrase" in q.parms:
 		search_phrase = q.parms["phrase"]
-		search( app, search_phrase )
+		min_weight = q.parms["min_weight"] if "min_weight" in q.parms else 0
+		if str(min_weight).lower()=="none":
+			min_weight = None
+		else:
+			min_weight = int(min_weight)
+		order_by = q.parms["order_by"] if "order_by" in q.parms else None
+		order_reverse = q.parms["order_reverse"].lower()=="true" if "order_reverse" in q.parms else True
+		search( app, search_phrase, result_types=result_types, min_weight=min_weight, 
+				order_by=order_by, order_reverse=order_reverse, 
+				range_offset=range_offset, range_limit=range_limit )
 	elif "apropos" in q.parms:
 		prefix = q.parms["apropos"]
-		apropos( app, prefix )
+		apropos( app, prefix, result_types=result_types, range_offset=range_offset, range_limit=range_limit )
 
 search_type_alias = {
 #(schon durch text-source)	"text" : "text/plain",
@@ -34,19 +47,11 @@ search_type_alias = {
 	"webm" : "video/webm",
 }
 
-def search( app, search_phrase ):
+def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, order_reverse=True, range_offset=0, range_limit=None ):
 	q = app.query
 	
-	# 1.) Suchausdruck und Parameter parsen und Datenstrukturen initialisieren:
+	# 1.) Suchausdruck parsen und Datenstrukturen initialisieren:
 	words = [ word.lower() for word in re.split(r'[ \t\r\n]',search_phrase) if word ]
-	valid_types = q.parms["types"].split(",") if "types" in q.parms else []
-	min_weight = q.parms["min_weight"] if "min_weight" in q.parms else 0
-	if str(min_weight).lower()=="none":
-		min_weight = None
-	else:
-		min_weight = int(min_weight)
-	order_by = q.parms["order_by"] if "order_by" in q.parms else None
-	order_reverse = q.parms["reverse"].lower()=="true" if "reverse" in q.parms else True
 	raw_results = {}
 	c = app.db.cursor()
 	search_words = [w for w in words]
@@ -116,7 +121,7 @@ def search( app, search_phrase ):
 			object_type = hit["object_type"]
 			search_word = hit["search_word"]
 			if app.user.can_read( object_id ):
-				if object_type in valid_types or not valid_types:
+				if object_type in result_types or not result_types:
 					hit["extra_reasons"]["valid_types"].append( object_type )
 					if object_id in filtered_results:
 						filtered_results[object_id].append( hit )
@@ -125,7 +130,7 @@ def search( app, search_phrase ):
 					search_word_hits[search_word] += 1
 				else:
 					obj = db_object.DBObject( app, object_id )
-					matching_associates = obj.resolve_parents( parent_type_set=valid_types ) + obj.resolve_children( child_type_set=valid_types )
+					matching_associates = obj.resolve_parents( parent_type_set=result_types ) + obj.resolve_children( child_type_set=result_types )
 					for alt_obj_id in matching_associates:
 						if app.user.can_read( alt_obj_id ):
 							hit["extra_reasons"]["associated_to"].append( alt_obj_id )
@@ -146,6 +151,9 @@ def search( app, search_phrase ):
 	hit_weights = [x for x in hit_weights if min_weight==None or x[1]>min_weight]
 	
 	# 6.) Objektabfrage für Treffer-Objekt-IDs durchführen:
+	# FIXME: Wir benötigen hier einen Objekt-Lookup für die Treffer, um sie z.b. nach ctime sortieren zu können,
+	#        allerdings sollte es effizienter sein den rekursiven Lookup der Eltern- und Kind-Objekte erst nach
+	#        der Trefferlistenlimitierung zu machen, die natürlich erst nach der Sortierung erfolgen kann.
 	hitlist = get.get( app, object_ids=[x[0] for x in hit_weights] if hit_weights else [0], recursive=[True,True], access_errors=False )
 	
 	# 7.) Objektliste sortieren, falls gefordert:
@@ -157,7 +165,7 @@ def search( app, search_phrase ):
 	result = {
 		"hit_weights" : hit_weights,
 		"reasons" : {},
-		"hitlist" : hitlist,
+		"hitlist" : hitlist[range_offset:None if range_limit==None else range_offset+range_limit],
 		"search_word_rows" : search_word_rows,
 		"search_word_hits" : search_word_hits,
 	}
@@ -165,7 +173,7 @@ def search( app, search_phrase ):
 		result["reasons"][hit_id] = filtered_results[hit_id]
 	app.response.output = json.dumps( result )
 
-def apropos( app, prefix ):
+def apropos( app, prefix, result_types, range_offset=0, range_limit=None ):
 	q = app.query
 	c = app.db.cursor()
 	word_counts = {}
@@ -182,4 +190,4 @@ def apropos( app, prefix ):
 			counter["rank"]+=rank
 			
 	result = sorted( word_counts.items(), key=(lambda x: x[0]) )
-	app.response.output += json.dumps( result )
+	app.response.output += json.dumps( result[range_offset:None if range_limit==None else range_offset+range_limit] )

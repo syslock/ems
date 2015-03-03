@@ -6,11 +6,9 @@ var ChessGame = {
 	my.init = function( _dom_parent, _game_id) {
 		my.dom_parent = _dom_parent;
 		if( _game_id!=null ) {
-			$.ajax({
-					url : "ems.wsgi?do=store&type=application/x-obj.chessgame",
-					type : "GET",
-					success :
-				function( result ) {
+			get_module( 'store', {
+				args : {type : 'application/x-obj.chessgame'},
+				done : function( result ) {
 					result = parse_result( result )
 					if( result.succeeded && result.id!=undefined ) {
 						my.game_id = Number(result.id);

@@ -14,30 +14,30 @@ function new_item( parms ) {
 	var short_type = get_short_type( obj.type )
 	if( obj.id==undefined ) {
 		// Neues Objekt auf dem Server anlegen:
-		var url = "ems.wsgi?do=store&type="+obj.type;
+		var get_args = { type : obj.type };
 		// optionale Zusatzparameter:
-		if( obj.title ) url += "&title="+obj.title
-		if( obj.nick ) url += "&nick="+obj.nick
-		if( obj.name ) url += "&name="+obj.name
-		$.ajax({
-			url : url,
-			async : false,
-			success :
-		function( result ) {
-			result = parse_result( result )
-			if( result.succeeded && result.id!=undefined ) {
-				obj.id = Number(result.id)
-				if( !parms.dom_object ) {
-					// Neues Element im Browser anlegen:
-					var item = new_item( parms )
-					var button = $("."+short_type+"-edit",item)[0]
-					if( button ) edit_entry( button )
-				}
-				else {
-					$(parms.dom_object).data( {obj: obj} );
+		if( obj.title ) get_args["title"]=obj.title;
+		if( obj.nick ) get_args["nick"]=obj.nick;
+		if( obj.name ) get_args["name"]=obj.name;
+		get_module( 'store', {
+			args : get_args,
+			async : false, // TODO: Sicherstellen, dass new_item nur in asynchronen Request-Handlern aufgerufen wird!
+			done : function( result ) {
+				result = parse_result( result )
+				if( result.succeeded && result.id!=undefined ) {
+					obj.id = Number(result.id)
+					if( !parms.dom_object ) {
+						// Neues Element im Browser anlegen:
+						var item = new_item( parms )
+						var button = $("."+short_type+"-edit",item)[0]
+						if( button ) edit_entry( button )
+					}
+					else {
+						$(parms.dom_object).data( {obj: obj} );
+					}
 				}
 			}
-		}})
+		});
 		return undefined;
 	} else {
 		var item = parms.dom_object;
@@ -157,18 +157,22 @@ function show_object( parms )
 	var prepend = parms.prepend;
 	var update = parms.update;
 	if( obj.id && !obj.type ) {
-		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
-		function( result ) {
-			result = parse_result( result )
-			if( result.succeeded==undefined ) {
-				for( i in result ) {
-					var merged_obj = {}
-					for( key in obj ) merged_obj[key] = obj[key];
-					for( key in result[i] ) merged_obj[key] = result[i][key];
-					show_object( {obj:merged_obj, dom_parent:(dom_parent ? dom_parent : (!dom_child) ? $(".ems-content")[0] : undefined), dom_child:dom_child, duplicates:duplicates, limit:limit, prepend:prepend, update:update} )
+		var get_args = { id : obj.id, view : 'all', recursive : 'true' };
+		if( limit ) get_args['limit'] = limit;
+		get_module( 'get', {
+			args : get_args,
+			done : function( result ) {
+				result = parse_result( result )
+				if( result.succeeded==undefined ) { // FIXME: Get rid of result.succeeded once and for all?
+					for( i in result ) {
+						var merged_obj = {}
+						for( key in obj ) merged_obj[key] = obj[key];
+						for( key in result[i] ) merged_obj[key] = result[i][key];
+						show_object( {obj:merged_obj, dom_parent:(dom_parent ? dom_parent : (!dom_child) ? $(".ems-content")[0] : undefined), dom_child:dom_child, duplicates:duplicates, limit:limit, prepend:prepend, update:update} )
+					}
 				}
 			}
-		})
+		});
 	} else if( obj.type == "application/x-obj.group" ) {
 		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
 		if( dom_parent ) {
@@ -620,6 +624,10 @@ function remove_new_entry_item( entry ) {
 	$(item).remove();
 }
 
+/* FIXME: save_entry führt zur Reihenfolgeerhaltung der Abläufe Speichern/Löschen mehrere synchrone AJAX-Requests aus 
+ *        und sollte daher nur in asynchronen Handlern aufgerufen werden! 
+ *        Eventuell wär es sinnvoll die Funktion umzubenennen in save_entry_sync und einen Wrapper save_entry zu definieren,
+ *        für einfache Fälle ohne Notwendigkeit der Reihenfolgeerhaltung mehrerer save_entry_sync-Aufrufe. */
 function save_entry( button ) {
 	var entry = $(button).closest(".ems-entry")[0];
 	var upload_dialog = $( ".upload-dialog", entry )[0];
@@ -639,15 +647,11 @@ function save_entry( button ) {
 	if( title ) {
 		title.contentEditable = false
 		var title_text = get_plain_text( title )
-		$.ajax({
-			url : "ems.wsgi?do=store&id="+String(entry_id),
-			type : "POST",
+		post_module( "store", {
+			args : {id : String(entry_id)},
 			data : { title: title_text },
-			async : false,
-			success :
-		function( result ) {
-			result = parse_result( result )
-		}})
+			async : false
+		});
 	}
 	var content = $( ".entry-content", entry )[0];
 	if( content ) {
@@ -664,47 +668,45 @@ function save_entry( button ) {
 			if( obj.id==undefined && obj.type && obj.data ) {
 				// neu zu speichernde Objekte mit Inhalt, ohne bestehende ID-Zuordnung:
 				// (bisher nur text/plain)
-				$.ajax({
-					url : "ems.wsgi?do=store&type="+obj.type+"&parent_id="+String(entry_id)+"&sequence="+String(i),
-					type : "POST",
+				post_module( "store", {
+					args : {type : obj.type, parent_id : String(entry_id), sequence : String(i)},
 					data : { data: obj.data },
-					async : false, /* hier, ohne komplizierteres Event-Hanlding, wichtig zur Vermeidung von Race-Conditions */
-					success :
-				function( result ) {
-					result = parse_result( result )
-					if( result.succeeded ) {
-						part_id_list.push( result.id )
+					async : false, /* hier, ohne komplizierteres Event-Handling, wichtig zur Vermeidung von Race-Conditions */
+					done : function( result ) {
+						result = parse_result( result )
+						if( result.succeeded ) {
+							part_id_list.push( result.id )
+						}
 					}
-				}})
+				});
 			} else if( obj.id && (obj.unassigned==undefined || obj.unassigned==true || obj.changed==true) ) {
 				// bereits gespeicherte oder lokal geänderte Objekte, mit bestehender ID-Zuordnung, 
 				// die dem Eintrag in korrekter Sequenz (neu) zugewiesen oder gespeichert werden müssen:
-				$.ajax({
-					url : "ems.wsgi?do=store&id="+obj.id+"&parent_id="+String(entry_id)+"&sequence="+String(i),
+				get_module( "store", {
+					args : {id : obj.id, parent_id : String(entry_id), sequence : String(i)},
 					type : obj.changed ? "POST" : "GET",
 					data : obj.changed ? { data: obj.data } : undefined,
-					async : false, /* hier, ohne komplizierteres Event-Hanlding, wichtig zur Vermeidung von Race-Conditions */
-					success :
-				function( result ) {
-					result = parse_result( result )
-					if( result.succeeded ) {
-						part_id_list.push( result.id )
+					async : false, /* hier, ohne komplizierteres Event-Handling, wichtig zur Vermeidung von Race-Conditions */
+					done : function( result ) {
+						result = parse_result( result )
+						if( result.succeeded ) {
+							part_id_list.push( result.id )
+						}
 					}
-				}})
+				});
 			}
 		}
 		// serverseitige Bereinigung alter Daten:
 		// (Damit das so funktioniert, ist es wichtig, dass der Neuzuordnungsfall bestehender Objekte (2. Fall oben)
 		//  eine Duplikatbehandlung der Eltern-Kind-Beziehungen vornimmt, sodass bestehende Zuordnungen aktualisiert
 		//  (Sequenz) und nicht vermehrt werden...)
-		$.ajax({
-			url : "ems.wsgi?do=delete&parent_id="+String(entry_id)
-				+"&child_not_in="+part_id_list.join(","),
+		get_module( "delete", {
+			args : {parent_id : String(entry_id), child_not_in : part_id_list.join(",")},
 			async : false,
-			success :
-		function( result ) {
-			result = parse_result( result )
-		}})
+			done : function( result ) {
+				result = parse_result( result )
+			}
+		});
 	}
 	if( new_entry_created ) {
 		remove_new_entry_item( entry );
@@ -753,15 +755,15 @@ function delete_entry( button ) {
 	Confirm.confirm( {message: 'Diesen Eintrag wirklich löschen?', before: $('.entry-tools',entry).first(),
 		ok_parms: {entry: entry}, ok_callback: function( parms ) {
 			var entry = parms.entry;
-			$.ajax({
-				url : "ems.wsgi?do=delete&id="+String($(entry).data().obj.id),
-				success :
-			function( result ) {
-				result = parse_result( result );
-				if( result.succeeded ) {
-					var item = $(entry).closest(".ems-item").remove();
+			get_module( "delete", {
+				args : {id : String($(entry).data().obj.id)},
+				done : function( result ) {
+					result = parse_result( result );
+					if( result.succeeded ) {
+						var item = $(entry).closest(".ems-item").remove();
+					}
 				}
-			}})
+			});
 		}
 	});
 }
@@ -829,29 +831,31 @@ function add_file( parms ) {
 	});
 	
 	var preview_area = $(".upload-preview", upload_dialog)[0];
-	$(upload_dialog).data( {"replace_upload_preview": function( upload_id, source_obj ) {
-		$.ajax({
-			url : "ems.wsgi?do=get&view=all&id="+String(upload_id),
-			success :
-		function( result ) {
-			result = parse_result( result );
-			if( result && result.length ) {
-				var meta = result[0];
-				if( meta.title ) $('.upload-title',upload_dialog).text( meta.title );
-				if( meta.type ) $('.upload-type',upload_dialog).text( "["+meta.type+"]" );
-				if( meta.size ) $('.upload-size',upload_dialog).text( prettyprint_size(meta.size) );
-				$(preview_area).empty();
-				show_object( {obj: meta, dom_parent: preview_area} );
-				if( meta.dom_object ) { 
-					$(meta.dom_object).addClass('upload-object');
-					$(meta.dom_object).addClass('upload-preview-content');
+	$(upload_dialog).data( {
+		replace_upload_preview : function( upload_id, source_obj ) {
+			get_module( "get", {
+				args : {view : "all", id : String(upload_id)},
+				done : function( result ) {
+					result = parse_result( result );
+					if( result && result.length ) {
+						var meta = result[0];
+						if( meta.title ) $('.upload-title',upload_dialog).text( meta.title );
+						if( meta.type ) $('.upload-type',upload_dialog).text( "["+meta.type+"]" );
+						if( meta.size ) $('.upload-size',upload_dialog).text( prettyprint_size(meta.size) );
+						$(preview_area).empty();
+						show_object( {obj: meta, dom_parent: preview_area} );
+						if( meta.dom_object ) { 
+							$(meta.dom_object).addClass('upload-object');
+							$(meta.dom_object).addClass('upload-preview-content');
+						}
+						if( parms.custom_callback ) {
+							parms.custom_callback( {obj: meta, source_obj: source_obj} );
+						}
+					}
 				}
-				if( parms.custom_callback ) {
-					parms.custom_callback( {obj: meta, source_obj: source_obj} );
-				}
-			}
-		}});
-	}});
+			});
+		}
+	});
 	
 	var upload_progress = $(".upload-progress", upload_dialog)[0];
 	$(preview_area).bind( "dragover", function(event) {
@@ -875,33 +879,30 @@ function add_file( parms ) {
 					var file = dt.files[i];
 					form_data.append( "file-"+String(i), file )
 				}
-				$.ajax({
-					url : "ems.wsgi?do=store",
-					type : "POST",
+				post_module( "store", {
 					data : form_data,
 					contentType: false, /*form_data den Content-Type bestimmen lassen*/
 					processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
-					xhr :
-				function() {
-					var xhr = new window.XMLHttpRequest();
-					xhr.upload.addEventListener( "progress", function(evt) {
-						if( evt.lengthComputable ) {
-							var percentComplete = 100 * evt.loaded / evt.total;
-							var progress_string = String(Math.round(percentComplete))+"%";
-							$(upload_progress).width( progress_string );
-							$(upload_progress).text( progress_string );
+					xhr : function() {
+						var xhr = new window.XMLHttpRequest();
+						xhr.upload.addEventListener( "progress", function(evt) {
+							if( evt.lengthComputable ) {
+								var percentComplete = 100 * evt.loaded / evt.total;
+								var progress_string = String(Math.round(percentComplete))+"%";
+								$(upload_progress).width( progress_string );
+								$(upload_progress).text( progress_string );
+							}
+						}, false );
+						return xhr;
+					},
+					done : function( result ) {
+						result = parse_result( result );
+						if( result.succeeded ) {
+							var upload_id = Number(result.id);
+							$(upload_dialog).data("replace_upload_preview")( upload_id );
 						}
-					}, false );
-					return xhr;
-				},
-					success :
-				function( result ) {
-					result = parse_result( result );
-					if( result.succeeded ) {
-						var upload_id = Number(result.id);
-						$(upload_dialog).data("replace_upload_preview")( upload_id );
 					}
-				}});
+				});
 			} catch( error ) {
 				show_message( "Beim Hochladen der Datei ist ein Fehler aufgetreten. Eventuell unterstützt dein Browser die verwendeten Schnittstellen noch nicht." )
 				show_error( error );
@@ -954,10 +955,11 @@ function show_tag_selection( button ) {
 	var entry_tools = $(button).closest(".entry-tools")[0];
 	var entry_tags = $(button).closest(".entry-tags")[0];
 	var tags_selection = $(".entry-tags-selection", entry_tags)[0];
-	$.get( "ems.wsgi?do=get&type=application/x-obj.tag&limit=1000", 
-	function( result ) {
-		result = parse_result( result );
-		if( !result.error ) {
+	get_module( "get", {
+		args : {type : "application/x-obj.tag", limit : 1000},
+		done : function( result ) {
+			result = parse_result( result );
+			
 			$(tags_selection).empty();
 			
 			var new_tag_input = $('<input>').attr({
@@ -987,35 +989,45 @@ function show_tag_selection( button ) {
 function add_tag( button ) {
 	var entry = $(button).closest(".ems-entry")[0];
 	var entry_id = $(entry).data().obj ? $(entry).data().obj.id : undefined;
-	var entry_id_query = entry_id ? ","+String(entry_id) :"";
 	var tag = $(button).closest('.entry-tag')[0];
 	tag = tag ? tag : button;
 	var tag_id = $(tag).data().obj.id;
-	var tag_id_query = tag_id ? "&id="+String(tag_id) : "";
-	var tag_title_query = tag_id ? "" : tag.value ? "&title="+tag.value : "";
-	var tag_type_query = tag_id ? "" : "&type="+$(tag).data().obj.type;
 	var tags_selection = $(button).closest('.entry-tags-selection')[0];
 	var tags_content = $('.entry-edit-tools .entry-tags-content',entry)[0];
-	$.get( "ems.wsgi?do=store&parent_id=5"+entry_id_query+tag_id_query+tag_title_query+tag_type_query, 
-	function( result ) {
-		result = parse_result( result );
-		if( result.succeeded ) {
-			tag_id = Number(result.id);
-			tags_selection.style.display = 'none';
-			if( entry_id ) {
-				// Daten neu laden, um Änderungen zu übernehmen:
-				$.get( "ems.wsgi?do=get&id="+String(entry_id)+"&view=all&recursive=true",
-				function( result ) {
-					result = parse_result( result );
-					if( !result.error && result.length ) {
-						obj = result[0];
-						$(".entry-content", entry).empty()
-						$(".entry-tags-content", entry).empty()
-						show_object( {dom_parent: entry, obj: obj, update: true} );
-					}
-				});
-			} else {
-				show_object( {dom_parent: tags_content, obj: {id: tag_id}} );
+	var get_args = { parent_id : String(5) };
+	if( entry_id ) get_args.parent_id += ","+String(entry_id);
+	if( tag_id ) {
+		get_args["id"] = String(tag_id);
+	} else {
+		if( tag.value ) {
+			get_args["title"] = tag.value;
+		}
+		get_args["type"] = $(tag).data().obj.type;
+	}
+	get_module( "store", {
+		args : get_args,
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded ) {
+				tag_id = Number(result.id);
+				tags_selection.style.display = 'none';
+				if( entry_id ) {
+					// Daten neu laden, um Änderungen zu übernehmen:
+					get_module( "get", {
+						args : {id : entry_id, view : "all", recursive : true},
+						done : function( result ) {
+							result = parse_result( result );
+							if( result.length ) {
+								obj = result[0];
+								$(".entry-content", entry).empty()
+								$(".entry-tags-content", entry).empty()
+								show_object( {dom_parent: entry, obj: obj, update: true} );
+							}
+						}
+					});
+				} else {
+					show_object( {dom_parent: tags_content, obj: {id: tag_id}} );
+				}
 			}
 		}
 	});
@@ -1030,13 +1042,14 @@ function remove_tag( button ) {
 	}
 	var entry_id = $(entry).data().obj.id;
 	var tag_id = $(tag).data().obj.id;
-	var tag_id_query = "&id="+String(tag_id);
 	var tags_content = $(button).closest('.entry-tags-content')[0];
-	$.get( "ems.wsgi?do=delete&parent_id="+String(entry_id)+tag_id_query, 
-	function( result ) {
-		result = parse_result( result );
-		if( result.succeeded ) {
-			$(tag).remove();
+	get_module( "delete", {
+		args : {parent_id : entry_id, id : tag_id},
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded ) {
+				$(tag).remove();
+			}
 		}
 	});
 }
@@ -1044,23 +1057,27 @@ function remove_tag( button ) {
 function link_external( button, recursive ) {
 	var entry = $(button).closest(".ems-entry")[0];
 	var entry_id = $(entry).data().obj.id;
-	$.get( "ems.wsgi?do=get&type=application/x-obj.publication&parent_id="+String(entry_id),
-	function( result ) {
-		result = parse_result( result );
-		if( result.length ) {
-			var pub = result[0];
-			show_object( {dom_parent: entry, obj: pub, update: true} );
-			$( ".entry-publication-link", entry ).wrap( $("<div>").addClass("highlight") );
-		} else if( !recursive ) {
-			$.get( "ems.wsgi?do=store&type=application/x-obj.publication&parent_id="+String(entry_id),
-			function( result ) {
-				result = parse_result( result );
-				if( result.succeeded ) {
-					link_external( button, /*recursive=*/true );
-				}
-			});
-		} else {
-			show_message( "Externer Link konnte nicht erstellt werden" );
+	get_module( "get", {
+		args : {type : 'application/x-obj.publication', parent_id : entry_id},
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.length ) {
+				var pub = result[0];
+				show_object( {dom_parent: entry, obj: pub, update: true} );
+				$( ".entry-publication-link", entry ).wrap( $("<div>").addClass("highlight") );
+			} else if( !recursive ) {
+				get_module( "store", {
+					args : {type : 'application/x-obj.publication', parent_id : entry_id},
+					done : function( result ) {
+						result = parse_result( result );
+						if( result.succeeded ) {
+							link_external( button, /*recursive=*/true );
+						}
+					}
+				});
+			} else {
+				show_message( "Externer Link konnte nicht erstellt werden" );
+			}
 		}
 	});
 }

@@ -17,18 +17,36 @@ function open_tpl( tpl, args ) {
 	open_page( get_tpl_url(tpl, args) );
 }
 
-function get_tpl( tpl, parms ) {
-	$.get( get_tpl_url(tpl, parms.args) )
-		.done(parms.done ? parms.done : parse_result)
+function get_data( url, parms ) {
+	$.ajax( {
+		url : url,
+		async : parms.async,
+		type : parms.type, /* http method type */
+		data : parms.data, /* post data */
+		contentType: parms.contentType, /* override Content-Type header */
+		processData: parms.processData, /* override/disable jQuery data processing */
+		xhr : parms.xhr /* pass custom create function for internal XMLHttpRequest to jQuery */
+	} )	.done(parms.done ? parms.done : parse_result)
 		.fail(parms.fail ? parms.fail : parse_result)
 		.always(parms.always);
 }
 
+function get_tpl( tpl, parms ) {
+	get_data( get_tpl_url(tpl, parms.args), parms );
+}
+
 function get_module( module, parms ) {
-	$.get( get_module_url(module, parms.args) )
-		.done(parms.done ? parms.done : parse_result)
-		.fail(parms.fail ? parms.fail : parse_result)
-		.always(parms.always);
+	get_data( get_module_url(module, parms.args), parms );
+}
+
+function post_tpl( tpl, parms ) {
+	parms.type = "POST";
+	get_tpl( tpl, parms );
+}
+
+function post_module( module, parms ) {
+	parms.type = "POST";
+	get_module( module, parms );
 }
 
 function get_ws_url( path ) {

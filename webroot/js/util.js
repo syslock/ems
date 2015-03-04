@@ -6,11 +6,11 @@ function get_module_url( module, args ) {
 	var l = document.location;
 	var port = l.port ? ":"+String(l.port) : "";
 	var pathname = l.pathname.replace(/\/$/,"/ems.wsgi")
-	return l.protocol+"//"+l.hostname+port+pathname+'?' + $.param($.extend({'do':module}, args));
+	return l.protocol+"//"+l.hostname+port+pathname+'?' + $.param($.extend({'do':module}, args ? args : {}));
 }
 
 function get_tpl_url( tpl, args ) {
-	return get_module_url('render', $.extend({'tpl':tpl}, args) );
+	return get_module_url('render', $.extend({'tpl':tpl}, args ? args : {}) );
 }
 
 function open_tpl( tpl, args ) {

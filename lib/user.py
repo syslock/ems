@@ -21,9 +21,10 @@ class User( db_object.DBObject ):
 				c.execute( """insert into users (object_id,nick,password,email)
 								values (?,?,?,?)""",
 							[self.id, nick, encrypted_password, email] )
+				self.app.db.commit()
+				self.index( data=nick, source="nick", rank=2 )
 			except sqlite3.IntegrityError as e:
 				raise Exception( "Nick already in use" )
-			self.app.db.commit()
 	
 	def status( self ):
 		result = {}

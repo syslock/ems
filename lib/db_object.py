@@ -1,6 +1,8 @@
 import time, imp, os, shutil, io, re
 from lib import errors
 errors = imp.reload( errors )
+from lib import lexer
+lexer = imp.reload( lexer )
 
 class DBObject:
 	
@@ -45,6 +47,7 @@ class DBObject:
 						[self.media_type, self.ctime, self.mtime] )
 			self.app.db.commit()
 			self.id = c.lastrowid
+			self.index( data=self.media_type, source="type", rank=1 )
 			for pid in parent_id:
 				c.execute( """insert into membership (parent_id, child_id, sequence)
 								values(?,?,?)""",
@@ -98,6 +101,18 @@ class DBObject:
 			else:
 				c.execute( """insert into titles (object_id, data) values(?,?)""",
 							[self.id, title] )
+			self.app.db.commit()
+			self.index( data=title, source="title", rank=3 )
+			
+	def index( self, data, source=None, rank=1 ):
+		c = self.app.db.cursor()
+		c.execute( """delete from keywords where object_id=? and scan_source=?""", [self.id, str(source)] )
+		self.app.db.commit()
+		scan_time = int( time.time() )
+		words = lexer.Lexer.scan( data )
+		for pos, word in words:
+			c.execute( """insert into keywords (object_id, word, pos, rank, scan_source, scan_time)
+					values(?, ?, ?, ?, ?, ?)""", [self.id, word, pos, rank, str(source), scan_time] )
 			self.app.db.commit()
 	
 	def closest_parents( self, child_ids=None, parent_type=None ):
@@ -211,6 +226,7 @@ class Group( DBObject ):
 								where object_id=?""",
 							[keyargs[field], self.id] )
 			self.app.db.commit()
+			self.index( data=keyargs[field], source="group."+field, rank=2 )
 
 
 class Text( DBObject ):
@@ -232,6 +248,7 @@ class Text( DBObject ):
 								where object_id=?""",
 							[keyargs["data"], self.id] )
 			self.app.db.commit()
+			self.index( data=keyargs["data"], source="text", rank=2 )
 	def get_data( self ):
 		c = self.app.db.cursor()
 		c.execute( """select data from text where object_id=?""", 
@@ -297,6 +314,9 @@ class UserAttributes( DBObject ):
 			c = self.app.db.cursor()
 			c.execute( stmt, update_values )
 			self.app.db.commit()
+			# FIXME: security issue? UserAttributes are as public as the User itself is...
+			for i in range(len(update_fields)):
+				self.index( data=update_values[i], source="user."+update_fields[i], rank=2 )
 	def get( self, query, obj ):
 		requested_fields = []
 		valid_fields = ["user_id"] + list(self.valid_fields)

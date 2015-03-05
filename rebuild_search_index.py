@@ -2,6 +2,7 @@
 
 import os, sys, time, re
 from lib import application
+from lib.lexer import Lexer
 
 scan_sources = [
 	("title", "titles", "object_id", "data", 3),
@@ -9,9 +10,6 @@ scan_sources = [
 	("nick", "users", "object_id", "nick", 2),
 	("type", "objects", "id", "type", 1),
 ]
-
-# list from: http://fasforward.com/list-of-european-special-characters/
-eu_chars = "¡¿ÄäÀàÁáÂâÃãÅåǍǎĄąĂăÆæÇçĆćĈĉČčĎđĐďðÈèÉéÊêËëĚěĘęĜĝĢģĤĥÌìÍíÎîÏïĴĵĶķĹĺĻļŁłĽľÑñŃńŇňÖöÒòÓóÔôÕõŐőØøŒœŔŕŘřẞßŚśŜŝŞşŠšŤťŢţÞþÜüÙùÚúÛûŰűŨũŲųŮůŴŵÝýŸÿŶŷŹźŽžŻż"
 
 environ = { "REMOTE_ADDR" : "localhost" }
 
@@ -22,15 +20,7 @@ for scan_source_definition in scan_sources:
 	scan_time = int( time.time() )
 	rows = c.execute( """select %(id_column)s, %(data_column)s from %(scan_table)s""" % locals() ).fetchall()
 	for obj_id, data in rows:
-		words = []
-		# character chunks between whitespaces and several punctuation marks:
-		words += [(i,w) for i,w in enumerate([ word.lower() for word in re.split(r'[ \t\r\n,.;!?:%"=]', data) if word ])]
-		# chunks of latin and several derived characters, numbers and some currency symbols:
-		words += [(i,w) for i,w in enumerate([ word.lower() for word in re.split(r'[^a-zA-Z0-9$€£¢#%s]' % (eu_chars), data) if word ])]
-		# host and file names:
-		words += [(i,w) for i,w in enumerate([ word.lower() for word in re.split(r'[^a-zA-Z0-9\-_.$€£¢#%s]' % (eu_chars), data) if word ])]
-		# numbers only:
-		words += [(i,w) for i,w in enumerate([ word.lower() for word in re.split(r'[^0-9]', data) if word ])]
+		words = Lexer.scan( data )
 		c.execute( """delete from keywords where object_id=? and scan_source=?""", [obj_id, scan_source] )
 		app.db.commit()
 		for pos, word in words:

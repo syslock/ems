@@ -29,32 +29,34 @@ function change_password( button, old_password, new_password ) {
 		hilight( $('.user-new-password-input-2',user_element)[0] );
 		return;
 	}
-	$.ajax({
-		url : "ems.wsgi?do=store&type=application/x-obj.user&id="+String(user_id),
-		type : "POST",
-		data : { old_password: old_password, new_password: new_password },
+	post_module( "store", {
+		args : {type : 'application/x-obj.user', id : user_id},
+		data : {old_password : old_password, new_password : new_password},
 		async : false,
-		success :
-	function( result )
-	{
-		result = parse_result( result )
-		if( result.succeeded ) {
-			$('.user-old-password-input',user_element)[0].value='';
-			$('.user-new-password-input',user_element)[0].value='';
-			$('.user-new-password-input-2',user_element)[0].value='';
-			$('.user-password-dialog',user_element)[0].style.display='none';
-		} else if( result && result.error ) {
-			if( result.error.message.match(/old password/i) ) {
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded ) {
 				$('.user-old-password-input',user_element)[0].value='';
-				hilight( $('.user-old-password-input',user_element)[0] );
-			} else if( result.error.message.match(/password/i) ) {
 				$('.user-new-password-input',user_element)[0].value='';
 				$('.user-new-password-input-2',user_element)[0].value='';
-				hilight( $('.user-new-password-input',user_element)[0] );
-				hilight( $('.user-new-password-input-2',user_element)[0] );
+				$('.user-password-dialog',user_element)[0].style.display='none';
+			}
+		},
+		fail : function( result ) {
+			result = parse_result( result );
+			if( result && result.error ) {
+				if( result.error.message.match(/old password/i) ) {
+					$('.user-old-password-input',user_element)[0].value='';
+					hilight( $('.user-old-password-input',user_element)[0] );
+				} else if( result.error.message.match(/password/i) ) {
+					$('.user-new-password-input',user_element)[0].value='';
+					$('.user-new-password-input-2',user_element)[0].value='';
+					hilight( $('.user-new-password-input',user_element)[0] );
+					hilight( $('.user-new-password-input-2',user_element)[0] );
+				}
 			}
 		}
-	}})
+	});
 }
 
 function change_user_image( button ) {
@@ -82,34 +84,32 @@ function change_user_image( button ) {
 				var file = dt.files[i];
 				form_data.append( "file-"+String(i), file )
 			}
-			$.ajax({
-				url : "ems.wsgi?do=store",
-				type : "POST",
+			post_module( "store", {
 				data : form_data,
 				contentType: false, /*form_data den Content-Type bestimmen lassen*/
 				processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
-				success :
-			function( result ) {
-				result = parse_result( result );
-				if( result.succeeded ) {
-					var image_id = result.id;
-					$.ajax({
-						url : "ems.wsgi?do=get&view=all&id="+String(image_id),
-						success :
-					function( result ) {
-						result = parse_result( result );
-						if( result && result.length ) {
-							var meta = result[0];
-							if( meta.title ) $('.user-image-title',user_element).text( meta.title );
-							if( meta.type ) $('.user-image-type',user_element).text( "["+meta.type+"]" );
-							if( meta.size ) $('.user-image-size',user_element).text( prettyprint_size(meta.size) );
-						}
-					}});
-					$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(image_id)+'" class="user-image-preview-content" />');
-					var preview_image = $('.user-image-preview-content', preview_area)[0];
-					$(preview_image).data( {obj: {id: image_id}} );
+				done : function( result ) {
+					result = parse_result( result );
+					if( result.succeeded ) {
+						var image_id = result.id;
+						get_module( "get", {
+							args : {view : "all", id : image_id},
+							done : function( result ) {
+								result = parse_result( result );
+								if( result && result.length ) {
+									var meta = result[0];
+									if( meta.title ) $('.user-image-title',user_element).text( meta.title );
+									if( meta.type ) $('.user-image-type',user_element).text( "["+meta.type+"]" );
+									if( meta.size ) $('.user-image-size',user_element).text( prettyprint_size(meta.size) );
+								}
+							}
+						});
+						$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(image_id)+'" class="user-image-preview-content" />');
+						var preview_image = $('.user-image-preview-content', preview_area)[0];
+						$(preview_image).data( {obj: {id: image_id}} );
+					}
 				}
-			}});
+			});
 		} catch( error ) {
 			show_message( "Beim Hochladen der Datei ist ein Fehler aufgetreten. Eventuell unterstützt dein Browser die verwendeten Schnittstellen noch nicht." );
 			show_error( error );
@@ -133,17 +133,16 @@ function confirm_user_image( button ) {
 	var preview_image = $('.user-image-preview img',user_element)[0];
 	if( preview_image && $(preview_image).data().obj && $(preview_image).data().obj.id ) {
 		var avatar_id = $(preview_image).data().obj.id;
-		$.ajax({
-			url : "ems.wsgi",
-			data : {'do':'store', 'type':'application/x-obj.user', 'id':user_id, 'avatar_id':avatar_id},
-			success :
-		function( result ) {
-			result = parse_result( result );
-			if( result.succeeded ) {
-				replace_user_image( user_element, avatar_id );
-				close_user_image_dialog( button );
+		get_module( "store", {
+			args : {type : 'application/x-obj.user', id : user_id, avatar_id : avatar_id},
+			done : function( result ) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					replace_user_image( user_element, avatar_id );
+					close_user_image_dialog( button );
+				}
 			}
-		}});
+		});
 	}
 }
 
@@ -158,16 +157,18 @@ function show_user_details( button ) {
 	$('.user-details-mtime-input',dialog).attr( {value: (new Date(user.mtime*1000)).toLocaleString()} );
 	var groups = $(".user-details-groups", dialog)[0];
 	var groups_content = $(".user-groups-content", groups)[0];
-	$.get( "ems.wsgi?do=get&child_id="+String(user.id)+"&type=application/x-obj.group&limit=50", 
-	function( result ) {
-		result = parse_result( result );
-		if( !result.error ) {
-			$(groups_content).empty();
-			for( var i in result ) {
-				var obj = result[i];
-				show_object( {obj: obj, dom_parent: groups_content, duplicates: true} );
-				$(obj.dom_object).addClass('user-groups-item');
-				$(".group-remove",obj.dom_object).show();
+	get_module( "get", {
+		args : {child_id : user.id, type : "type=application/x-obj.group", limit : 50},
+		done : function( result ) {
+			result = parse_result( result );
+			if( !result.error ) {
+				$(groups_content).empty();
+				for( var i in result ) {
+					var obj = result[i];
+					show_object( {obj: obj, dom_parent: groups_content, duplicates: true} );
+					$(obj.dom_object).addClass('user-groups-item');
+					$(".group-remove",obj.dom_object).show();
+				}
 			}
 		}
 	});
@@ -182,22 +183,24 @@ function show_group_selection( button ) {
 	var dialog = $('.user-details-dialog',user_element)[0];
 	var groups = $(button).closest(".user-details-groups")[0];
 	var groups_selection = $(".user-groups-selection", groups)[0];
-	$.get( "ems.wsgi?do=get&type=application/x-obj.group&limit=50", 
-	function( result ) {
-		result = parse_result( result );
-		if( !result.error ) {
-			$(groups_selection).empty();
-			for( var i in result ) {
-				var obj = result[i];
-				show_object( {obj: obj, dom_parent: groups_selection, duplicates: true} );
-				$(obj.dom_object).addClass('user-groups-selection-item');
-				$(".group-add",obj.dom_object).show();
+	get_module( "get", {
+		args : {type : "application/x-obj.group", limit : 50},
+		done : function( result ) {
+			result = parse_result( result );
+			if( !result.error ) {
+				$(groups_selection).empty();
+				for( var i in result ) {
+					var obj = result[i];
+					show_object( {obj: obj, dom_parent: groups_selection, duplicates: true} );
+					$(obj.dom_object).addClass('user-groups-selection-item');
+					$(".group-add",obj.dom_object).show();
+				}
+				groups_selection.style.display = "";
+				$(dialog).bind('mouseleave', function(event) {
+					groups_selection.style.display = 'none';
+					$(this).unbind('mouseleave');
+				});
 			}
-			groups_selection.style.display = "";
-			$(dialog).bind('mouseleave', function(event) {
-				groups_selection.style.display = 'none';
-				$(this).unbind('mouseleave');
-			});
 		}
 	});
 }
@@ -208,13 +211,15 @@ function add_group( button ) {
 	var group_id = $(group).data().obj.id;
 	var groups_selection = $(button).closest('.user-groups-selection')[0];
 	var groups_content = $('.user-groups-content',user)[0];
-	$.get( "ems.wsgi?do=store&id="+String(user_id)+"&parent_id="+String(group_id), 
-	function( result ) {
-		result = parse_result( result );
-		if( result.succeeded ) {
-			groups_selection.style.display = 'none';
-			// Daten neu laden, um Änderungen zu übernehmen:
-			show_user_details( button )
+	get_module( "store", {
+		args : {id : user_id, parent_id : group_id},
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded ) {
+				groups_selection.style.display = 'none';
+				// Daten neu laden, um Änderungen zu übernehmen:
+				show_user_details( button )
+			}
 		}
 	});
 }
@@ -228,12 +233,14 @@ function remove_group( button ) {
 	var user_id = $(user).data().obj.id;
 	var group_id = $(group).data().obj.id;
 	var groups_content = $(button).closest('.user-groups-content')[0];
-	$.get( "ems.wsgi?do=delete&id="+String(user_id)+"&parent_id="+String(group_id), 
-	function( result ) {
-		result = parse_result( result );
-		if( result.succeeded ) {
-			// Daten neu laden, um Änderungen zu übernehmen:
-			show_user_details( button )
+	get_module( "delete", {
+		args : {id : user_id, parent_id : group_id},
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded ) {
+				// Daten neu laden, um Änderungen zu übernehmen:
+				show_user_details( button )
+			}
 		}
 	});
 }

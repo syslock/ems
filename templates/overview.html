@@ -83,7 +83,7 @@
 					} );
 					
 					// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
-					Minions.show_latest( $('.page-events')[0], 15 );
+					var minions = Minions( {dom_parent : $('.page-events'), limit : 15} );
 					
 					// alter WebSocket-Code zur experimentellen Echtzeitanzeige von Ereignissen:
 					/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');

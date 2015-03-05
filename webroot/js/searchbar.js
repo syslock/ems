@@ -53,7 +53,7 @@ var SearchBar = function ( parms ) {
 	
 	my.search = function( parms ) {
 		var parms = parms ? parms : {};
-		parms.phrase = parms.phrase ? parms.phrase : my.entry.text();
+		parms.phrase = parms.phrase ? parms.phrase : my.entry ? my.entry.text() : '';
 		parms.phrase = parms.phrase.length ? parms.phrase : my.empty_search
 		parms.range_offset = parms.range_offset ? parms.range_offset : 0;
 		var new_search_count = parms.search_count==my.search_count ? my.search_count : my.search_count+1;
@@ -107,24 +107,30 @@ var SearchBar = function ( parms ) {
 	my.select_apropos_hint = function() {};
 	
 	my.hide_apropos_hints = function() {
-		my.apropos_hints.hide();
+		if( my.apropos_hints ) my.apropos_hints.hide();
 	};
 	
-	get_tpl( "elements/searchbar.html", { done : function(result) {
-		my.entry_parent.html( result );
-		my.entry = $( ".searchbar-entry", my.entry_parent );
-		my.entry[0].contentEditable = true;
-		my.entry.outerWidth( my.outer_width );
-		my.entry.css( 'min-width', my.entry.css('width') );
-		my.entry.css( 'width', '' );
-		my.entry.on( 'keydown', my.handle_keydown_event );
-		my.entry.on( 'keyup', my.handle_keyup_event );
-		my.apropos_hints = $( ".apropos-hints", my.entry_parent );
-		my.apropos_spacer = $( ".apropos-spacer", my.entry_parent );
+	if( my.entry_parent ) {
+		get_tpl( "elements/searchbar.html", { done : function(result) {
+			my.entry_parent.html( result );
+			my.entry = $( ".searchbar-entry", my.entry_parent );
+			my.entry[0].contentEditable = true;
+			my.entry.outerWidth( my.outer_width );
+			my.entry.css( 'min-width', my.entry.css('width') );
+			my.entry.css( 'width', '' );
+			my.entry.on( 'keydown', my.handle_keydown_event );
+			my.entry.on( 'keyup', my.handle_keyup_event );
+			my.apropos_hints = $( ".apropos-hints", my.entry_parent );
+			my.apropos_spacer = $( ".apropos-spacer", my.entry_parent );
+			if( my.on_ready ) {
+				my.on_ready();
+			}
+		}, fail : function(result) {
+			show_error( result )
+		} } );
+	} else {
 		if( my.on_ready ) {
 			my.on_ready();
 		}
-	}, fail : function(result) {
-		show_error( result )
-	} } );
+	}
 } // SearchBar

@@ -69,6 +69,7 @@ function new_item( parms ) {
 			}
 			$(item).data( {obj: obj} );
 		}
+		if( !obj.dom_object ) obj.dom_object = item;
 		for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
 			var value = obj[ field_name ];
 			if( field_name in {"ctime":1, "mtime":1} ) {

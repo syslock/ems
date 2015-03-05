@@ -30,7 +30,7 @@ def process( app ):
 	if "parent_id" in query.parms:
 		parent_ids = [int(x) for x in query.parms["parent_id"].split(",") if x]
 	need_permissions = {"read"}
-	if "permssions" in query.parms:
+	if "permissions" in query.parms:
 		need_permissions.update( query.parms["permissions"].split(",") )
 	result = get( app, object_ids, child_ids=child_ids, parent_ids=parent_ids, offset=offset, limit=limit, recursive=(recursive,recursive), need_permissions=need_permissions )
 	if result != None:

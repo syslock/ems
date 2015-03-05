@@ -183,8 +183,9 @@ function show_group_selection( button ) {
 	var dialog = $('.user-details-dialog',user_element)[0];
 	var groups = $(button).closest(".user-details-groups")[0];
 	var groups_selection = $(".user-groups-selection", groups)[0];
+	var user = $(user_element).data().obj;
 	get_module( "get", {
-		args : {type : "application/x-obj.group", limit : 50},
+		args : {type : "application/x-obj.group", child_id : -user.id, permissions : "write", limit : 50},
 		done : function( result ) {
 			result = parse_result( result );
 			if( !result.error ) {

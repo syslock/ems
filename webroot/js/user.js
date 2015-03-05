@@ -167,7 +167,9 @@ function show_user_details( button ) {
 					var obj = result[i];
 					show_object( {obj: obj, dom_parent: groups_content, duplicates: true} );
 					$(obj.dom_object).addClass('user-groups-item');
-					$(".group-remove",obj.dom_object).show();
+					if( obj.permissions.indexOf("write")>=0 && user.permissions.indexOf("write")>=0 ) {
+						$(".group-remove",obj.dom_object).show();
+					}
 				}
 			}
 		}

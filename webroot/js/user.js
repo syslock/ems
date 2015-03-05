@@ -196,7 +196,9 @@ function show_group_selection( button ) {
 					var obj = result[i];
 					show_object( {obj: obj, dom_parent: groups_selection, duplicates: true} );
 					$(obj.dom_object).addClass('user-groups-selection-item');
-					$(".group-add",obj.dom_object).show();
+					if( obj.permissions.indexOf("write")>=0 && user.permissions.indexOf("write")>=0 ) {
+						$(".group-add",obj.dom_object).show();
+					}
 				}
 				groups_selection.style.display = "";
 				$(dialog).bind('mouseleave', function(event) {

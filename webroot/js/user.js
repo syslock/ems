@@ -158,7 +158,7 @@ function show_user_details( button ) {
 	var groups = $(".user-details-groups", dialog)[0];
 	var groups_content = $(".user-groups-content", groups)[0];
 	get_module( "get", {
-		args : {child_id : user.id, type : "type=application/x-obj.group", limit : 50},
+		args : {child_id : user.id, type : "application/x-obj.group", limit : 50},
 		done : function( result ) {
 			result = parse_result( result );
 			if( !result.error ) {

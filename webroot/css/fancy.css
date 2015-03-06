@@ -1237,8 +1237,11 @@ div.searchbar-entry {
 	color: black;
 	padding: 2px;
 	padding-left: 8px;
+	padding-right: 8px;
 	font-size: 10pt;
 	font-family: sans-serif;
+	z-index: 1; /* raise entry above minions in title bar */
+	outline: 0px solid transparent;
 }
 /* Font and left offsets of apropos-spacer needs to be similar to input.searchbar, to
  * achieve current words hint to be displayed under the current word! */
@@ -1258,13 +1261,15 @@ div.searchbar-entry {
 .apropos-hints {
 	display: inline-block;
 	background-color: white;
-	margin-top: 0px;
+	margin-top: 1px;
 	border: 1px solid grey;
 	border-top: 0px;
 	border-bottom-left-radius: 5px;
 	border-bottom-right-radius: 5px;
 	padding: 3px;
 	padding-top: 0px;
+	position: relative; /* allow hints to be rendered above entry border */
+	z-index: 1; /* raise entry above minions in title bar */
 }
 .apropos-hint {
 	display: block;

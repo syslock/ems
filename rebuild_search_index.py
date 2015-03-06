@@ -18,6 +18,7 @@ c = app.db.cursor()
 for scan_source_definition in scan_sources:
 	scan_source, scan_table, id_column, data_column, rank = scan_source_definition
 	scan_time = int( time.time() )
+	c.execute( """PRAGMA synchronous = 0;""" )
 	rows = c.execute( """select %(id_column)s, %(data_column)s from %(scan_table)s""" % locals() ).fetchall()
 	for obj_id, data in rows:
 		words = Lexer.scan( data )

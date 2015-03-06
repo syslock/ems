@@ -6,23 +6,19 @@
 		<link id="main_style" rel="stylesheet" type="text/css" href="" />
 		<script data-main="js/main.js" src="js/require.js"></script>
 		<script>
-			function init()
-			{
+			function init() {
 				$('.menu-login-widget').hide();
-				hide_register()
-				$.get('ems.wsgi?do=status', 
-				function( result )
-				{
-					result = parse_result( result )
-					if( result.login && result.login.nick!='anonymous' )
-					{
-						open_tpl("overview.html")
+				hide_register();
+				get_module( "status", {
+					done : function( result ) {
+						result = parse_result( result );
+						if( result.login && result.login.nick!='anonymous' ) {
+							open_tpl("overview.html");
+						} else {
+							$("input.login-nick").focus();
+						}
 					}
-					else
-					{
-						$("input.login-nick").focus()
-					}
-				})
+				});
 			}
 			
 			function show_register_password_match_message() {

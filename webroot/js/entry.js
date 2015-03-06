@@ -105,7 +105,7 @@ function create_download( obj ) {
 		return (obj.title ? obj.title : 'file_'+String(obj.id)+'.'+obj.type.match(/.*\/(.*)/)[1])
 	}
 	var link = $('<a></a>').attr({
-		href: 'ems.wsgi?do=get&view=data&id='+String(obj.id)+'&attachment=true',
+		href: get_module_url( "get", {view : "data", id : obj.id, attachment : true} ),
 		target: '_blank', title: prettyprint_title(obj)+' herunterladen...', 
 		class: 'download-link', download: prettyprint_title(obj)
 	}).append( $('<img />').attr({ 
@@ -120,24 +120,25 @@ function create_download( obj ) {
 }
 
 function load_visible_objects( parms ) {
-	var offset = (parms.offset ? "&offset="+String(parms.offset) : "");
-	var limit = (parms.limit ? "&limit="+String(parms.limit) : "");
-	var type = (parms.type ? "&type="+parms.type : "");
-	var ids = (parms.ids && parms.ids.length ? "&id="+parms.ids.join(",") : "");
-	var parent_ids = (parms.parent_ids && parms.parent_ids.length ? "&parent_id="+parms.parent_ids.join(",") : "");
-	var child_ids = (parms.child_ids && parms.child_ids.length ? "&child_id="+parms.child_ids.join(",") : "");
-	var permissions = (parms.permissions && parms.permissions.length ? "&permissions="+parms.permissions.join(",") : "");
+	var get_args = { view : "all", recursive : true };
+	if( parms.offset ) get_args.offset = parms.offset;
+	if( parms.limit ) get_args.limit = parms.limit;
+	if( parms.type ) get_args.type = parms.type;
+	if( parms.ids && parms.ids.length ) get_args.id = parms.ids.join(",");
+	if( parms.parent_ids && parms.parent_ids.length ) get_args.parent_id = parms.parent_ids.join(",");
+	if( parms.child_ids && parms.child_ids.length ) get_args.child_id = parms.child_ids.join(",");
+	if( parms.permissions && parms.permissions.length ) get_args.permissions = parms.permissions.join(",");
 	var dom_parent = (parms.dom_parent ? parms.dom_parent : $(".ems-content")[0]);
 	GlobalRequestQueue.add( {
-		url : "ems.wsgi?do=get&view=all&recursive=true"+offset+limit+type+ids+parent_ids+child_ids+permissions,
-		async : true,
-		success :
-	function( result ) {
-		result = parse_result( result )
-		for( i in result ) {
-			show_object( {obj: result[i], dom_parent: dom_parent, limit: parms.limit} )
+		module : "get",
+		args : get_args,
+		done : function( result ) {
+			result = parse_result( result );
+			for( i in result ) {
+				show_object( {obj: result[i], dom_parent: dom_parent, limit: parms.limit} );
+			}
 		}
-	}} );
+	});
 	GlobalRequestQueue.process();
 }
 
@@ -232,7 +233,7 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type.match(/^image\//) && obj.id ) {
 		if( dom_parent ) {
-			obj.dom_object = $('<img>').attr( {src: 'ems.wsgi?do=get&id='+obj.id+'&view=data', class: 'entry-media'} )[0];
+			obj.dom_object = $('<img>').attr( {src: get_module_url("get", {id : obj.id, view : "data"}), class: 'entry-media'} )[0];
 			$(obj.dom_object).data( {obj: obj} );
 			$(dom_parent).append( obj.dom_object );
 		}
@@ -274,7 +275,7 @@ function show_object( parms )
 							// Wir müssen die Variant-Elemente mit ihren DB-Objekten assoziieren und diese hier aus
 							// dem DOM abrufen...
 							var variant_obj = $(event.target).closest('.video-variant').data("obj");
-							video.src = 'ems.wsgi?do=get&id='+String(variant_obj.id)+'&view=data';
+							video.src = get_module_url( "get", {id : variant_obj.id, view : "data"} );
 							$(video).data( {selected_variant_id: variant_obj.id} );
 							identification_callback( raw_result );
 						});
@@ -302,7 +303,7 @@ function show_object( parms )
 									ready_source_count++;
 									// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
 									if( !video.src && video.canPlayType(conv_obj.type) ) {
-										video.src = 'ems.wsgi?do=get&id='+String(conv_obj.id)+'&view=data';
+										video.src = get_module_url( "get", {id : conv_obj.id, view : "data"} );
 										$(video).data( {selected_variant_id: conv_obj.id} );
 									}
 									identification_request_list.push( conv_obj.id );
@@ -314,7 +315,7 @@ function show_object( parms )
 								if( conv_obj.size>0 ) {
 									$(status_text).append( $('<div>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
 									ready_source_count++;
-									$(video).attr( {poster: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'} );
+									$(video).attr( {poster: get_module_url("get", {id : conv_obj.id, view : "data"})} );
 								} else {
 									$(status_text).append( $('<div>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
 									stale_source_count++;
@@ -322,17 +323,25 @@ function show_object( parms )
 							}
 						}
 					}
-					GlobalRequestQueue.add( {url:'ems.wsgi?do=identify&id='+String(identification_request_list), success:identification_callback} );
+					GlobalRequestQueue.add( {
+						module : "identify",
+						args : {id : identification_request_list.join(",")},
+						done : identification_callback
+					});
 					GlobalRequestQueue.process();
 					
 					// Original-Video-Daten als Fallback für unfertige/fehlgeschlagene Konvertierung:
 					if( !video.src && video.canPlayType(obj.type) ) {
-						video.src = 'ems.wsgi?do=get&id='+obj.id+'&view=data';
+						video.src = get_module_url( "get", {id : obj.id, view : "data"} );
 					}
 					
 					if( ready_source_count+stale_source_count==0 ) {
 						// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
-						GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', success:conversion_callback}, "long" );
+						GlobalRequestQueue.add( {
+							module : "convert",
+							args : {mode : "convert", id : obj.id, view : "all"},
+							done : conversion_callback
+						}, "long" );
 						GlobalRequestQueue.process();
 					} else if( stale_source_count==0 ) {
 						$(status).hide();
@@ -340,7 +349,11 @@ function show_object( parms )
 					if( !video.src ) {
 						setTimeout( function() {
 							// Schnell-Lookup von bereits vorhandenen Konvertierungen wiederholen:
-							GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', success:conversion_callback} );
+							GlobalRequestQueue.add( {
+								module : "convert",
+								args : {mode : "status", id : obj.id, view : "all"},
+								done : conversion_callback
+							} );
 							GlobalRequestQueue.process();
 						}, 5000 );
 					}
@@ -350,7 +363,11 @@ function show_object( parms )
 				}
 			};
 			// Schnell-Lookup von bereits vorhandenen Konvertierungen:
-			GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', success:conversion_callback} );
+			GlobalRequestQueue.add( {
+				module : "convert",
+				args : {mode : "status", id : obj.id, view : "all"},
+				done : conversion_callback
+			} );
 			GlobalRequestQueue.process();
 			$(dom_parent).append( obj.dom_object );
 		}

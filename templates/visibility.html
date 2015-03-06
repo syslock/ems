@@ -8,35 +8,32 @@
 		<script>
 			var global_status = undefined;
 			var global_user = undefined;
-			function init()
-			{
-				$.get('ems.wsgi?do=status',
-				function(result)
-				{
-					result = parse_result( result )
-					global_status = result
-					if( result.login && result.login.nick!='anonymous' )
-					{
-						$(".menu-login")[0].style.display="none";
-						$(".menu-account-info")[0].style.display="";
-						$(".menu-account-nick")[0].innerHTML=result.login.nick;
-						$(".menu-logout")[0].style.display="";
-						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
-						function(result)
-						{
-							result = parse_result( result )
-							global_user = result[0]
-						})
+			function init() {
+				get_module( "status", {
+					done : function( result ) {
+						result = parse_result( result );
+						global_status = result;
+						if( result.login && result.login.nick!='anonymous' ) {
+							$(".menu-login")[0].style.display="none";
+							$(".menu-account-info")[0].style.display="";
+							$(".menu-account-nick")[0].innerHTML=result.login.nick;
+							$(".menu-logout")[0].style.display="";
+							get_module( "get", {
+								args : {view : "all", id : result.login.id},
+								done : function(result) {
+									result = parse_result( result );
+									global_user = result[0];
+								}
+							});
+						} else {
+							$(".menu-login")[0].style.display="";
+							$(".menu-account-info")[0].style.display="none";
+							$(".menu-account-nick")[0].innerHTML="";
+							$(".menu-logout")[0].style.display="none";
+						}
+						load_visible_objects( {limit: 100} );
 					}
-					else
-					{
-						$(".menu-login")[0].style.display="";
-						$(".menu-account-info")[0].style.display="none";
-						$(".menu-account-nick")[0].innerHTML="";
-						$(".menu-logout")[0].style.display="none";
-					}
-					load_visible_objects( {limit: 100} )
-				})
+				});
 			}
 		</script>
 	</head>

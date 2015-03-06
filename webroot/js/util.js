@@ -25,7 +25,8 @@ function get_data( url, parms ) {
 		data : parms.data, /* post data */
 		contentType: parms.contentType, /* override Content-Type header */
 		processData: parms.processData, /* override/disable jQuery data processing */
-		xhr : parms.xhr /* pass custom create function for internal XMLHttpRequest to jQuery */
+		xhr : parms.xhr, /* pass custom create function for internal XMLHttpRequest to jQuery */
+		beforeSend : parms.beforeSend /* pre-send xhr modification hook */
 	} )	.done(parms.done ? parms.done : parse_result)
 		.fail(parms.fail ? parms.fail : parse_result)
 		.always(parms.always);

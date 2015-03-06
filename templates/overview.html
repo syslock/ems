@@ -12,94 +12,95 @@
 			function init()
 			{
 				var query_parms = parse_result( "${str(app.query.parms).replace(r'\"',r'\\\"')}" );
-				$.get('ems.wsgi?do=status',
-				function(result)
-				{
-					result = parse_result( result )
-					global_status = result
-					if( !result.login || result.login.nick=='anonymous' ) {
-						$(".menu-login")[0].style.display="";
-						$(".menu-account-info")[0].style.display="none";
-						$(".menu-account-nick")[0].innerHTML="";
-						$(".menu-logout")[0].style.display="none";
-					}
-					if( result.login ) {
-						if( result.login.nick!='anonymous' ) {
-							$(".menu-login")[0].style.display="none";
-							$(".menu-account-info")[0].style.display="";
-							$(".menu-account-nick")[0].innerHTML=result.login.nick;
-							$(".menu-logout")[0].style.display="";
-						} 
-						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
-						function(result)
-						{
-							result = parse_result( result )
-							global_user = result[0]
-							// experimenteller WebSocket-basierter, animierter Avatar, der von anderen Besuchern gesehen werden kann:
-							//player_net.connect();
-							//player_net.init_my_player( global_user );
-						});
-					}
-					
-					// alter Filter-Bar-Code:
-					/*
-					filters = { ids:{}, parent_ids:{}, child_ids:{} }
-					id_list = query_parms.id ? query_parms.id.split(",").map(Number) : [];
-					for( x in id_list ) { filters.ids[id_list[x]] = {}; }
-					parent_id_list = query_parms.parent_id ? query_parms.parent_id.split(",").map(Number) : [];
-					for( x in parent_id_list ) { filters.parent_ids[parent_id_list[x]] = {}; }
-					child_id_list = query_parms.child_id ? query_parms.child_id.split(",").map(Number) : [];
-					for( x in child_id_list ) { filters.child_ids[child_id_list[x]] = {}; }
-					apply_page_filter( filters );
-					*/
-					
-					var range_scroll_loader = null;
-					// Searchbar initialisieren und mit aktuellem Filter suchen:
-					global_search = new SearchBar( {
-						entry_parent : $('.main-searchbar'), 
-						result_handler : function( result ) {
-							show_search_result( result );
-							range_scroll_loader.range_start = result.hitlist.length;
-							range_scroll_loader.scroll_handler_parms = { search_count : global_search.search_count };
-							range_scroll_loader.start();
-						},
-						outer_width : $('.new-entry-button').outerWidth(),
-						result_types : 'application/x-obj.entry',
-						empty_search : 'type:entry',
-						order_by : 'ctime',
-						order_reverse : 'true',
-						range_limit : 10,
-						new_search_handler : function( parms ) {
-							$(".ems-content").empty();
-							if( range_scroll_loader ) range_scroll_loader.stop();
-							range_scroll_loader = new RangeScrollLoader( {
-								scroll_container : window,
-								scroll_handler : global_search.search
-							} );
-						},
-						on_ready : function() {
-							global_search.search();
+				get_module( "status", {
+					done : function( result ) {
+						result = parse_result( result );
+						global_status = result;
+						if( !result.login || result.login.nick=='anonymous' ) {
+							$(".menu-login")[0].style.display="";
+							$(".menu-account-info")[0].style.display="none";
+							$(".menu-account-nick")[0].innerHTML="";
+							$(".menu-logout")[0].style.display="none";
 						}
-					} );
-					
-					// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
-					var minions = Minions( {dom_parent : $('.page-events'), limit : 15} );
-					
-					// alter WebSocket-Code zur experimentellen Echtzeitanzeige von Ereignissen:
-					/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
-					ws.onmessage = function( msg ) {
-						var result = parse_result( msg.data );
-						if( result.succeeded ) {
-							$('.page-events').empty();
-							for( var i in result.objects ) {
-								var obj = result.objects[i];
-								var img = $('<img>').attr( {'class': 'status-icon', 'src': get_status_icon(obj.type),
-									'title': obj.title+' ('+obj.type+')'} );
-								$('.page-events').append( img );
+						if( result.login ) {
+							if( result.login.nick!='anonymous' ) {
+								$(".menu-login")[0].style.display="none";
+								$(".menu-account-info")[0].style.display="";
+								$(".menu-account-nick")[0].innerHTML=result.login.nick;
+								$(".menu-logout")[0].style.display="";
 							}
+							get_module( "get", {
+								args : {view : "all", id : String(result.login.id)},
+								done : function(result) {
+									result = parse_result( result );
+									global_user = result[0];
+									// experimenteller WebSocket-basierter, animierter Avatar, der von anderen Besuchern gesehen werden kann:
+									//player_net.connect();
+									//player_net.init_my_player( global_user );
+								}
+							});
 						}
-					};*/
-				})
+						
+						// alter Filter-Bar-Code:
+						/*
+						filters = { ids:{}, parent_ids:{}, child_ids:{} }
+						id_list = query_parms.id ? query_parms.id.split(",").map(Number) : [];
+						for( x in id_list ) { filters.ids[id_list[x]] = {}; }
+						parent_id_list = query_parms.parent_id ? query_parms.parent_id.split(",").map(Number) : [];
+						for( x in parent_id_list ) { filters.parent_ids[parent_id_list[x]] = {}; }
+						child_id_list = query_parms.child_id ? query_parms.child_id.split(",").map(Number) : [];
+						for( x in child_id_list ) { filters.child_ids[child_id_list[x]] = {}; }
+						apply_page_filter( filters );
+						*/
+						
+						var range_scroll_loader = null;
+						// Searchbar initialisieren und mit aktuellem Filter suchen:
+						global_search = new SearchBar( {
+							entry_parent : $('.main-searchbar'), 
+							result_handler : function( result ) {
+								show_search_result( result );
+								range_scroll_loader.range_start = result.hitlist.length;
+								range_scroll_loader.scroll_handler_parms = { search_count : global_search.search_count };
+								range_scroll_loader.start();
+							},
+							outer_width : $('.new-entry-button').outerWidth(),
+							result_types : 'application/x-obj.entry',
+							empty_search : 'type:entry',
+							order_by : 'ctime',
+							order_reverse : 'true',
+							range_limit : 10,
+							new_search_handler : function( parms ) {
+								$(".ems-content").empty();
+								if( range_scroll_loader ) range_scroll_loader.stop();
+								range_scroll_loader = new RangeScrollLoader( {
+									scroll_container : window,
+									scroll_handler : global_search.search
+								} );
+							},
+							on_ready : function() {
+								global_search.search();
+							}
+						} );
+						
+						// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
+						var minions = Minions( {dom_parent : $('.page-events'), limit : 15} );
+						
+						// alter WebSocket-Code zur experimentellen Echtzeitanzeige von Ereignissen:
+						/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
+						ws.onmessage = function( msg ) {
+							var result = parse_result( msg.data );
+							if( result.succeeded ) {
+								$('.page-events').empty();
+								for( var i in result.objects ) {
+									var obj = result.objects[i];
+									var img = $('<img>').attr( {'class': 'status-icon', 'src': get_status_icon(obj.type),
+										'title': obj.title+' ('+obj.type+')'} );
+									$('.page-events').append( img );
+								}
+							}
+						};*/
+					}
+				});
 			}
 			
 			function get_status_icon( type ) {

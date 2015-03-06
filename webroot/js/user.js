@@ -104,8 +104,12 @@ function change_user_image( button ) {
 								}
 							}
 						});
-						$(preview_area).html('<img src="ems.wsgi?do=get&view=data&id='+String(image_id)+'" class="user-image-preview-content" />');
-						var preview_image = $('.user-image-preview-content', preview_area)[0];
+						$(preview_area).empty();
+						var preview_image = $('<img>').attr( {
+							src: get_module_url("get", {id : image_id, view : "data"}), 
+							class: 'user-image-preview-content'
+						} )[0];
+						$(preview_area).append( preview_image );
 						$(preview_image).data( {obj: {id: image_id}} );
 					}
 				}
@@ -124,7 +128,14 @@ function close_user_image_dialog( button ) {
 }
 
 function replace_user_image( user_element, avatar_id ) {
-	$('.user-image',user_element).html('<img src="ems.wsgi?do=get&view=data&id='+String(avatar_id)+'" class="user-image-content" />');
+	var user_image = $('.user-image',user_element);
+	user_image.empty();
+	user_image.append( 
+		$('<img>').attr({
+			src: get_module_url("get", {id : avatar_id, view : "data"}), 
+			class: 'user-image-content'
+		})
+	);
 }
 
 function confirm_user_image( button ) {

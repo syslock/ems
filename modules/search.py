@@ -149,23 +149,28 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 	
 	# 5.) Treffer nach Minimalgewicht filtern, falls definiert:
 	hit_weights = [x for x in hit_weights if min_weight==None or x[1]>min_weight]
+	hit_id_list = [x[0] for x in hit_weights]
 	
-	# 6.) Objektabfrage für Treffer-Objekt-IDs durchführen:
-	# FIXME: Wir benötigen hier einen Objekt-Lookup für die Treffer, um sie z.b. nach ctime sortieren zu können,
-	#        allerdings sollte es effizienter sein den rekursiven Lookup der Eltern- und Kind-Objekte erst nach
-	#        der Trefferlistenlimitierung zu machen, die natürlich erst nach der Sortierung erfolgen kann.
-	hitlist = get.get( app, object_ids=[x[0] for x in hit_weights] if hit_weights else [0], recursive=[True,True], access_errors=False )
+	# 6.) Möglichst effiziente SQL-Sortierung durchführen, falls gewünscht:
+	if order_by in ("id","ctime","mtime"):
+		order_dir = "desc" if order_reverse else "asc"
+		hit_id_list_string = ",".join( [str(x) for x in hit_id_list] )
+		c.execute( """select id, ctime, mtime from objects where id in (%(hit_id_list_string)s) order by %(order_by)s %(order_dir)s""" % locals() )
+		hit_id_list = [row[0] for row in c]
 	
-	# 7.) Objektliste sortieren, falls gefordert:
-	if order_by and hitlist:
-		if order_by in hitlist[0]:
-			hitlist = sorted( hitlist, key=lambda x: x[order_by], reverse=order_reverse )
-			
-	# 8.) Ergebnis JSON-kodieren:
+	# 7.) Vorsortierte Objekt-ID-Liste beschneiden, falls gefordert:
+	hit_id_list = hit_id_list[range_offset:None if range_limit==None else range_offset+range_limit]
+	
+	# 8.) Rekursiver Lookup von Eltern- und Kind-Objekten der reduzierten Trefferliste:
+	hitlist = []
+	if hit_id_list:
+		hitlist = get.get( app, object_ids=hit_id_list, recursive=[True,True], access_errors=False )
+	
+	# 9.) Ergebnis JSON-kodieren:
 	result = {
 		"hit_weights" : hit_weights,
 		"reasons" : {},
-		"hitlist" : hitlist[range_offset:None if range_limit==None else range_offset+range_limit],
+		"hitlist" : hitlist,
 		"search_word_rows" : search_word_rows,
 		"search_word_hits" : search_word_hits,
 	}

@@ -110,10 +110,27 @@ class DBObject:
 		self.app.db.commit()
 		scan_time = int( time.time() )
 		words = lexer.Lexer.scan( data )
-		for pos, word in words:
-			c.execute( """insert into keywords (object_id, word, pos, rank, scan_source, scan_time)
-					values(?, ?, ?, ?, ?, ?)""", [self.id, word, pos, rank, str(source), scan_time] )
+		insert_stmt_start = """insert into keywords (object_id, word, pos, rank, scan_source, scan_time) values"""
+		insert_tuple_string = ""
+		is_first_tuple = True
+		insert_list = []
+		def do_insert():
+			c.execute( insert_stmt_start+insert_tuple_string, insert_list )
 			self.app.db.commit()
+		for pos, word in words:
+			value_tuple = [self.id, word, pos, rank, str(source), scan_time]
+			if len(insert_list)>(999-len(value_tuple)):
+				do_insert()
+				insert_tuple_string = ""
+				is_first_tuple = True
+				insert_list = []
+			insert_tuple_string += "\n\t"
+			if not is_first_tuple:
+				insert_tuple_string += ","
+			is_first_tuple = False
+			insert_tuple_string += "(?,?,?,?,?,?)"
+			insert_list += value_tuple
+		do_insert()
 	
 	def closest_parents( self, child_ids=None, parent_type=None ):
 		result = set()

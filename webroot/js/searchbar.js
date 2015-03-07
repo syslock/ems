@@ -34,12 +34,15 @@ var SearchBar = function ( parms ) {
 				break;
 			case 27: // Escape
 				my.hide_apropos_hints();
+				if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
 				break;
 			case 40: // Down
 				my.select_apropos_hint('next');
+				if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
 				break;
 			case 38: // Up
 				my.select_apropos_hint('prev');
+				if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
 				break;
 			case 37: // Left
 				my.show_apropos_hints();

@@ -172,14 +172,14 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 	
 	# 9.) Ergebnis JSON-kodieren:
 	result = {
-		"hit_weights" : hit_weights,
-		"reasons" : {},
+#		"hit_weights" : hit_weights,
+#		"reasons" : {},
 		"hitlist" : hitlist,
 		"search_word_rows" : search_word_rows,
 		"search_word_hits" : search_word_hits,
 	}
-	for hit_id,hit_weight in hit_weights:
-		result["reasons"][hit_id] = filtered_results[hit_id]
+#	for hit_id,hit_weight in hit_weights:
+#		result["reasons"][hit_id] = filtered_results[hit_id]
 	app.response.output = json.dumps( result )
 
 def apropos( app, prefix, result_types, range_offset=0, range_limit=None ):

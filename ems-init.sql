@@ -43,6 +43,9 @@ CREATE TABLE `keywords` (
 	`scan_source`	TEXT,
 	`scan_time`	INTEGER
 );
+CREATE INDEX i_keywords_word ON keywords(word ASC);
+CREATE INDEX i_keywords_object_id ON keywords(object_id ASC);
+CREATE INDEX i_keywords_scan_source ON keywords(scan_source ASC);
 CREATE TABLE "chess_games" (
 	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	`game_id`	NUMERIC,

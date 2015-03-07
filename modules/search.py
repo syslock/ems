@@ -140,19 +140,23 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 								filtered_results[alt_obj_id] = [ hit ]
 							search_word_hits[search_word] += 1
 	
-	# 4.) Treffer sinnvoll sortieren, wobei:
-	# - Anzahl treffender Suchbegriffe verstärkend wirken: len(filtered_results[x])
-	# - Gesamtzahl der Treffer aller treffenden Suchbegriffe abschwächend wirken: /sum(...)
-	sort_key = lambda x: (1+sum([h["weight"] for h in filtered_results[x]])) * len(filtered_results[x]) / max(1,sum([search_word_hits[sw] for sw in set([h["search_word"] for h in filtered_results[x]])]))
-	hit_weights = [(hit_id,sort_key(hit_id)) for hit_id in filtered_results]
-	hit_weights = sorted( hit_weights, key=lambda x: x[1], reverse=True )
-	
-	# 5.) Treffer nach Minimalgewicht filtern, falls definiert:
-	hit_weights = [x for x in hit_weights if min_weight==None or x[1]>min_weight]
+	# 4.) Treffer sortieren
+	if order_by=="weight" or min_weight!=None:
+		# a) Relevanzsortierung/Relevanzfilterung, wobei:
+		# - Anzahl treffender Suchbegriffe verstärkend wirken: len(filtered_results[x])
+		# - Gesamtzahl der Treffer aller treffenden Suchbegriffe abschwächend wirken: /sum(...)
+		sort_key = lambda x: (1+sum([h["weight"] for h in filtered_results[x]])) * len(filtered_results[x]) / max(1,sum([search_word_hits[sw] for sw in set([h["search_word"] for h in filtered_results[x]])]))
+		hit_weights = [(hit_id,sort_key(hit_id)) for hit_id in filtered_results]
+		if order_by=="weight":
+			hit_weights = sorted( hit_weights, key=lambda x: x[1], reverse=order_reverse )
+		# b) Treffer nach Minimalgewicht filtern, falls definiert:
+		if min_weight!=None:
+			hit_weights = [x for x in hit_weights if x[1]>min_weight]
+	else:
+		hit_weights = [(hit_id,0) for hit_id in filtered_results]
 	hit_id_list = [x[0] for x in hit_weights]
-	
-	# 6.) Möglichst effiziente SQL-Sortierung durchführen, falls gewünscht:
 	if order_by in ("id","ctime","mtime"):
+		# c) Möglichst effiziente SQL-Sortierung nach Zeitstempel durchführen, falls gewünscht:
 		order_dir = "desc" if order_reverse else "asc"
 		hit_id_list_string = ",".join( [str(x) for x in hit_id_list] )
 		c.execute( """select id, ctime, mtime from objects where id in (%(hit_id_list_string)s) order by %(order_by)s %(order_dir)s""" % locals() )

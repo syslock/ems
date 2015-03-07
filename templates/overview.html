@@ -11,7 +11,9 @@
 			var global_search = undefined;
 			function init()
 			{
-				var query_parms = parse_result( "${str(app.query.parms).replace(r'\"',r'\\\"')}" );
+				// gehört noch zum alten Filter-Bar-Code:
+				// var query_parms = parse_result( "${str(app.query.parms).replace(r'\"',r'\\\"')}" );
+				
 				get_module( "status", {
 					done : function( result ) {
 						result = parse_result( result );
@@ -65,7 +67,7 @@
 							},
 							outer_width : $('.new-entry-button').outerWidth(),
 							result_types : 'application/x-obj.entry',
-							empty_search : 'type:entry',
+							empty_search : {phrase : 'type:entry', min_weight : "None"},
 							order_by : 'ctime',
 							order_reverse : 'true',
 							range_limit : 10,

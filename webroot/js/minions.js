@@ -52,7 +52,7 @@ var Minions = function( parms ) {
 			show_search_result( result );
 		},
 		result_types : 'application/x-obj.minion',
-		empty_search : 'type:minion',
+		empty_search : {phrase : 'type:minion', min_weight : "None"},
 		order_by : 'mtime',
 		order_reverse : 'true',
 		range_limit : my.limit,

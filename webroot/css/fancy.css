@@ -232,6 +232,16 @@ body {
 .entry-tools-content button {
 	position: relative;
 	width: 100%;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+button.entry-response-button {
+	font-size: large;
+}
+button.entry-delete-button {
+	width: 50%;
+	margin-left: 50%;
+	font-size: small;
 }
 .entry-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
@@ -397,6 +407,16 @@ body {
 .entry-edit-tools-content button {
 	position: relative;
 	width: 100%;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+button.entry-edit-send-button {
+	font-size: small;
+}
+button.entry-edit-discard-button {
+	width: 50%;
+	margin-left: 50%;
+	font-size: small;
 }
 .entry-edit-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
@@ -425,7 +445,7 @@ body {
 }
 .entry-tags-label {
 	display: inline;
-	font-weight: bold;
+	font-size: small;
 }
 button.entry-tags-show-selection-button {
 	display: inline;
@@ -440,7 +460,7 @@ button.entry-tags-show-selection-button {
 	display: block;
 	position: relative;
 	vertical-align: bottom;
-	font-size: small;
+	font-weight: bold;
 	background-color: #efefef;
 	border: 1px solid #bfbfbf;
 	border-radius: 8px;

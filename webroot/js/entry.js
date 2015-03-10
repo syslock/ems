@@ -90,10 +90,17 @@ function new_item( parms ) {
 			$( "."+short_type+"-mtime", item ).first().hide();
 		}
 		for( permission in {"read":1,"write":1,"delete":1,"insert":1} ) {
+			// show/hide child elements depending on permission markers related to the object:
 			if( $.inArray(permission, obj.permissions)==-1 ) {
-				$( ".require-permission-"+permission+"-"+short_type, item ).each( function(i, elem) {
-					$(elem).hide();
-				})
+				$( ".require-permission-"+permission+"-"+short_type, item ).hide();
+			} else {
+				$( ".require-permission-"+permission+"-"+short_type, item ).show();
+			}
+			// show/hide child elements depending on permission marker related to the user:
+			if( global_user && $.inArray(permission, global_user.permissions)!=-1 ) {
+				$( ".require-permission-"+permission+"-self", item ).show();
+			} else {
+				$( ".require-permission-"+permission+"-self", item ).hide();
 			}
 		}
 		return item;

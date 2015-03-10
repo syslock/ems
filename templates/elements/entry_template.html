@@ -33,7 +33,13 @@
 					<div class="entry-tools-decorator-left"></div>
 					<div class="entry-tools-decorator-top"></div>
 					<div class="entry-tools-content">
-						<button class="entry-response-button" onclick="new_response(global_user, this)">
+						<div class="entry-tags">
+							<div class="entry-tags-label">${_("Thema:")}</div>
+							<button class="entry-tags-show-selection-button require-permission-write-entry" title="${_('Weiteres Thema anfügen')}" onclick="show_tag_selection(this);" >${_("...")}</button>
+							<div class="entry-tags-selection" style="display:none" ></div>
+							<div class="entry-tags-content"></div>
+						</div>
+						<button class="entry-response-button require-permission-write-self" style="display:none" onclick="new_response(global_user, this)">
 							${_("Antworten")}
 						</button>
 						<div class="require-permission-write-entry">
@@ -51,12 +57,6 @@
 								${_("Löschen")}
 							</button>
 						</div>
-						<div class="entry-tags">
-							<div class="entry-tags-label">${_("Thema:")}</div>
-							<button class="entry-tags-show-selection-button require-permission-write-entry" title="${_('Weiteres Thema anfügen')}" onclick="show_tag_selection(this);" >${_("...")}</button>
-							<div class="entry-tags-selection require-permission-write-entry" style="display:none" ></div>
-							<div class="entry-tags-content"></div>
-						</div>
 					</div>
 					<div class="entry-tools-decorator-bottom"></div>
 					<div class="entry-tools-decorator-right"></div>
@@ -65,10 +65,10 @@
 					<div class="entry-edit-tools-decorator-left"></div>
 					<div class="entry-edit-tools-decorator-top"></div>
 					<div class="entry-edit-tools-content">
+						<div class="entry-tags"></div>
 						<button class="entry-edit-file-button" onclick="add_file( {dom_parent: $('.entry-content',$(this).closest('.ems-entry'))[0], wrap: true} )">
 							${_("Datei einfügen")}
 						</button>
-						<div class="entry-tags"></div>
 						<button class="entry-edit-send-button" onclick="save_entry(this)">
 							${_("Abschicken")}
 						</button>

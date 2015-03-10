@@ -36,6 +36,11 @@
 								done : function(result) {
 									result = parse_result( result );
 									global_user = result[0];
+									if( global_user.permissions.indexOf("write")<0 ) {
+										$('.require-permissions-write-self').css( {visibility : 'hidden'} );
+									} else {
+										$('.require-permissions-write-self').css( {visibility : 'visible'} );
+									}
 									// experimenteller WebSocket-basierter, animierter Avatar, der von anderen Besuchern gesehen werden kann:
 									//player_net.connect();
 									//player_net.init_my_player( global_user );
@@ -129,7 +134,7 @@
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename" />
 			<div class="page-widgets">
 				<div class="page-widgets-left-stack">
-					<button class="new-entry-button" onclick="new_response(global_user)">
+					<button class="new-entry-button require-permissions-write-self" style="visibility:hidden" onclick="new_response(global_user)">
 						${_("Beitrag erstellen")}
 					</button>
 					<!--<div class="page-filter">

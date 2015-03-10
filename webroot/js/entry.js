@@ -92,7 +92,7 @@ function new_item( parms ) {
 		for( permission in {"read":1,"write":1,"delete":1,"insert":1} ) {
 			if( $.inArray(permission, obj.permissions)==-1 ) {
 				$( ".require-permission-"+permission+"-"+short_type, item ).each( function(i, elem) {
-					elem.style.display="none";
+					$(elem).hide();
 				})
 			}
 		}
@@ -393,14 +393,25 @@ function show_object( parms )
 				global_search.entry.text( search_phrase+' --tag:'+tag_label );
 				global_search.search();
 			};
-			if( $(dom_parent).hasClass('entry-tags-selection') ) {
-				$(dom_parent).append( obj.dom_object );
-				$('.entry-tag-add', obj.dom_object).show();
-				$('.entry-tag-remove', obj.dom_object).hide();
-			} else {
-				$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
-				$('.entry-tag-add', obj.dom_object).hide();
-				$('.entry-tag-remove', obj.dom_object).show();
+			var entry = $(dom_parent).closest('.ems-entry')[0];
+			if( entry && $(entry).data("obj") ) {
+				if( $(dom_parent).hasClass('entry-tags-selection') ) {
+					$(dom_parent).append( obj.dom_object );
+					if( obj.permissions.indexOf("write")>=0 && $(entry).data("obj").permissions.indexOf("write")>=0 ) {
+						$('.entry-tag-add', obj.dom_object).show();
+					} else {
+						$('.entry-tag-add', obj.dom_object).hide();
+					}
+					$('.entry-tag-remove', obj.dom_object).hide();
+				} else {
+					$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
+					$('.entry-tag-add', obj.dom_object).hide();
+					if( obj.permissions.indexOf("write")>=0 && $(entry).data("obj").permissions.indexOf("write")>=0 ) {
+						$('.entry-tag-remove', obj.dom_object).show();
+					} else {
+						$('.entry-tag-remove', obj.dom_object).hide();
+					}
+				}
 			}
 			obj.dom_object.style.display="";
 		}

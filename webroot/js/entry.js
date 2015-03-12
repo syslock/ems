@@ -990,36 +990,41 @@ function confirm_upload( button ) {
 function show_tag_selection( button ) {
 	var entry_tools = $(button).closest(".entry-tools")[0];
 	var entry_tags = $(button).closest(".entry-tags")[0];
+	var tags_searchbar = $(".entry-tags-searchbar", entry_tags)[0];
 	var tags_selection = $(".entry-tags-selection", entry_tags)[0];
-	get_module( "get", {
-		args : {type : "application/x-obj.tag", limit : 1000},
-		done : function( result ) {
-			result = parse_result( result );
-			
+	var tags_content = $(".entry-tags-selection", entry_tags)[0];
+	
+	// Suchtool für Tags initialisieren:
+	var range_scroll_loader = null;
+	var tag_search = new SearchBar( {
+		entry_parent : $(tags_searchbar),
+		result_handler : function( result ) {
+			result.dom_parent = tags_selection;
+			show_search_result( result );
+			range_scroll_loader.range_start = result.hitlist.length;
+			range_scroll_loader.scroll_handler_parms = { search_count : tag_search.search_count };
+			range_scroll_loader.start();
+		},
+		outer_width : 100, // FIXME: should be css dependent!
+		result_types : 'application/x-obj.tag',
+		empty_search : {phrase : 'type:tag', min_weight : "None"},
+		order_by : 'mtime',
+		order_reverse : 'true',
+		range_limit : 10,
+		new_search_handler : function( parms ) {
 			$(tags_selection).empty();
-			
-			var new_tag_input = $('<input>').attr({
-				class: 'entry-tag entry-tags-selection-item', title: 'Neues Thema',
-			})[0];
-			$(new_tag_input).data( {obj: {type:'application/x-obj.tag'}} );
-			new_tag_input.onkeypress = function(event) { if(this.value) onenter(event,add_tag,this); };
-			$(tags_selection).append( new_tag_input );
-			
-			for( var i in result ) {
-				var obj = result[i];
-				show_object( {obj: obj, dom_parent: tags_selection} );
-				$(obj.dom_object).addClass('entry-tags-selection-item');
-			}
-			
-			tags_selection.style.display = "";
-			new_tag_input.focus();
-			
-			$(entry_tools).bind('mouseleave', function(event) {
-				tags_selection.style.display = 'none';
-				$(this).unbind('mouseleave');
-			});
+			$(tags_selection).show();
+			if( range_scroll_loader ) range_scroll_loader.stop();
+			range_scroll_loader = new RangeScrollLoader( {
+				scroll_container : tags_selection,
+				scroll_handler : tag_search.search
+			} );
+		},
+		on_ready : function() {
+			$(tags_searchbar).show();
+			tag_search.search();
 		}
-	});
+	} );
 }
 
 function add_tag( button ) {

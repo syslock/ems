@@ -449,8 +449,7 @@ button.entry-edit-discard-button {
 	font-size: small;
 }
 button.entry-tags-show-selection-button {
-	display: inline;
-	float: right;
+	display: inline-block;
 	font-size: small;
 }
 .entry-tags-content {
@@ -475,12 +474,15 @@ button.entry-tags-show-selection-button {
 }
 input.entry-tag {
 }
+.entry-tag-label {
+	display: inline-block;
+}
 .entry-tag>button {
 	display: inline-block;
 	position: absolute;
 	top: 0px;
-	right: 1px;
-	margin: 1px;
+	right: 2px;
+	font-size: small;
 }
 .entry-tag-add {
 }
@@ -542,7 +544,7 @@ input.entry-tag {
 }
 .entry-tag-tool {
 	display: block;
-	padding-left: 32px;
+	padding-left: 40px;
 	padding-top: 5px;
 	padding-bottom: 5px;
 }

@@ -264,6 +264,7 @@ button.entry-delete-button {
 	background-color: lightgrey;
 }
 .video-status {
+	display: inline-block;
 	position: absolute;
 	left: 0px;
 	margin: 10px;

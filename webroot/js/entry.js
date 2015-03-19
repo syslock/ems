@@ -697,6 +697,11 @@ function save_entry( button ) {
 	if( content ) {
 		content.contentEditable = false
 		var content_list = get_object_list( content );
+		// Themen des Beitrages zurück kopieren:
+		var edit_tools = $( ".entry-edit-tools", entry )[0];
+		var std_tools = $( ".entry-tools", entry )[0];
+		$(".entry-tags",std_tools).empty().append( $(".entry-tags",edit_tools).clone(true,true).contents() );
+		$(".entry-tags",edit_tools).empty();
 		var tags = $( ".entry-tags-content", entry )[0];
 		if( tags ) {
 			content_list = content_list.concat( get_object_list(tags) );

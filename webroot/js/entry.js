@@ -380,7 +380,7 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
 		if( dom_parent && obj.title ) {
-			obj.dom_object = $('#entry-tag-template').clone().attr( {id: undefined, title: obj.title} )[0];
+			obj.dom_object = $('#entry-tag-template').clone().attr( {title: obj.title} ).removeAttr("id")[0];
 			$(obj.dom_object).data( {obj: obj} );
 			var tag_label_obj = $('.entry-tag-label', obj.dom_object)[0];
 			var tag_label_limit = 30;
@@ -402,7 +402,7 @@ function show_object( parms )
 			};
 			var entry = $(dom_parent).closest('.ems-entry')[0];
 			if( entry && $(entry).data("obj") ) {
-				if( $(dom_parent).hasClass('entry-tags-selection') ) {
+				if( $(dom_parent).hasClass('entry-tags-search-result') ) {
 					$(dom_parent).append( obj.dom_object );
 					if( obj.permissions.indexOf("write")>=0 && $(entry).data("obj").permissions.indexOf("write")>=0 ) {
 						$('.entry-tag-add', obj.dom_object).show();
@@ -440,6 +440,10 @@ function show_object( parms )
 	} else if( dom_parent && obj.id ) {
 		var download_link = create_download( obj );
 		$(dom_parent).append( download_link );
+	}
+	
+	if( obj && obj.dom_object && parms.custom_class ) {
+		$(obj.dom_object).addClass( parms.custom_class );
 	}
 }
 
@@ -757,8 +761,8 @@ function new_response( user, button ) {
 	if( button ) {
 		reference_item = $(button).closest(".ems-item")[0];
 	}
-	var new_entry = $("#ems-entry-template").first().clone()[0];
-	new_entry.id="";
+	var new_entry = $("#ems-entry-template").first().clone().removeAttr("id")[0];
+	$(new_entry).data( {obj : {type : 'application/x-obj.entry', permissions : ["read","write"]}} );
 	if( reference_item ) {
 		$(reference_item).before( new_entry );
 	} else {
@@ -990,38 +994,61 @@ function confirm_upload( button ) {
 function show_tag_selection( button ) {
 	var entry_tools = $(button).closest(".entry-tools")[0];
 	var entry_tags = $(button).closest(".entry-tags")[0];
-	var tags_searchbar = $(".entry-tags-searchbar", entry_tags)[0];
 	var tags_selection = $(".entry-tags-selection", entry_tags)[0];
-	var tags_content = $(".entry-tags-selection", entry_tags)[0];
+	var tags_searchbar = $(".entry-tags-searchbar", entry_tags)[0];
+	var tags_search_result = $(".entry-tags-search-result", entry_tags)[0];
+	var tags_content = $(".entry-tags-content", entry_tags)[0];
 	
 	// Suchtool für Tags initialisieren:
 	var range_scroll_loader = null;
 	var tag_search = new SearchBar( {
 		entry_parent : $(tags_searchbar),
 		result_handler : function( result ) {
-			result.dom_parent = tags_selection;
+			debugger;
+			var current_search = tag_search.entry.text().replace(/^\s*|\s*$/g,"");
+			if( current_search.length > 0 ) {
+				var current_search_found = false;
+				for( var i=0; i<result.hitlist.length; i++ ) {
+					var obj = result.hitlist[i];
+					if( obj.title && obj.title.toLowerCase()==current_search.toLowerCase() ) {
+						current_search_found = true;
+					}
+				}
+				if( !current_search_found ) {
+					show_object( {
+						obj : {
+							type : 'application/x-obj.tag', 
+							title : current_search,
+							permissions : ["read","write"]
+						},
+						dom_parent : tags_search_result,
+						custom_class : 'entry-tag-new'
+					} );
+				}
+			}
+			result.dom_parent = tags_search_result;
 			show_search_result( result );
 			range_scroll_loader.range_start = result.hitlist.length;
 			range_scroll_loader.scroll_handler_parms = { search_count : tag_search.search_count };
 			range_scroll_loader.start();
 		},
-		outer_width : 100, // FIXME: should be css dependent!
 		result_types : 'application/x-obj.tag',
 		empty_search : {phrase : 'type:tag', min_weight : "None"},
 		order_by : 'mtime',
 		order_reverse : 'true',
 		range_limit : 10,
 		new_search_handler : function( parms ) {
-			$(tags_selection).empty();
-			$(tags_selection).show();
+			$(tags_search_result).empty();
+			$(tags_search_result).show();
 			if( range_scroll_loader ) range_scroll_loader.stop();
 			range_scroll_loader = new RangeScrollLoader( {
-				scroll_container : tags_selection,
+				scroll_container : tags_search_result,
 				scroll_handler : tag_search.search
 			} );
 		},
 		on_ready : function() {
-			$(tags_searchbar).show();
+			$(tags_selection).show();
+			tag_search.entry.outerWidth( $(tags_selection).innerWidth()*0.95 );
 			tag_search.search();
 		}
 	} );
@@ -1040,9 +1067,7 @@ function add_tag( button ) {
 	if( tag_id ) {
 		get_args["id"] = String(tag_id);
 	} else {
-		if( tag.value ) {
-			get_args["title"] = tag.value;
-		}
+		get_args["title"] = $(tag).data().obj.title;
 		get_args["type"] = $(tag).data().obj.type;
 	}
 	get_module( "store", {
@@ -1051,7 +1076,7 @@ function add_tag( button ) {
 			result = parse_result( result );
 			if( result.succeeded ) {
 				tag_id = Number(result.id);
-				tags_selection.style.display = 'none';
+				$(tags_selection).hide();
 				if( entry_id ) {
 					// Daten neu laden, um Änderungen zu übernehmen:
 					get_module( "get", {

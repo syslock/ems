@@ -488,14 +488,23 @@ input.entry-tag {
 }
 .entry-tag-remove {
 }
+.entry-tag-new {
+	background-color: #ffdfdf;
+}
 
 .entry-tags-selection {
 	display: block;
 	margin-top: 10px;
-	background-color: #7f7fff;
 	padding: 3px;
 	padding-top: 2px;
+	border: 1px solid red;
 	border-radius: 10px;
+}
+.entry-tags-searchbar {
+	display: inline-block;
+}
+.entry-tags-add-new {
+	display: inline-block;
 }
 .entry-tags-selection-item {
 	font-weight: normal;

@@ -1009,10 +1009,15 @@ function show_tag_selection( button ) {
 	var tag_search = new SearchBar( {
 		entry_parent : $(tags_searchbar),
 		result_handler : function( result ) {
-			debugger;
 			var current_search = tag_search.entry.text().replace(/^\s*|\s*$/g,"");
 			if( current_search.length > 0 ) {
 				var current_search_found = false;
+				// FIXME: Wir müssen hier den bereits aktualisierten Inhalt von tags_search_result durchsuchen,
+				//		nicht nur das aktuelle Suchergebnis, da es eine spätere Range sein kann, die den
+				//		besten Treffer dann natürlich nicht mehr enthält!
+				// TODO: Falls tags_search_result initial leer war, müssen wir den Scroll-Container hier
+				//		initialisieren mit der Render-Höhe der ersten Ergebnis-Range initialiseren: 
+				//			$(tags_search_result).css( {height : $(tags_search_result).height(), overflow : 'scroll'} );
 				for( var i=0; i<result.hitlist.length; i++ ) {
 					var obj = result.hitlist[i];
 					if( obj.title && obj.title.toLowerCase()==current_search.toLowerCase() ) {

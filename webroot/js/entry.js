@@ -1049,6 +1049,7 @@ function show_tag_selection( button ) {
 		on_ready : function() {
 			$(tags_selection).show();
 			tag_search.entry.outerWidth( $(tags_selection).innerWidth()*0.95 );
+			tag_search.entry.focus();
 			tag_search.search();
 		}
 	} );

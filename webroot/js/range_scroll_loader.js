@@ -9,11 +9,33 @@ var RangeScrollLoader = function ( parms ) {
 	my.scroll_time = (new Date()).getTime();
 	my.range_offsets_loaded = {};
 	
-	my.handle_scroll_event = function() {
+	my.document_scroll_condition = function() {
 		var scrollTop = my.scroll_container.document.documentElement.scrollTop || my.scroll_container.document.body.scrollTop;
 		var offsetHeight = my.scroll_container.document.body.offsetHeight;
 		var clientHeight = my.scroll_container.document.documentElement.clientHeight;
-		if (offsetHeight <= scrollTop + clientHeight) {
+		return offsetHeight <= scrollTop + clientHeight;
+	}
+	my.element_scroll_condition = function() {
+		var scrollTop = my.scroll_container.scrollTop;
+		var offsetHeight = my.scroll_container.offsetHeight;
+		var clientHeight = my.scroll_container.clientHeight;
+		return offsetHeight <= scrollTop + clientHeight;
+	}
+	my.scroll_condition = my.document_scroll_condition;
+	if( parms.scroll_condition ) {
+		if( typeof(parms.scroll_condition)=="string" ) {
+			my.scroll_condition = my[ parms.scroll_condition ];
+		}
+		if( typeof(parms.scroll_condition)=="function" ) {
+			my.scroll_condition = parms.scroll_condition;
+		}
+	}
+	if( typeof(my.scroll_condition)!="function" ) {
+		show_error( "Invalid type for scroll_condition: "+typeof(my.scroll_condition)+"! Need function!" )
+	}
+	
+	my.handle_scroll_event = function() {
+		if( my.scroll_condition() ) {
 			// Scroll end detected
 			var new_scroll_time = (new Date()).getTime();
 			if( (new_scroll_time - my.scroll_time) > my.reload_latency ) {

@@ -997,11 +997,13 @@ function confirm_upload( button ) {
 }
 
 function show_tag_selection( button ) {
+	$(button).hide();
 	var entry_tools = $(button).closest(".entry-tools")[0];
 	var entry_tags = $(button).closest(".entry-tags")[0];
 	var tags_selection = $(".entry-tags-selection", entry_tags)[0];
 	var tags_searchbar = $(".entry-tags-searchbar", entry_tags)[0];
 	var tags_search_result = $(".entry-tags-search-result", entry_tags)[0];
+	var tags_search_result_scroll_container_hack = $(".entry-tags-search-result-scroll-container-hack", entry_tags)[0];
 	var tags_content = $(".entry-tags-content", entry_tags)[0];
 	
 	// Suchtool für Tags initialisieren:
@@ -1009,38 +1011,49 @@ function show_tag_selection( button ) {
 	var tag_search = new SearchBar( {
 		entry_parent : $(tags_searchbar),
 		result_handler : function( result ) {
-			var current_search = tag_search.entry.text().replace(/^\s*|\s*$/g,"");
-			if( current_search.length > 0 ) {
-				var current_search_found = false;
-				// FIXME: Wir müssen hier den bereits aktualisierten Inhalt von tags_search_result durchsuchen,
-				//		nicht nur das aktuelle Suchergebnis, da es eine spätere Range sein kann, die den
-				//		besten Treffer dann natürlich nicht mehr enthält!
-				// TODO: Falls tags_search_result initial leer war, müssen wir den Scroll-Container hier
-				//		initialisieren mit der Render-Höhe der ersten Ergebnis-Range initialiseren: 
-				//			$(tags_search_result).css( {height : $(tags_search_result).height(), overflow : 'scroll'} );
-				for( var i=0; i<result.hitlist.length; i++ ) {
-					var obj = result.hitlist[i];
-					if( obj.title && obj.title.toLowerCase()==current_search.toLowerCase() ) {
-						current_search_found = true;
+			var first_range = false;
+			if( $(tags_search_result).children().length==0 ) {
+				first_range = true;
+				var current_search = tag_search.entry.text().replace(/^\s*|\s*$/g,"");
+				if( current_search.length > 0 ) {
+					var current_search_found = false;
+					for( var i=0; i<result.hitlist.length; i++ ) {
+						var obj = result.hitlist[i];
+						if( obj.title && obj.title.toLowerCase()==current_search.toLowerCase() ) {
+							current_search_found = true;
+						}
 					}
-				}
-				if( !current_search_found ) {
-					show_object( {
-						obj : {
-							type : 'application/x-obj.tag', 
-							title : current_search,
-							permissions : ["read","write"]
-						},
-						dom_parent : tags_search_result,
-						custom_class : 'entry-tag-new'
-					} );
+					if( !current_search_found ) {
+						show_object( {
+							obj : {
+								type : 'application/x-obj.tag', 
+								title : current_search,
+								permissions : ["read","write"]
+							},
+							dom_parent : tags_search_result,
+							custom_class : 'entry-tag-new'
+						} );
+					}
 				}
 			}
 			result.dom_parent = tags_search_result;
 			show_search_result( result );
-			range_scroll_loader.range_start = result.hitlist.length;
-			range_scroll_loader.scroll_handler_parms = { search_count : tag_search.search_count };
-			range_scroll_loader.start();
+			if( first_range ) {
+				// Falls tags_search_result initial leer war, müssen wir den Scroll-Container hier
+				// initialisieren mit der Render-Höhe der ersten Ergebnis-Range initialiseren: 
+				$(tags_search_result).width( $(tags_search_result).width() );
+				$(tags_search_result).css( {position : 'relative', left : '300px'} );
+				$(tags_search_result_scroll_container_hack).css( {
+					'overflow-y' : 'scroll', 
+					'overflow-x' : 'hidden', 
+					'margin-left' : '-300px',
+					'margin-right' : '-20px'
+				} );
+				$(tags_search_result_scroll_container_hack).height( Math.max(100,$(tags_search_result).height()*0.9) );
+				range_scroll_loader.range_start = result.hitlist.length;
+				range_scroll_loader.scroll_handler_parms = { search_count : tag_search.search_count };
+				range_scroll_loader.start();
+			}
 		},
 		result_types : 'application/x-obj.tag',
 		empty_search : {phrase : 'type:tag', min_weight : "None"},
@@ -1049,11 +1062,12 @@ function show_tag_selection( button ) {
 		range_limit : 10,
 		new_search_handler : function( parms ) {
 			$(tags_search_result).empty();
-			$(tags_search_result).show();
+			$(tags_search_result_scroll_container_hack).show();
 			if( range_scroll_loader ) range_scroll_loader.stop();
 			range_scroll_loader = new RangeScrollLoader( {
-				scroll_container : tags_search_result,
-				scroll_handler : tag_search.search
+				scroll_container : tags_search_result_scroll_container_hack,
+				scroll_handler : tag_search.search,
+				scroll_condition : "element_scroll_condition"
 			} );
 		},
 		on_ready : function() {
@@ -1063,6 +1077,14 @@ function show_tag_selection( button ) {
 			tag_search.search();
 		}
 	} );
+}
+
+function hide_tag_selection( button ) {
+	var entry_tags = $(button).closest(".entry-tags")[0];
+	$('.entry-tags-show-selection-button', entry_tags).show();
+	$(".entry-tags-selection", entry_tags).hide();
+	$(".entry-tags-search-result-scroll-container-hack", entry_tags).hide();
+	$(".entry-tags-search-result", entry_tags).empty();
 }
 
 function add_tag( button ) {

@@ -37,8 +37,11 @@
 							<div class="entry-tags-label">${_("Thema:")}</div>
 							<button class="entry-tags-show-selection-button require-permission-write-entry" title="${_('Weiteres Thema anfügen')}" onclick="show_tag_selection(this);" >${_("...")}</button>
 							<div class="entry-tags-selection" style="display:none" >
+								<div class="entry-tags-close-selection-button" title="${_('Auswahl ausblenden')}" onclick="hide_tag_selection(this)"></div>
 								<div class="entry-tags-searchbar" ></div>
-								<div class="entry-tags-search-result" style="display:none" ></div>
+								<div class="entry-tags-search-result-scroll-container-hack" style="display:none" >
+									<div class="entry-tags-search-result" ></div>
+								</div>
 							</div>
 							<div class="entry-tags-content"></div>
 						</div>

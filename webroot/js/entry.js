@@ -1040,7 +1040,12 @@ function show_tag_selection( button ) {
 			show_search_result( result );
 			if( first_range ) {
 				// Falls tags_search_result initial leer war, müssen wir den Scroll-Container hier
-				// initialisieren mit der Render-Höhe der ersten Ergebnis-Range initialiseren: 
+				// mit der Render-Höhe der ersten Ergebnis-Range initialiseren: 
+				// HACK: Der Ergebniscontainer ist ein in der Höhe unlimitiertes DIV in einem
+				//   unsichtbaren Scroll-Container, der breit genug ist, um seitlich überlappende
+				//   Zusatzwerkzeuge beinhalten zu können. Diese würden sonst beschnitten, da
+				//   CSS derzeit nicht erlaubt overflow-y: scroll und overflow-X: visible zu
+				//   kombinieren. Letzterer Wert wird zu auto (hidden oder scroll) geändert.
 				$(tags_search_result).width( $(tags_search_result).width() );
 				$(tags_search_result).css( {position : 'relative', left : '300px'} );
 				$(tags_search_result_scroll_container_hack).css( {

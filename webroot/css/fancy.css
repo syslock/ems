@@ -221,7 +221,7 @@ body {
 .entry-tools-content {
 	position: absolute;
 	min-height: 126px;
-	min-width: 140px;
+	min-width: 180px;
 	border-radius: 20px;
 	border: 1px solid orange;
 	border-left: 3px solid orange;
@@ -397,7 +397,7 @@ button.entry-delete-button {
 .entry-edit-tools-content {
 	position: absolute;
 	min-height: 126px;
-	min-width: 140px;
+	min-width: 180px;
 	border-radius: 20px;
 	border: 1px solid green;
 	border-left: 3px solid green;

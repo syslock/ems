@@ -782,9 +782,9 @@ function new_response( user, button ) {
 		}
 		$(".entry-title", new_entry).text( reference_title );
 		// Themen des Referenzbeitrages kopieren:
-		var ref_tools = $( ".entry-tools", reference_item )[0];
-		var new_tools = $( ".entry-tools", new_entry )[0];
-		$(".entry-tags",new_tools).empty().append( $(".entry-tags",ref_tools).clone(true,true).contents() );
+		var ref_tags = $( ".entry-tags-content", reference_item )[0];
+		var new_tags = $( ".entry-tags-content", new_entry )[0];
+		$(new_tags).empty().append( $(ref_tags).clone(true,true).contents() );
 	}
 	new_entry.style.display="";
 	var entry_author = $( ".entry-author", new_entry )[0];
@@ -1114,7 +1114,7 @@ function add_tag( button ) {
 			result = parse_result( result );
 			if( result.succeeded ) {
 				tag_id = Number(result.id);
-				$(tags_selection).hide();
+				hide_tag_selection( button );
 				if( entry_id ) {
 					// Daten neu laden, um Änderungen zu übernehmen:
 					get_module( "get", {

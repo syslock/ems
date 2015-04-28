@@ -306,6 +306,7 @@ button.entry-delete-button {
 	text-align: center;
 	font-family: sans;
 	font-size: small;
+	z-index: 1; /* render above subsequent video elements */
 }
 .video-variant {
 	border-radius: 10px;

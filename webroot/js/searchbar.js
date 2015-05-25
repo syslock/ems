@@ -57,7 +57,7 @@ var SearchBar = function ( parms ) {
 				my.show_apropos_hints();
 				if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
 				my.auto_search_timeout_obj = window.setTimeout( function() {
-					my.search();
+					my.search( {discard_unchanged:true} );
 				}, my.auto_search_timeout );
 		}
 		return propagate;
@@ -73,26 +73,29 @@ var SearchBar = function ( parms ) {
 		if( !search_definition.phrase.length ) {
 			$.extend( search_definition, my.empty_search );
 		}
-		var new_search_count = parms.search_count==my.search_count ? my.search_count : my.search_count+1;
-		if( $.param(my.recent_search) != $.param(search_definition) ||  my.search_count != new_search_count ) {
-			my.new_search_handler( {old_search: my.recent_search, new_search: search_definition,
-									old_search_count: my.search_count, new_search_count: new_search_count} );
-			my.recent_search = search_definition;
-			my.search_count = new_search_count;
-		}
-		if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
-		parms.range_offset = parms.range_offset ? parms.range_offset : 0;
-		search_args = $.extend( {range_limit: my.range_limit, range_offset: parms.range_offset}, search_definition );
-		get_module( 'search', {
-			args : search_args,
-			done : function(result) {
-				result = parse_result( result );
-				my.hide_apropos_hints();
-				var bubble = true;
-				if( parms.done ) bubble = parms.done( result ); // optional single search result handler
-				if( bubble==undefined || bubble ) my.result_handler( result ); // generic searchbar result handler
+		var definition_changed = $.param(my.recent_search) != $.param(search_definition);
+		if( definition_changed || !parms.discard_unchanged ) {
+			var new_search_count = parms.search_count==my.search_count ? my.search_count : my.search_count+1;
+			if( definition_changed ||  my.search_count != new_search_count ) {
+				my.new_search_handler( {old_search: my.recent_search, new_search: search_definition,
+										old_search_count: my.search_count, new_search_count: new_search_count} );
+				my.recent_search = search_definition;
+				my.search_count = new_search_count;
 			}
-		} );
+			if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
+			parms.range_offset = parms.range_offset ? parms.range_offset : 0;
+			search_args = $.extend( {range_limit: my.range_limit, range_offset: parms.range_offset}, search_definition );
+			get_module( 'search', {
+				args : search_args,
+				done : function(result) {
+					result = parse_result( result );
+					my.hide_apropos_hints();
+					var bubble = true;
+					if( parms.done ) bubble = parms.done( result ); // optional single search result handler
+					if( bubble==undefined || bubble ) my.result_handler( result ); // generic searchbar result handler
+				}
+			} );
+		}
 	};
 	
 	my.apropos_word = null;

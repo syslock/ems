@@ -18,11 +18,10 @@ require( [	"jquery","jquery.cookie",
 				{
 					change_style( style );
 				}
-				
-				init(); 
 			} catch( error ) {
 				show_error( String(error) );
 			}
+			init(); 
 		});
 	}
 );

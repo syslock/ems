@@ -64,7 +64,11 @@ def process( app ):
 					errmsg = stderr.decode()
 					raise errors.InternalProgramError( errmsg )
 				else:
-					for line in stdout.decode().split("\n"):
+					for line in stdout.split(b"\n"):
+						try:
+							line = line.decode()
+						except UnicodeDecodeError:
+							continue
 						result = re.findall( "([^:]+):(.*)", line )
 						try:
 							key, value = result[0]

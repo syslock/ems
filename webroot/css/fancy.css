@@ -357,6 +357,9 @@ button.entry-delete-button {
 	font-weight: normal;
 	font-size: x-small;
 }
+.entry-content img {
+	image-orientation: from-image;
+}
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */

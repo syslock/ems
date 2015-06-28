@@ -377,9 +377,35 @@ class File( DBObject ):
 	def update( self, **keyargs ):
 		super().update( **keyargs )
 		if "data" in keyargs and keyargs["data"]!=None:
-			f = open( self.storage_path, "wb" )
-			shutil.copyfileobj( keyargs["data"], f )
-			f.close
+			if "chunk_start" in keyargs:
+				# Chunk an die angegebene Dateiposition schreiben:
+				try:
+					f = open( self.storage_path, "r+b" )
+				except FileNotFoundError:
+					f = open( self.storage_path, "w+b" )
+				f.seek( keyargs["chunk_start"] )
+				buffer_size = 2**10 # Kopierpuffer begrenzen
+				chunk_write_count = 0
+				for offset in range( 0, keyargs["chunk_size"], buffer_size ):
+					buffer = keyargs["data"].read( buffer_size )
+					write_size = min( buffer_size, keyargs["chunk_size"]-chunk_write_count )
+					f.write( buffer[:write_size] )
+					chunk_write_count += write_size
+					if write_size!=len(buffer):
+						raise errors.StateError( "Found extra bytes in received file chunk: %d!=%d (%d)" % (write_size,len(buffer),chunk_write_count) )
+				if f.tell()>keyargs["file_expected_size"]:
+					raise errors.StateError( "Actual file size exeeded expected size" )
+				if keyargs["chunk_start"]+keyargs["chunk_size"]==keyargs["file_expected_size"] \
+				and f.tell()!=keyargs["file_expected_size"]:
+					raise errors.StateError( "Actual file size differs from expected size after final chunk" )
+				f.close()
+				if chunk_write_count!=keyargs["chunk_size"]:
+					raise errors.StateError( "Chunk write count differs from specified chunk size" )
+			else:
+				# Datei in einem Stück ins Dateisystem kopieren:
+				f = open( self.storage_path, "wb" )
+				shutil.copyfileobj( keyargs["data"], f )
+				f.close()
 	def get_size( self ):
 		try:
 			return os.stat( self.storage_path ).st_size

@@ -102,9 +102,26 @@ def store_object( app, file_item=None ):
 		elif media_type == publication.Publication.media_type:
 			obj = publication.Publication( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		elif file_item!=None:
+			# ====== DEBUG REMOVE ME ==========
+			#import random
+			#if random.randrange(0,2)==1:
+			#	raise errors.InternalProgramError("Testfehler")
+			# ====== DEBUG REMOVE ME ==========
 			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
 			# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
 			obj = db_object.File( app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
+			# Chunk-Position parsen, falls vorhanden:
+			try:
+				chunk_name, chunk_start, chunk_end_exclusive, file_expected_size = file_item.name.split(":")
+			except ValueError:
+				pass
+			else:
+				query.parms.update( {
+					"chunk_name" : chunk_name,
+					"chunk_start" : int( chunk_start ),
+					"chunk_end" : int(chunk_end_exclusive) - 1,
+					"chunk_size" : int(chunk_end_exclusive) - int(chunk_start),
+					"file_expected_size" : int( file_expected_size )} )
 		else:
 			obj = db_object.DBObject( app, object_id=object_id, 
 									  parent_id=parent_id, 

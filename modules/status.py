@@ -1,4 +1,4 @@
-import imp, itertools
+import imp, itertools, json
 from lib import user
 user = imp.reload( user )
 
@@ -8,5 +8,5 @@ def process( app ):
 	session = app.session
 	result = { "session" : session.parms }
 	result = dict( itertools.chain(result.items(), app.user.status().items()) )
-	response.output = str( result )
+	response.output = json.dumps( result )
 

@@ -1,4 +1,4 @@
-import time, imp
+import time, imp, json
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -40,7 +40,7 @@ def process( app ):
 		object_id_list = [int(x) for x in query.parms["id"].split(",") if x!=""]
 		parent_id = "parent_id" in query.parms and int(query.parms["parent_id"]) or None
 		delete_in( app, object_id_list, parent_id=parent_id )
-		response.output = str( {"succeeded" : True, 
+		response.output = json.dumps( {"succeeded" : True, 
 								"delete_id_list" : object_id_list} )
 	elif "parent_id" in query.parms:
 		parent_id = int( query.parms["parent_id"] )
@@ -56,7 +56,7 @@ def process( app ):
 		for row in c:
 			delete_id_list.append( row[0] )
 		delete_in( app, delete_id_list )
-		response.output = str( {"succeeded" : True, 
+		response.output = json.dumps( {"succeeded" : True, 
 								"delete_id_list" : delete_id_list} )
 	else:
 		raise errors.ParameterError()

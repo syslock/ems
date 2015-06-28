@@ -1,4 +1,4 @@
-import imp, re, subprocess, os
+import imp, re, subprocess, os, json
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -108,4 +108,4 @@ def process( app ):
 		for obj in object_list:
 			if obj["id"] == metainfo["id"]:
 				obj.update( metainfo )
-	response.output = str( {"succeeded" : True, "objects" : object_list} )
+	response.output = json.dumps( {"succeeded" : True, "objects" : object_list} )

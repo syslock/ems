@@ -1,4 +1,4 @@
-import imp, re, subprocess, os
+import imp, re, subprocess, os, json
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -82,7 +82,7 @@ def process( app ):
 					msg += str(error)
 				raise errors.InternalProgramError( msg )
 			else:
-				response.output = str( {"succeeded": True,
+				response.output = json.dumps( {"succeeded": True,
 										"objects": result_ids and get_module.get(app, object_ids=result_ids) or result_ids} )
 		elif re.match( r"^audio/.*", target_obj.media_type ):
 			raise NotImplementedError( "unsupported media type: "+target_obj.media_type )

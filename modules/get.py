@@ -1,4 +1,4 @@
-import time, imp
+import time, imp, json
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -36,6 +36,8 @@ def process( app ):
 	if result != None:
 		if hasattr(result,"read"):
 			response.output = result # Stream-lesbare File-Objekte durchreichen
+		elif type(result) in (dict, list, tuple):
+			response.output = json.dumps( result )
 		else:
 			response.output = str( result )
 

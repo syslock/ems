@@ -1,4 +1,4 @@
-import time, imp, itertools, cgi
+import time, imp, itertools, cgi, json
 from lib import user
 user = imp.reload( user )
 from lib import errors
@@ -72,7 +72,7 @@ def store_object( app, file_item=None ):
 								plain_password = query.parms["password"],
 								email = query.parms["email"], 
 								fullname = query.parms["fullname"] )
-			response.output = str( {"succeeded" : True,
+			response.output = json.dumps( {"succeeded" : True,
 									"id" : usr.id} )
 		else:
 			raise errors.ParameterError()
@@ -113,8 +113,8 @@ def store_object( app, file_item=None ):
 		obj.update( **dict(itertools.chain( 
 						query.parms.items(),
 						{"parent_id":parent_id, "data":data, "title":title, 
-							"sequence":sequence}.items()
+							"sequence":sequence}.items(),
 						 )) )
-		response.output = str( {"succeeded" : True, 
+		response.output = json.dumps( {"succeeded" : True, 
 								"id" : obj.id} )
 

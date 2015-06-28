@@ -4,7 +4,7 @@ var Minions = function( parms ) {
 	my.limit = parms.limit;
 	
 	my.add_drop_box = function( dom_parent, limit ) {
-		add_file( {
+		my.upload_dialog = new UploadDialog( {
 			dom_parent : my.dom_parent, 
 			custom_class : "mini", 
 			custom_callback : function( parms ) {

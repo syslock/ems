@@ -1,6 +1,8 @@
 require( [	"jquery","jquery.cookie",
 			"request","util","confirm","login","entry","localization",
-			"user","minions","player","searchbar","range_scroll_loader" ], 
+			"user","minions","player","searchbar","range_scroll_loader",
+			"upload_dialog"
+ 		], 
 	function($) {
 		$(document).ready( function(){ 
 			try {

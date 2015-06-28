@@ -996,6 +996,9 @@ div.user-groups-selection {
 .upload-preview>.download-link {
 	margin-top: 73px;
 }
+.mini.upload-dialog .upload-chooser {
+	display: none;
+}
 .upload-info {
 	display: block;
 	margin-bottom: 15px;
@@ -1003,6 +1006,42 @@ div.user-groups-selection {
 }
 .mini.upload-dialog .upload-info {
 	display: none;
+}
+.upload-status {
+	display: inline-block;
+}
+.upload-status div {
+	display: none;
+	width: 1em;
+	height: 1em;
+}
+.upload-status .uploading {
+	display: block;
+	background: url(../tango-scalable/actions/go-up.svg) no-repeat 0 0;
+	animation:upload-uploading-translation 5s linear infinite;
+	-webkit-animation:upload-uploading-translation 5s linear infinite;
+}
+@keyframes upload-uploading-translation { 100% { transform:translateY(-10px); } }
+@-webkit-keyframes upload-uploading-translation { 100% { -webkit-transform:translateY(-10px); } }
+.upload-status .recovering {
+	display: block;
+	background: url(../tango-scalable/actions/view-refresh.svg) no-repeat 0 0;
+	animation:upload-recovering-rotation 5s linear infinite;
+	-webkit-animation:upload-recovering-rotation 5s linear infinite;
+}
+@keyframes upload-recovering-rotation { 100% { transform:rotate(360deg); } }
+@-webkit-keyframes upload-recovering-rotation { 100% { -webkit-transform:rotate(360deg); } }
+.upload-status .failed {
+	display: block;
+	background: url(../tango-scalable/status/dialog-warning.svg) no-repeat 0 0;
+}
+.upload-status .complete {
+	display: block;
+	background: url(../tango-scalable/actions/go-top.svg) no-repeat 0 0;
+}
+.upload-status .aborted {
+	display: block;
+	background: url(../tango-scalable/actions/process-stop.svg) no-repeat 0 0;
 }
 .upload-title {
 	display: inline;

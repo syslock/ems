@@ -1,4 +1,4 @@
-				<div class="upload-dialog-template" style="display:none">
+				<div class="upload-dialog">
 					<div class="upload-tools">
 						<div class="upload-tools-decorator-left"></div>
 						<div class="upload-tools-decorator-top"></div>
@@ -14,18 +14,20 @@
 						<div class="upload-progress">
 						</div>
 					</div>
+					<div class="upload-chooser"><input class="upload-file-input" type="file"></input></div>
 					<div class="upload-info">
+						<div class="upload-status"></div>
 						<div class="upload-title"></div>
 						<div class="upload-type"></div>
 						<div class="upload-size"></div>
 					</div>
-					<button class="upload-save" onclick="confirm_upload(this);">
+					<button class="upload-save">
 						${_("Datei verwenden")}
 					</button>
-					<button class="upload-recent" onclick="show_recent_uploads(this);">
+					<button class="upload-recent">
 						${_("Frühere Uploads zeigen...")}
 					</button>
-					<button class="upload-cancel" onclick="close_upload_dialog(this);">
+					<button class="upload-cancel">
 						${_("Abbrechen")}
 					</button>
 				</div>

@@ -4,6 +4,11 @@ var UploadDialog = function( parms ) {
 	my.custom_class = parms.custom_class;
 	my.custom_callback = parms.custom_callback;
 	my.wrap = parms.wrap;
+	my.upload_job_list = [];
+	my.chunk_size = parms.chunk_size ? parms.chunk_size : Math.pow(2,20); // 1MiB
+	my.retry_limit = parms.retry_limit ? parms.retry_limit : 10; // maximum number of send retries per chunk
+	my.retry_base_delay = parms.retry_base_delay ? parms.retry_base_delay : 100; // ms delay for first retry; doubled per retry per chunk
+	my.abort_requested = false;
 	
 	my.update_progress = function( bytes_total, bytes_sent ) {
 		var percentComplete = 100 * bytes_sent / bytes_total;
@@ -36,82 +41,106 @@ var UploadDialog = function( parms ) {
 		});
 	};
 	
-	my.upload_sync = function( files ) {
+	my.upload_next_chunk = function() {
+		var job = my.upload_job_list.shift();
+		if( job ) {
+			var chunk = job.file.slice( job.offset, job.end, job.file.type );
+			var form_data = new FormData();
+			form_data.append( 'chunk:'+String(job.offset)+':'+String(job.end)+':'+String(job.file.size), chunk, job.file.name );
+			my.upload_status.html( $('<div>').addClass('uploading') );
+			var local_retry_or_fail = function( job ) {
+				job.retry_count += 1;
+				if( job.retry_count<=my.retry_limit ) {
+					my.upload_job_list.unshift( job );
+					my.upload_status.html( $('<div>').addClass('recovering') );
+					window.setTimeout( my.upload_next_chunk, 100*Math.pow(2,job.retry_count) );
+				} else {
+					my.upload_job_list = [];
+					my.upload_status.html( $('<div>').addClass('failed') );
+				}
+			}
+			post_module( 'store', {
+				args : job.file_id ? {id : job.file_id} : undefined,
+				method : 'post',
+				data : form_data,
+				contentType: false, /*form_data den Content-Type bestimmen lassen*/
+				processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
+				xhr : function() {
+					var xhr = new window.XMLHttpRequest();
+					xhr.upload.addEventListener( "progress", function(evt) {
+						if( evt.lengthComputable ) {
+							my.update_progress( job.file.size, job.offset+evt.loaded );
+						}
+					}, false );
+					my.xhr = xhr;
+					return xhr;
+				},
+				done : function( result ) {
+					result = parse_result( result );
+					if( result.succeeded && result.id ) {
+						for( var i=0; i<my.upload_job_list.length && my.upload_job_list[i].file==job.file; i++ ) {
+							if( !my.upload_job_list[i].file_id ) {
+								// Server-File-ID an alle übrigen Jobs für diese File antragen:
+								my.upload_job_list[i].file_id = result.id;
+							};
+						}
+						my.update_progress( job.file.size, job.end );
+						if( result.id && job.end==job.file.size ) {
+							my.upload_status.html( $('<div>').addClass('complete') );
+							my.replace_upload_preview( result.id );
+						} else {
+							if( my.abort_requested ) {
+								my.upload_job_list = [];
+								my.upload_status.html( $('<div>').addClass('aborted') );
+							} else {
+								my.upload_status.html( $('<div>').addClass('uploading') );
+								my.upload_next_chunk();
+							}
+						}
+						my.xhr = undefined;
+					} else {
+						local_retry_or_fail( job );
+					}
+				},
+				fail : function( jxhr, client_status, server_status ) {
+					if( my.abort_requested || client_status=="abort" ) {
+						my.upload_job_list = [];
+						my.upload_status.html( $('<div>').addClass('aborted') );
+					} else {
+						local_retry_or_fail( job );
+					}
+				}
+			});
+		}
+	};
+	
+	my.upload_chunked = function( files ) {
 		var xhr = my.upload_dialog.data("xhr");
 		if( xhr && xhr.readyState!=4 ) {
 			show_error( "Vorheriger Upload nicht abgeschlossen!" );
 		} else {
-			var abort_upload = false;
-			for( var i=0; i<files.length && !abort_upload; i++ ) {
-				file = files[i];
-				var chunk_size = Math.pow(2,20); // 1MiB
-				var file_id = null;
-				var chunks_sent = 0;
-				for( var offset=0; offset<file.size && !abort_upload; offset+=chunks_sent*chunk_size ) {
-					var end = offset + Math.min( chunk_size, file.size-offset );
-					var chunk = file.slice( offset, end, file.type );
-					var form_data = new FormData();
-					form_data.append( 'chunk:'+String(offset)+':'+String(end)+':'+String(file.size), chunk, file.name );
-					my.upload_status.html( $('<div>').addClass('uploading') );
-					post_module( 'store', {
-						args : file_id ? {id : file_id} : undefined,
-						async : false,
-						method : 'post',
-						data : form_data,
-						contentType: false, /*form_data den Content-Type bestimmen lassen*/
-						processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
-						xhr : function() {
-							var xhr = new window.XMLHttpRequest();
-							xhr.upload.addEventListener( "progress", function(evt) {
-								if( evt.lengthComputable ) {
-									my.update_progress( file.size, offset+evt.loaded );
-								}
-							}, false );
-							my.xhr = xhr;
-							return xhr;
-						},
-						done : function( result ) {
-							result = parse_result( result );
-							if( result.succeeded && result.id ) {
-								file_id = result.id;
-								chunks_sent = 1;
-								my.update_progress( file.size, end );
-								my.upload_status.html( $('<div>').addClass('uploading') );
-							} else {
-								chunks_sent = 0;
-								my.upload_status.html( $('<div>').addClass('recovering') );
-							}
-						},
-						fail : function( jxhr, client_status, server_status ) {
-							if( client_status=="abort" ) {
-								abort_upload = true;
-							} else {
-								chunks_sent = 0;
-								my.upload_status.html( $('<div>').addClass('recovering') );
-							}
-						}
-					});
+			my.abort_requested = false;
+			for( var i=0; i<files.length; i++ ) {
+				var file = files[i];
+				for( var offset=0; offset<file.size; offset+=my.chunk_size ) {
+					var end = offset + Math.min( my.chunk_size, file.size-offset );
+					my.upload_job_list.push( {file: file, offset: offset, end: end, retry_count: 0} );
 				}
-				if( file_id && end==file.size ) {
-					my.upload_status.html( $('<div>').addClass('complete') );
-					my.replace_upload_preview( file_id );
-				} else if ( abort_upload ) {
-					my.upload_status.html( $('<div>').addClass('aborted') );
-				} else {
-					my.upload_status.html( $('<div>').addClass('failed') );
-				}
-				my.xhr = undefined;
 			}
+			my.upload_next_chunk();
 		}
 	};
 	
 	my.choose_upload = function() {
-		window.setTimeout( my.upload_sync, 0, my.upload_file_input[0].files );
+		my.upload_chunked( my.upload_file_input[0].files );
 	};
 	
 	my.close_upload_dialog = function() {
-		if( my.xhr && my.xhr.status!=4 ) {
-			my.xhr.abort();
+		if( my.upload_job_list.length>0 ) {
+			my.abort_requested = true;
+			if( my.xhr && my.xhr.status!=4 ) {
+				my.xhr.abort();
+			}
 		} else {
 			my.upload_dialog.remove();
 		}
@@ -169,7 +198,7 @@ var UploadDialog = function( parms ) {
 					$(event.delegateTarget).removeClass('upload-preview-over');
 					var dt = event.originalEvent.dataTransfer;
 					if( dt.files && dt.files.length ) {
-						window.setTimeout( my.upload_sync, 0, dt.files );
+						my.upload_chunked( dt.files );
 					}
 					if( dt.mozSourceNode && $(dt.mozSourceNode).data("obj") && $(dt.mozSourceNode).data("obj").id ) {
 						// Droppen eines EMS-Objektes:

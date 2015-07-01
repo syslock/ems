@@ -6,9 +6,10 @@ var UploadDialog = function( parms ) {
 	my.wrap = parms.wrap;
 	my.upload_job_list = [];
 	my.chunk_size = parms.chunk_size ? parms.chunk_size : Math.pow(2,20); // 1MiB
-	my.retry_limit = parms.retry_limit ? parms.retry_limit : 10; // maximum number of send retries per chunk
+	my.retry_limit = parms.retry_limit ? parms.retry_limit : 12; // maximum number of send retries per chunk
 	my.retry_base_delay = parms.retry_base_delay ? parms.retry_base_delay : 100; // ms delay for first retry; doubled per retry per chunk
 	my.abort_requested = false;
+	my.pause_requested = false;
 	
 	my.update_progress = function( bytes_total, bytes_sent ) {
 		var percentComplete = 100 * bytes_sent / bytes_total;
@@ -42,6 +43,8 @@ var UploadDialog = function( parms ) {
 	};
 	
 	my.upload_next_chunk = function() {
+		my.upload_pause_button.show();
+		my.upload_resume_button.hide();
 		var job = my.upload_job_list.shift();
 		if( job ) {
 			var chunk = job.file.slice( job.offset, job.end, job.file.type );
@@ -55,8 +58,11 @@ var UploadDialog = function( parms ) {
 					my.upload_status.html( $('<div>').addClass('recovering') );
 					window.setTimeout( my.upload_next_chunk, 100*Math.pow(2,job.retry_count) );
 				} else {
-					my.upload_job_list = [];
+					job.retry_count = 0;
+					my.upload_job_list.unshift( job );
 					my.upload_status.html( $('<div>').addClass('failed') );
+					my.upload_pause_button.hide();
+					my.upload_resume_button.show();
 				}
 			}
 			post_module( 'store', {
@@ -88,10 +94,18 @@ var UploadDialog = function( parms ) {
 						if( result.id && job.end==job.file.size ) {
 							my.upload_status.html( $('<div>').addClass('complete') );
 							my.replace_upload_preview( result.id );
+							my.upload_pause_button.hide();
+							my.upload_resume_button.hide();
 						} else {
 							if( my.abort_requested ) {
 								my.upload_job_list = [];
 								my.upload_status.html( $('<div>').addClass('aborted') );
+								my.upload_pause_button.hide();
+								my.upload_resume_button.hide();
+							} else if( my.pause_requested ) {
+								my.upload_status.html( $('<div>').addClass('paused') );
+								my.upload_pause_button.hide();
+								my.upload_resume_button.show();
 							} else {
 								my.upload_status.html( $('<div>').addClass('uploading') );
 								my.upload_next_chunk();
@@ -103,9 +117,16 @@ var UploadDialog = function( parms ) {
 					}
 				},
 				fail : function( jxhr, client_status, server_status ) {
-					if( my.abort_requested || client_status=="abort" ) {
+					if( my.abort_requested ) {
 						my.upload_job_list = [];
 						my.upload_status.html( $('<div>').addClass('aborted') );
+						my.upload_pause_button.hide();
+						my.upload_resume_button.hide();
+					} else if( my.pause_requested || client_status=="abort" ) {
+						my.upload_job_list.unshift( job );
+						my.upload_status.html( $('<div>').addClass('paused') );
+						my.upload_pause_button.hide();
+						my.upload_resume_button.show();
 					} else {
 						local_retry_or_fail( job );
 					}
@@ -120,6 +141,7 @@ var UploadDialog = function( parms ) {
 			show_error( "Vorheriger Upload nicht abgeschlossen!" );
 		} else {
 			my.abort_requested = false;
+			my.pause_requested = false;
 			for( var i=0; i<files.length; i++ ) {
 				var file = files[i];
 				for( var offset=0; offset<file.size; offset+=my.chunk_size ) {
@@ -133,6 +155,18 @@ var UploadDialog = function( parms ) {
 	
 	my.choose_upload = function() {
 		my.upload_chunked( my.upload_file_input[0].files );
+	};
+	
+	my.pause_upload = function() {
+		my.pause_requested = true;
+		if( my.xhr && my.xhr.status!=4 ) {
+			my.xhr.abort();
+		}
+	};
+	
+	my.resume_upload = function() {
+		my.pause_requested = false;
+		my.upload_next_chunk();
 	};
 	
 	my.close_upload_dialog = function() {
@@ -217,6 +251,10 @@ var UploadDialog = function( parms ) {
 				my.upload_recent_button.on( "click", my.show_recent_uploads );
 				my.upload_cancel_button = $( ".upload-cancel", my.upload_dialog );
 				my.upload_cancel_button.on( "click", my.close_upload_dialog );
+				my.upload_pause_button = $( ".upload-pause", my.upload_dialog );
+				my.upload_pause_button.on( "click", my.pause_upload );
+				my.upload_resume_button = $( ".upload-resume", my.upload_dialog );
+				my.upload_resume_button.on( "click", my.resume_upload );
 				var selection = window.getSelection();
 				var range = undefined;
 				try {

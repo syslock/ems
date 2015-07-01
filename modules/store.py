@@ -104,7 +104,7 @@ def store_object( app, file_item=None ):
 		elif file_item!=None:
 			# ====== DEBUG REMOVE ME ==========
 			#import random
-			#if random.randrange(0,2)==1:
+			#if random.randrange(0,10)<5:
 			#	raise errors.InternalProgramError("Testfehler")
 			# ====== DEBUG REMOVE ME ==========
 			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 

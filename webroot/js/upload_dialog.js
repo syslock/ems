@@ -45,7 +45,7 @@ var UploadDialog = function( parms ) {
 						if( meta.title ) $('.upload-title', my.upload_dialog).text( meta.title );
 						if( meta.type ) $('.upload-type', my.upload_dialog).text( "["+meta.type+"]" );
 						if( meta.size ) $('.upload-size', my.upload_dialog).text( prettyprint_size(meta.size) );
-						my.preview_area.empty();
+						my.preview_area.empty(); // FIXME: Don't remove elements being accessed by other code!
 						show_object( {obj: meta, dom_parent: my.preview_area[0]} );
 						if( meta.dom_object ) { 
 							$(meta.dom_object).addClass('upload-object');

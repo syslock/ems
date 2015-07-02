@@ -10,12 +10,28 @@ var UploadDialog = function( parms ) {
 	my.retry_base_delay = parms.retry_base_delay ? parms.retry_base_delay : 100; // ms delay for first retry; doubled per retry per chunk
 	my.abort_requested = false;
 	my.pause_requested = false;
+	my.accepted_types = parms.accepted_types ? parms.accepted_types : undefined; // regex pattern list
 	
 	my.update_progress = function( bytes_total, bytes_sent ) {
 		var percentComplete = 100 * bytes_sent / bytes_total;
 		var progress_string = String(Math.round(percentComplete))+"%";
 		my.upload_progress.width( progress_string );
 		my.upload_progress.text( progress_string );
+	};
+	
+	my.check_accepted_types = function( type ) {
+		var result = false;
+		if( my.accepted_types ) {
+			for( var i=0; i<my.accepted_types.length; i++ ) {
+				if( type.match(my.accepted_types[i]) ) {
+					result = true;
+				}
+			}
+		} else result = true;
+		if( !result ) {
+			show_error( "Unerwarteter Objekttyp: "+type );
+		}
+		return result;
 	};
 	
 	my.replace_upload_preview = function( upload_id, source_obj ) {
@@ -25,17 +41,19 @@ var UploadDialog = function( parms ) {
 				result = parse_result( result );
 				if( result && result.length ) {
 					var meta = result[0];
-					if( meta.title ) $('.upload-title', my.upload_dialog).text( meta.title );
-					if( meta.type ) $('.upload-type', my.upload_dialog).text( "["+meta.type+"]" );
-					if( meta.size ) $('.upload-size', my.upload_dialog).text( prettyprint_size(meta.size) );
-					my.preview_area.empty();
-					show_object( {obj: meta, dom_parent: my.preview_area[0]} );
-					if( meta.dom_object ) { 
-						$(meta.dom_object).addClass('upload-object');
-						$(meta.dom_object).addClass('upload-preview-content');
-					}
-					if( my.custom_callback ) {
-						my.custom_callback( {obj: meta, source_obj: source_obj} );
+					if( my.check_accepted_types(meta.type) ) {
+						if( meta.title ) $('.upload-title', my.upload_dialog).text( meta.title );
+						if( meta.type ) $('.upload-type', my.upload_dialog).text( "["+meta.type+"]" );
+						if( meta.size ) $('.upload-size', my.upload_dialog).text( prettyprint_size(meta.size) );
+						my.preview_area.empty();
+						show_object( {obj: meta, dom_parent: my.preview_area[0]} );
+						if( meta.dom_object ) { 
+							$(meta.dom_object).addClass('upload-object');
+							$(meta.dom_object).addClass('upload-preview-content');
+						}
+						if( my.custom_callback ) {
+							my.custom_callback( {obj: meta, source_obj: source_obj} );
+						}
 					}
 				}
 			}
@@ -43,10 +61,10 @@ var UploadDialog = function( parms ) {
 	};
 	
 	my.upload_next_chunk = function() {
-		my.upload_pause_button.show();
-		my.upload_resume_button.hide();
 		var job = my.upload_job_list.shift();
 		if( job ) {
+			my.upload_pause_button.show();
+			my.upload_resume_button.hide();
 			var chunk = job.file.slice( job.offset, job.end, job.file.type );
 			var form_data = new FormData();
 			form_data.append( 'chunk:'+String(job.offset)+':'+String(job.end)+':'+String(job.file.size), chunk, job.file.name );
@@ -144,9 +162,11 @@ var UploadDialog = function( parms ) {
 			my.pause_requested = false;
 			for( var i=0; i<files.length; i++ ) {
 				var file = files[i];
-				for( var offset=0; offset<file.size; offset+=my.chunk_size ) {
-					var end = offset + Math.min( my.chunk_size, file.size-offset );
-					my.upload_job_list.push( {file: file, offset: offset, end: end, retry_count: 0} );
+				if( my.check_accepted_types(file.type) ) {
+					for( var offset=0; offset<file.size; offset+=my.chunk_size ) {
+						var end = offset + Math.min( my.chunk_size, file.size-offset );
+						my.upload_job_list.push( {file: file, offset: offset, end: end, retry_count: 0} );
+					}
 				}
 			}
 			my.upload_next_chunk();

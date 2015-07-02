@@ -5,7 +5,8 @@ var Minions = function( parms ) {
 	
 	my.add_drop_box = function( dom_parent, limit ) {
 		my.upload_dialog = new UploadDialog( {
-			dom_parent : my.dom_parent, 
+			dom_parent : my.dom_parent,
+			accepted_types : ["^image/"],
 			custom_class : "mini", 
 			custom_callback : function( parms ) {
 				var minion_obj = undefined;

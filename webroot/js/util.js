@@ -113,6 +113,7 @@ function show_error( text )
 function show_status()
 {
 	$(".ems-status").addClass("ems-status-active");
+	$(".ems-status-hide-button").focus();
 }
 
 function hide_status()
@@ -122,6 +123,8 @@ function hide_status()
 	$(".ems-error").removeClass("ems-error-active");
 	$(".ems-message-content").text("");
 	$(".ems-error-content").text("");
+	$(".login-nick").focus();
+
 }
 
 function change_style( style )

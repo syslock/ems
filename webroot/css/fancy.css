@@ -1049,6 +1049,10 @@ div.user-groups-selection {
 	display: block;
 	background-image: url(../tango-scalable/actions/process-stop.svg);
 }
+.upload-status .paused {
+	display: block;
+	background-image: url(../tango-scalable/actions/media-playback-pause.svg);
+}
 .upload-title {
 	display: inline;
 	font-weight: bold;
@@ -1064,6 +1068,12 @@ div.user-groups-selection {
 	float: right;
 }
 .mini.upload-dialog>button {
+	display: none;
+}
+.upload-pause {
+	display: none;
+}
+.upload-resume {
 	display: none;
 }
 

@@ -34,6 +34,17 @@ var UploadDialog = function( parms ) {
 		return result;
 	};
 	
+	my.store_poster = function( parms ) {
+		if( my.preview_object ) {
+			var parent_obj = my.preview_object.data("obj");
+			if( parent_obj && parent_obj.id && parms.obj && parms.obj.id ) {
+				get_module( "store", {
+					args : {id: parms.obj.id, parent_id: parent_obj.id, sequence: -1}
+				} );
+			}
+		}
+	}
+	
 	my.replace_upload_preview = function( upload_id, source_obj ) {
 		get_module( "get", {
 			args : {view : "all", id : String(upload_id)},
@@ -43,11 +54,22 @@ var UploadDialog = function( parms ) {
 					var meta = result[0];
 					if( my.check_accepted_types(meta.type) ) {
 						if( meta.title ) $('.upload-title', my.upload_dialog).text( meta.title );
-						if( meta.type ) $('.upload-type', my.upload_dialog).text( "["+meta.type+"]" );
+						if( meta.type ) {
+							$('.upload-type', my.upload_dialog).text( "["+meta.type+"]" );
+							if( meta.type.match("^video/") ) {
+								my.poster_dialog = new UploadDialog( {
+									dom_parent: $('.upload-poster', my.upload_dialog)[0],
+									accepted_types: ['^image/'],
+									custom_class: 'poster',
+									custom_callback: my.store_poster
+								} );
+							}
+						}
 						if( meta.size ) $('.upload-size', my.upload_dialog).text( prettyprint_size(meta.size) );
 						my.preview_area.empty(); // FIXME: Don't remove elements being accessed by other code!
 						show_object( {obj: meta, dom_parent: my.preview_area[0]} );
 						if( meta.dom_object ) { 
+							my.preview_object = meta.dom_object;
 							$(meta.dom_object).addClass('upload-object');
 							$(meta.dom_object).addClass('upload-preview-content');
 						}

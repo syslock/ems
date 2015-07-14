@@ -229,6 +229,7 @@ var UploadDialog = function( parms ) {
 			my.upload_tools.on( "click", function(event) {
 				var obj = $(event.target).closest(".entry-media").data("obj");
 				if( obj && obj.id ) {
+					my.upload_dialog.removeClass("recent-uploads-visible");
 					my.replace_upload_preview( obj.id );
 				}
 			});

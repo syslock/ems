@@ -225,6 +225,7 @@ var UploadDialog = function( parms ) {
 	my.show_recent_uploads = function() {
 		if( ! my.upload_dialog.hasClass("recent-uploads-visible") ) {
 			my.upload_dialog.addClass("recent-uploads-visible");
+			$(".upload-tools-content").empty();
 			load_visible_objects( {type: 'video/%,image/%,audio/%,application/octet-stream', permissions: ["write"], limit: 5, parent_ids: [global_user.id], dom_parent: my.upload_tools_content[0]} );
 			my.upload_tools.on( "click", function(event) {
 				var obj = $(event.target).closest(".entry-media").data("obj");

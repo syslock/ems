@@ -1,8 +1,11 @@
 var UploadDialog = function( parms ) {
 	var my = this;
 	my.dom_parent = parms.dom_parent;
+	my.replace_content = parms.replace_content;
+	my.initial_content_id = parms.initial_content_id;
 	my.custom_class = parms.custom_class;
 	my.custom_callback = parms.custom_callback;
+	my.on_ready = parms.on_ready;
 	my.wrap = parms.wrap;
 	my.upload_job_list = [];
 	my.chunk_size = parms.chunk_size ? parms.chunk_size : Math.pow(2,20); // 1MiB
@@ -66,14 +69,6 @@ var UploadDialog = function( parms ) {
 						if( meta.title ) $('.upload-title', my.upload_dialog).text( meta.title );
 						if( meta.type ) {
 							$('.upload-type', my.upload_dialog).text( "["+meta.type+"]" );
-							if( meta.type.match("^video/") ) {
-								my.poster_dialog = new UploadDialog( {
-									dom_parent: $('.upload-poster', my.upload_dialog)[0],
-									accepted_types: ['^image/'],
-									custom_class: 'poster',
-									custom_callback: my.store_poster
-								} );
-							}
 						}
 						if( meta.size ) $('.upload-size', my.upload_dialog).text( prettyprint_size(meta.size) );
 						my.preview_area.empty(); // FIXME: Don't remove elements being accessed by other code!
@@ -82,6 +77,23 @@ var UploadDialog = function( parms ) {
 							my.preview_object = meta.dom_object;
 							$(meta.dom_object).addClass('upload-object');
 							$(meta.dom_object).addClass('upload-preview-content');
+							if( meta.type.match("^video/") ) {
+								my.poster_dialog = new UploadDialog( {
+									dom_parent: $('.upload-poster', my.upload_dialog)[0],
+									accepted_types: ['^image/'],
+									custom_class: 'poster',
+									custom_callback: my.store_poster,
+									on_ready: function( poster_dialog ) {
+										poster_dialog.confirm_upload = poster_dialog.close_upload_dialog;
+										poster_dialog.upload_cancel_button.hide();
+									}
+								} );
+								$(my.preview_object).data( {"poster_callback" : 
+									function( poster ) {
+										my.poster_dialog.replace_upload_preview( poster.id );
+									}
+								} );
+							}
 						}
 						if( my.custom_callback ) {
 							my.custom_callback( {obj: meta, source_obj: source_obj} );
@@ -250,6 +262,9 @@ var UploadDialog = function( parms ) {
 	};
 	
 	my.confirm_upload = function() {
+		if( my.poster_dialog ) {
+			my.poster_dialog.close_upload_dialog();
+		}
 		var upload_object = $('.upload-object', my.upload_dialog);
 		my.upload_dialog.after( upload_object );
 		if( upload_object.hasClass('download-link') ) {
@@ -260,11 +275,12 @@ var UploadDialog = function( parms ) {
 		my.close_upload_dialog();
 	};
 	
-	if( my.dom_parent ) {
+	if( my.dom_parent || my.replace_content ) {
 		get_tpl( "elements/upload_dialog.html", { 
 			done : function(result) {
 				var dummy = $("<div>").html( result );
 				my.upload_dialog = $( ".upload-dialog", dummy ).unwrap();
+				my.upload_dialog.data( {"upload_dialog" : my} );
 				if( parms.custom_class ) {
 					my.upload_dialog.addClass( parms.custom_class );
 				}
@@ -310,24 +326,36 @@ var UploadDialog = function( parms ) {
 				my.upload_resume_button = $( ".upload-resume", my.upload_dialog );
 				my.upload_resume_button.on( "click", my.resume_upload );
 				var selection = window.getSelection();
-				var range = undefined;
-				try {
-					range = selection.getRangeAt(0);
-				} catch (error) {
-					//show_error( error );
-				}
-				if( range && ((my.dom_parent==range.startContainer) || $(my.dom_parent).has(range.startContainer)[0]) ) {
-					range.deleteContents();
-					range.insertNode( my.upload_dialog[0] );
+				if( my.replace_content ) {
+					var obj = $(my.replace_content).data("obj");
+					if( obj && obj.id ) {
+						my.initial_content_id = obj.id;
+					}
+					$(my.replace_content).replaceWith( my.upload_dialog );
+				} else if( my.dom_parent ) {
+					var range = undefined;
 					try {
-						selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
-					} catch (error ) {
+						range = selection.getRangeAt(0);
+					} catch (error) {
 						//show_error( error );
 					}
-				} else {
-					var container = $(my.dom_parent).first();
-					container.append( my.upload_dialog );
+					if( range && ((my.dom_parent==range.startContainer) || $(my.dom_parent).has(range.startContainer)[0]) ) {
+						range.deleteContents();
+						range.insertNode( my.upload_dialog[0] );
+						try {
+							selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
+						} catch (error ) {
+							//show_error( error );
+						}
+					} else {
+						var container = $(my.dom_parent).first();
+						container.append( my.upload_dialog );
+					}
 				}
+				if( my.initial_content_id ) {
+					my.replace_upload_preview( my.initial_content_id );
+				}
+				
 				my.upload_dialog[0].contentEditable = false; // verhindert Editierbarkeit des Dialogfeldes
 				my.upload_dialog.on( "click select", function() {
 					window.getSelection().collapseToStart(); // verhindert Auswahl des Dialogfeldes
@@ -341,7 +369,7 @@ var UploadDialog = function( parms ) {
 					}
 				}
 				if( my.on_ready ) {
-					my.on_ready();
+					my.on_ready( my );
 				}
 			}, 
 			fail : function(result) {
@@ -350,7 +378,7 @@ var UploadDialog = function( parms ) {
 		} );
 	} else {
 		if( my.on_ready ) {
-			my.on_ready();
+			my.on_ready( my );
 		}
 	}
 };

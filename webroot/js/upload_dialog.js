@@ -38,8 +38,18 @@ var UploadDialog = function( parms ) {
 		if( my.preview_object ) {
 			var parent_obj = my.preview_object.data("obj");
 			if( parent_obj && parent_obj.id && parms.obj && parms.obj.id ) {
-				get_module( "store", {
-					args : {id: parms.obj.id, parent_id: parent_obj.id, sequence: -1}
+				get_module( "convert", {
+					args : {id: parent_obj.id, poster_id: parms.obj.id},
+					done : function( result ) {
+						if( result.succeeded && result.substitutes ) {
+							for( var i=0; i<result.substitutes.length; i++ ) {
+								var substitute = result.substitutes[i];
+								if( substitute.type=="poster" ) {
+									$(my.preview_object).attr( {poster: get_module_url("get", {id : substitute.id, view : "data"})} );
+								}
+							}
+						}
+					}
 				} );
 			}
 		}

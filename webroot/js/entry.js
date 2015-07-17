@@ -301,9 +301,10 @@ function show_object( parms )
 					var ready_source_count = 0;
 					var identification_request_list = [ obj.id ];
 					$(status_text).empty();
-					if( result.objects.length ) {
-						for( var i=0; i<result.objects.length; i++ ) {
-							var conv_obj = result.objects[i];
+					if( result.substitutes.length ) {
+						for( var i=0; i<result.substitutes.length; i++ ) {
+							var substitute = result.substitutes[i]
+							var conv_obj = substitute.substitute_object[0];
 							if( conv_obj.type.match('^video/.*') ) {
 								if( conv_obj.size>0 ) {
 									$(status_text).append( $('<div>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );

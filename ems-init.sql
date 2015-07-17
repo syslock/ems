@@ -57,6 +57,14 @@ CREATE TABLE `file_transfers` (
 	`destination`	TEXT,
 	PRIMARY KEY(object_id)
 );
+CREATE TABLE `substitutes` (
+	`original_id`	INTEGER NOT NULL,
+	`substitute_id`	INTEGER NOT NULL,
+	`type`	TEXT NOT NULL,
+	`size`	INTEGER NOT NULL,
+	`priority`	INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX `i_substitutes_original_id` ON `substitutes` (`original_id` );
 CREATE TABLE "chess_games" (
 	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	`game_id`	NUMERIC,

@@ -999,6 +999,7 @@ div.user-groups-selection {
 }
 .upload-chooser {
 	display: inline-block;
+	margin-bottom: 1em;
 }
 .mini.upload-dialog .upload-chooser {
 	display: none;
@@ -1063,6 +1064,22 @@ div.user-groups-selection {
 }
 .upload-size {
 	display: inline;
+}
+.upload-poster {
+	display: none;
+}
+.upload-poster-caption {
+	display: block;
+}
+.upload-poster-manual {
+	display: inline-block;
+	font-size: 13pt;
+	margin-top: 1em;
+	margin-right: 1em;
+}
+.upload-poster-from-offset {
+	display: inline-block;
+	margin-left: 1em;
 }
 .upload-dialog>button {
 	float: right;

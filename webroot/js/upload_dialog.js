@@ -40,15 +40,28 @@ var UploadDialog = function( parms ) {
 	my.store_poster = function( parms ) {
 		if( my.preview_object ) {
 			var parent_obj = my.preview_object.data("obj");
-			if( parent_obj && parent_obj.id && parms.obj && parms.obj.id ) {
+			if( parent_obj && parent_obj.id ) {
+				var args = { id: parent_obj.id };
+				if( parms.obj && parms.obj.id ) {
+					args["poster_id"] = parms.obj.id;
+				}
+				if( parms.video_offset ) {
+					args["poster_offset"] = parms.video_offset;
+				}
 				get_module( "convert", {
-					args : {id: parent_obj.id, poster_id: parms.obj.id},
+					args : args,
 					done : function( result ) {
+						result = parse_result( result );
 						if( result.succeeded && result.substitutes ) {
 							for( var i=0; i<result.substitutes.length; i++ ) {
 								var substitute = result.substitutes[i];
 								if( substitute.type=="poster" ) {
 									$(my.preview_object).attr( {poster: get_module_url("get", {id : substitute.id, view : "data"})} );
+									if( args["poster_offset"] ) {
+										// Poster-Dialog aktualisieren, wenn das neue Bild nicht aus einem Upload,
+										// sondern serverseitig aus einer Videopositionsvorgabe generiert wurde:
+										my.poster_dialog.replace_upload_preview( substitute.substitute_id );
+									}
 								}
 							}
 						}
@@ -56,6 +69,10 @@ var UploadDialog = function( parms ) {
 				} );
 			}
 		}
+	}
+	
+	my.set_poster_from_offset = function() {
+		my.store_poster( {"video_offset" : $("video",my.preview_object)[0].currentTime} );
 	}
 	
 	my.replace_upload_preview = function( upload_id, source_obj ) {
@@ -85,7 +102,10 @@ var UploadDialog = function( parms ) {
 									custom_callback: my.store_poster,
 									on_ready: function( poster_dialog ) {
 										poster_dialog.confirm_upload = poster_dialog.close_upload_dialog;
+										poster_dialog.upload_save_button.hide();
 										poster_dialog.upload_cancel_button.hide();
+										poster_dialog.upload_recent_button.hide();
+										my.upload_poster.show();
 									}
 								} );
 								$(my.preview_object).data( {"poster_callback" : 
@@ -311,10 +331,13 @@ var UploadDialog = function( parms ) {
 					}
 					return false;
 				});
-				my.upload_progress = $(".upload-progress", my.upload_dialog);
+				my.upload_progress = $( ".upload-progress", my.upload_dialog );
 				my.upload_file_input = $( ".upload-file-input", my.upload_dialog );
 				my.upload_file_input.on( "change", my.choose_upload );
-				my.upload_status = $(".upload-status", my.upload_dialog);
+				my.upload_status = $( ".upload-status", my.upload_dialog );
+				my.upload_poster = $( ".upload-poster", my.upload_dialog );
+				my.upload_poster_from_offset_button = $( ".upload-poster-from-offset", my.upload_dialog );
+				my.upload_poster_from_offset_button.on( "click", my.set_poster_from_offset );
 				my.upload_save_button = $( ".upload-save", my.upload_dialog );
 				my.upload_save_button.on( "click", my.confirm_upload );
 				my.upload_recent_button = $( ".upload-recent", my.upload_dialog );

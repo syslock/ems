@@ -219,10 +219,12 @@ class Application:
 		self.db.close()
 		self.db = None
 	def log( self, message ):
+		message = str(message).rstrip()
 		if self.logfile:
-			self.logfile.write( time.ctime()+": "+str(message)+"\n" )
+			self.logfile.write( time.ctime()+": "+message+"\n" )
 		else:
 			print( "["+self.name+"] "+message ) # Write to Server log, e.g. /var/log/htpd/error_log
 	def trace( self, message ):
+		message = str(message).rstrip()
 		if self.tracefile:
-			self.tracefile.write( time.ctime()+": "+str(message)+"\n" )
+			self.tracefile.write( time.ctime()+": "+message+"\n" )

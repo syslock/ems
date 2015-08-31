@@ -222,9 +222,11 @@ class Application:
 		message = str(message).rstrip()
 		if self.logfile:
 			self.logfile.write( time.ctime()+": "+message+"\n" )
+			self.logfile.flush()
 		else:
 			print( "["+self.name+"] "+message ) # Write to Server log, e.g. /var/log/htpd/error_log
 	def trace( self, message ):
 		message = str(message).rstrip()
 		if self.tracefile:
 			self.tracefile.write( time.ctime()+": "+message+"\n" )
+			self.tracefile.flush()

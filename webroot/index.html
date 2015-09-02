@@ -14,10 +14,13 @@
 						done : function( result ) {
 							result = parse_result( result );
 							if( result.succeeded ) {
-								open_tpl( 'login.html' )
+								open_tpl( 'login.html', {"hint": "registration-confirmation-complete"} )
 							}
+						},
+						fail : function( result ) {
+							result = parse_result( result );
+							open_tpl( 'login.html', {"hint": "registration-confirmation-failed"} )
 						}
-						// TODO: fail-handler with redirection to help page, if registration failed
 					});
 				}
 				else open_tpl( 'overview.html' )

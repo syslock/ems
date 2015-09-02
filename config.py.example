@@ -6,13 +6,16 @@ smtp_tls = True
 smtp_user = "webappuser"
 smtp_password = "password"
 
-registration_from = "support@example.org"
-registration_subject = "%(sitename)s - Registration confirmation"
+site_email_address = "support@example.org"
+site_email_subject_prefix = "%(sitename)s - "
+
 registration_message = """Hello %(nick)s,
 
 to complete your registration at %(sitename)s please follow this link:
-https://example.org/ems.wsgi?do=register&msid=%(msid)s
+https://example.org/ems/?msid=%(msid)s
 
 Regards,
 Your %(sitename)s Team"""
 
+logfile = "ems.log"
+#tracefile = "ems.trace"

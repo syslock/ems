@@ -1292,6 +1292,15 @@ div.user-groups-selection {
 .ems-login-content {
 	display: inline-block;
 }
+.login-hint {
+	margin-bottom: 1em;
+}
+.login-hint-heading {
+	font-weight: bold;
+}
+.login-forms, register-form {
+	display: inline-block;
+}
 .login-form, .login-form>div, .register-form, .register-form>div {
 	text-align: right;
 }

@@ -19,6 +19,10 @@
 						}
 					}
 				});
+				if( hint=document.location.search.match("[&?]hint=([^&]*)") ) {
+					hint=hint[1];
+					$('.'+hint).show();
+				}
 			}
 			
 			function show_register_password_match_message() {
@@ -38,51 +42,75 @@
 			</div>
 		</div>
 		<div class="ems-content ems-login-content">
-			<div class="login-form">
-				<div class="login-nick">
-					<div class="login-nick-label">
-						${_("Benutzername:")}
-					</div>
-					<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
+			<div class="login-hint registration-confirmation-complete" style="display:none" >
+				<div class="login-hint-heading">
+					${_("Registrierung erfolgreich! Bitte logge dich jetzt ein:")}
 				</div>
-				<div class="login-password">
-					<div class="login-password-label">
-						${_("Passwort:")}
-					</div>
-					<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
-				</div>
-				<button class="login-submit" onclick="login()">
-					${_("Anmelden")}
-				</button>
-				<button class="login-register" onclick="show_register()">
-					${_("Noch nicht registriert?")}
-				</button>
 			</div>
-			<div class="register-form" style="display:none">
-				<div class="register-password">
-					<div class="register-password-label">
-						${_("Passwort wiederholen:")}
-					</div>
-					<input type="password" class="register-password"/>
+			<div class="login-hint registration-confirmation-failed" style="display:none" >
+				<div class="login-hint-heading">
+					${_("Die Registrierungsbestätigung hat leider nicht funktioniert. Bitte versuche folgendes:")}
 				</div>
-				<div class="register-email">
-					<div class="register-email-label">
-						${_("E-Mail-Adresse:")}
-					</div>
-					<input type="text" class="register-email"/>
+				<div>
+					${_("1.) Öffne den Bestätigungslink aus der E-Mail in einem neuen Tab des selben Browserfensters, mit dem du auch das Registrierungsformular ausgefüllt hast. Notfalls mit Kopieren und Einfügen.")}
 				</div>
-				<button class="register-submit" onclick="register()">
-					${_("Registrieren")}
-				</button>
-				<div class="register-reconfirm" style="display:none" >
-					<div class="register-reconfirm-message">
-						${_("Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert.")}<br/>
-						${_("Hast du eine Bestätigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Bestätigungslink geklickt?")}<br/>
-						${_("Wenn du möchtest, kannst du die Bestätigungsanfrage nochmal an die oben angegebene Adresse schicken lassen.")}<br/>
+				<div>
+					${_("2.) Erlaube dieser Seite Cookies zu speichern.")}
+				</div>
+				<div>
+					${_("3.) Stelle sicher, dass du den Bestätigungslink aus der neuesten Bestätigungsanfrage verwendest und keinen veralteten.")}
+				</div>
+				<div>
+					${_("4.) Du kannst eine neue Bestätigungsanfrage anfordern, nachdem du Nutzername und Passwort korrekt eingegeben hast:")}
+				</div>
+			</div>
+			<div class="login-forms">
+				<div class="login-form">
+					<div class="login-nick">
+						<div class="login-nick-label">
+							${_("Benutzername:")}
+						</div>
+						<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
 					</div>
-					<button class="register-reconfirm-submit" onclick="reconfirm()">
-						${_("Bestätigungs-E-Mail nochmal schicken")}
+					<div class="login-password">
+						<div class="login-password-label">
+							${_("Passwort:")}
+						</div>
+						<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
+					</div>
+					<button class="login-submit" onclick="login()">
+						${_("Anmelden")}
 					</button>
+					<button class="login-register" onclick="show_register()">
+						${_("Noch nicht registriert?")}
+					</button>
+				</div>
+				<div class="register-form" style="display:none">
+					<div class="register-password">
+						<div class="register-password-label">
+							${_("Passwort wiederholen:")}
+						</div>
+						<input type="password" class="register-password"/>
+					</div>
+					<div class="register-email">
+						<div class="register-email-label">
+							${_("E-Mail-Adresse:")}
+						</div>
+						<input type="text" class="register-email"/>
+					</div>
+					<button class="register-submit" onclick="register()">
+						${_("Registrieren")}
+					</button>
+					<div class="register-reconfirm" style="display:none" >
+						<div class="register-reconfirm-message">
+							${_("Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert.")}<br/>
+							${_("Hast du eine Bestätigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Bestätigungslink geklickt?")}<br/>
+							${_("Wenn du möchtest, kannst du die Bestätigungsanfrage nochmal an die oben angegebene Adresse schicken lassen.")}<br/>
+						</div>
+						<button class="register-reconfirm-submit" onclick="reconfirm()">
+							${_("Bestätigungs-E-Mail nochmal schicken")}
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

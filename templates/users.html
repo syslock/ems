@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>${app.config.sitename}</title>
+		<link id="main_style" rel="stylesheet" type="text/css" href="" />
+		<script data-main="js/main.js" src="js/require.js"></script>
+		<script>
+			var global_status = undefined;
+			var global_user = undefined;
+			var global_search = undefined;
+			function init()
+			{
+				get_module( "status", {
+					done : function( result ) {
+						result = parse_result( result );
+						global_status = result;
+						if( !result.login || result.login.nick=='anonymous' ) {
+							$(".menu-login")[0].style.display="";
+							$(".menu-account-info")[0].style.display="none";
+							$(".menu-account-nick")[0].innerHTML="";
+							$(".menu-logout")[0].style.display="none";
+						}
+						if( result.login ) {
+							if( result.login.nick!='anonymous' ) {
+								$(".menu-login")[0].style.display="none";
+								$(".menu-account-info")[0].style.display="";
+								$(".menu-account-nick")[0].innerHTML=result.login.nick;
+								$(".menu-logout")[0].style.display="";
+							}
+							get_module( "get", {
+								args : {view : "all", id : String(result.login.id)},
+								done : function(result) {
+									result = parse_result( result );
+									global_user = result[0];
+									if( global_user.permissions.indexOf("write")<0 ) {
+										$('.require-permissions-write-self').css( {visibility : 'hidden'} );
+									} else {
+										$('.require-permissions-write-self').css( {visibility : 'visible'} );
+									}
+								}
+							});
+						}
+						
+						var range_scroll_loader = null;
+						// Searchbar initialisieren und mit aktuellem Filter suchen:
+						global_search = new SearchBar( {
+							entry_parent : $('.main-searchbar'), 
+							result_handler : function( result ) {
+								show_search_result( result );
+								range_scroll_loader.range_start = result.hitlist.length;
+								range_scroll_loader.scroll_handler_parms = { search_count : global_search.search_count };
+								range_scroll_loader.start();
+							},
+							outer_width : $('.overview-button').outerWidth(),
+							result_types : 'application/x-obj.user',
+							empty_search : {phrase : 'type:user', min_weight : "None"},
+							order_by : 'ctime',
+							order_reverse : 'true',
+							range_limit : 100,
+							new_search_handler : function( parms ) {
+								$(".ems-content").empty();
+								if( range_scroll_loader ) range_scroll_loader.stop();
+								range_scroll_loader = new RangeScrollLoader( {
+									scroll_container : window,
+									scroll_handler : global_search.search
+								} );
+							},
+							on_ready : function() {
+								global_search.entry.focus();
+								global_search.search();
+							}
+						} );
+					}
+				});
+			}
+		</script>
+	</head>
+	<body>
+		<div class="page-menu">
+			<%include file="/elements/global_menu.html" args="title=app.config.sitename+' - '+_('Nutzer')" />
+			<div class="page-widgets">
+				<div class="page-widgets-left-stack">
+					<%include file="/elements/overview_button.html" />
+					<div class="main-searchbar"></div>
+				</div>
+				<div class="page-widgets-right-stack">
+					<div class="page-events"></div>
+				</div>
+			</div>
+		</div>
+		<div class="ems-content"></div>
+		<%include file="/elements/status_box.html" />
+		<%include file="/elements/group_template.html" />
+		<%include file="/elements/user_template.html" />
+		<%include file="/elements/entry_template.html" />
+		<%include file="/elements/text_template.html" />
+		<%include file="/elements/confirm_dialog.html" />
+	</body>
+</html>

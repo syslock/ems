@@ -76,6 +76,7 @@
 							order_by : 'ctime',
 							order_reverse : 'true',
 							range_limit : 10,
+							recursive : {parents : true, children : true},
 							new_search_handler : function( parms ) {
 								$(".ems-content").empty();
 								if( range_scroll_loader ) range_scroll_loader.stop();

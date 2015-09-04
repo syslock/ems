@@ -57,6 +57,7 @@ var Minions = function( parms ) {
 		order_by : 'mtime',
 		order_reverse : 'true',
 		range_limit : my.limit,
+		recursive : {children: true, parents: false},
 		new_search_handler : function( parms ) {
 			my.dom_parent.empty();
 			my.add_drop_box();

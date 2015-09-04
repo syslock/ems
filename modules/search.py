@@ -21,9 +21,14 @@ def process( app ):
 			min_weight = int(min_weight)
 		order_by = q.parms["order_by"] if "order_by" in q.parms else None
 		order_reverse = q.parms["order_reverse"].lower()=="true" if "order_reverse" in q.parms else True
+		children = q.parms["children"].lower()=="true" if "children" in q.parms else False
+		parents = q.parms["parents"].lower()=="true" if "parents" in q.parms else False
+		if "recursive" in q.parms:
+			children = parents = q.parms["recursive"].lower()=="true"
 		search( app, search_phrase, result_types=result_types, min_weight=min_weight, 
 				order_by=order_by, order_reverse=order_reverse, 
-				range_offset=range_offset, range_limit=range_limit )
+				range_offset=range_offset, range_limit=range_limit,
+				recursive=(parents,children) )
 	elif "apropos" in q.parms:
 		prefix = q.parms["apropos"]
 		apropos( app, prefix, result_types=result_types, range_offset=range_offset, range_limit=range_limit )
@@ -47,7 +52,7 @@ search_type_alias = {
 	"webm" : "video/webm",
 }
 
-def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, order_reverse=True, range_offset=0, range_limit=None ):
+def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, order_reverse=True, range_offset=0, range_limit=None, recursive=(False,False) ):
 	q = app.query
 	
 	# 1.) Suchausdruck parsen und Datenstrukturen initialisieren:
@@ -165,10 +170,10 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 	# 7.) Vorsortierte Objekt-ID-Liste beschneiden, falls gefordert:
 	hit_id_list = hit_id_list[range_offset:None if range_limit==None else range_offset+range_limit]
 	
-	# 8.) Rekursiver Lookup von Eltern- und Kind-Objekten der reduzierten Trefferliste:
+	# 8.) Ggf. rekursiver Lookup von Eltern- und Kind-Objekten der reduzierten Trefferliste:
 	hitlist = []
 	if hit_id_list:
-		hitlist = get.get( app, object_ids=hit_id_list, recursive=[True,True], access_errors=False )
+		hitlist = get.get( app, object_ids=hit_id_list, recursive=recursive, access_errors=False )
 	
 	# 9.) Ergebnis JSON-kodieren:
 	result = {

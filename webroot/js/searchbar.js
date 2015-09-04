@@ -14,6 +14,7 @@ var SearchBar = function ( parms ) {
 	my.auto_search_timeout = parms.auto_search_timeout ? parms.auto_search_timeout : 2000; //ms
 	my.search_count = 0;
 	my.apropos_hints_enabled = parms.apropos_hints_enabled ? parms.apropos_hints_enabled : false;
+	my.recursive = parms.recursive ? parms.recursive : {children: false, parents: false};
 	
 	my.handle_keydown_event = function( evt ) {
 		var propagate = true;
@@ -85,6 +86,7 @@ var SearchBar = function ( parms ) {
 			if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
 			parms.range_offset = parms.range_offset ? parms.range_offset : 0;
 			search_args = $.extend( {range_limit: my.range_limit, range_offset: parms.range_offset}, search_definition );
+			search_args = $.extend( search_args, my.recursive )
 			get_module( 'search', {
 				args : search_args,
 				done : function(result) {

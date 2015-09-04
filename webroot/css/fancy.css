@@ -261,7 +261,7 @@ button.entry-delete-button {
 .video {
 	width: 480px;
 	min-height: 270px;
-	background-color: lightgrey;
+	background-color: black;
 }
 .video-status {
 	display: inline-block;

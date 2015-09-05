@@ -48,18 +48,6 @@
 							});
 						}
 						
-						// alter Filter-Bar-Code:
-						/*
-						filters = { ids:{}, parent_ids:{}, child_ids:{} }
-						id_list = query_parms.id ? query_parms.id.split(",").map(Number) : [];
-						for( x in id_list ) { filters.ids[id_list[x]] = {}; }
-						parent_id_list = query_parms.parent_id ? query_parms.parent_id.split(",").map(Number) : [];
-						for( x in parent_id_list ) { filters.parent_ids[parent_id_list[x]] = {}; }
-						child_id_list = query_parms.child_id ? query_parms.child_id.split(",").map(Number) : [];
-						for( x in child_id_list ) { filters.child_ids[child_id_list[x]] = {}; }
-						apply_page_filter( filters );
-						*/
-						
 						var range_scroll_loader = null;
 						// Searchbar initialisieren und mit aktuellem Filter suchen:
 						global_search = new SearchBar( {

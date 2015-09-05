@@ -392,14 +392,10 @@ function show_object( parms )
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
 			$(tag_label_obj).text( tag_label );
 			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
-				/*var parms = { child_ids:{}, parent_ids:{} }; parms.child_ids[obj.id] = obj;
-				apply_page_filter( parms );*/
 				global_search.entry.text( global_search.entry.text()+' tag:'+tag_label );
 				global_search.search();
 			};
 			$('.entry-tag-tool-filter-exclude', obj.dom_object)[0].onclick = function(ev) {
-				/*var parms = { child_ids:{}, parent_ids:{} }; parms.child_ids[-obj.id] = obj;
-				apply_page_filter( parms );*/
 				var search_phrase = global_search.entry.text();
 				if( search_phrase=='' ) search_phrase = 'type:entry';
 				global_search.entry.text( search_phrase+' --tag:'+tag_label );
@@ -452,14 +448,6 @@ function show_object( parms )
 	}
 }
 
-/*function filter_user_content( button, mode ) {
-	var user_element = $(button).closest('.ems-user')[0];
-	var user_id = $(user_element).data().obj.id;
-	var mode_factor = mode=='for' ? 1 : -1;
-	var parms = { child_ids:{}, parent_ids:{} }; 
-	parms.parent_ids[mode_factor*user_id] = $(user_element).data().obj;
-	apply_page_filter( parms );
-}*/
 function filter_user_content( button, mode ) {
 	var user_element = $(button).closest('.ems-user')[0];
 	var user_nick = $(user_element).data().obj.nick;
@@ -477,77 +465,6 @@ function filter_user_content( button, mode ) {
 
 var offsets_loaded = {};
 var filters = { ids:{}, child_ids:{}, parent_ids:{} };
-function apply_page_filter( parms ) {
-	if( parms==undefined ) parms={ ids:{}, child_ids:{}, parent_ids:{} };
-	for( var filter_type in {"ids":true, "child_ids":true, "parent_ids":true} ) {
-		for( var xid in parms[filter_type] ) {
-			if( filters[filter_type][ -xid ] ) {
-				delete filters[filter_type][ -xid ];
-			}
-			filters[filter_type][ xid ] = parms[filter_type][xid];
-		}
-	}
-	var filter_view = $('.page-filter-view')[0];
-	$(filter_view).empty();
-	for( var filter_type in {"ids":true, "child_ids":true, "parent_ids":true} ) {
-		for( var xid in filters[filter_type] ) {
-			var obj = filters[filter_type][xid];
-			if( obj ) {
-				var filter_item = $('<div>').attr( {'class':(Number(xid)<0 ? 'filter-item filter-item-exclude' : 'filter-item filter-item-include')} )[0];
-				$(filter_item).text( obj.title ? obj.title : obj.nick ? obj.nick : filter_type+String(xid) );
-				$(filter_item).data( {obj: obj, filter_type: filter_type, filter_id: xid} );
-				obj.dom_object = filter_item;
-				filter_item.onclick = function(ev) {
-					delete filters[$(this).data().filter_type][$(this).data().filter_id];
-					apply_page_filter();
-				};
-				$(filter_view).append( filter_item );
-			}
-		}
-	}
-	var ids = []; for( var _id in filters.ids ) { if(_id) ids.push(_id) };
-	var child_ids = []; for( var child_id in filters.child_ids ) { if(child_id) child_ids.push(child_id) };
-	var parent_ids = []; for( var parent_id in filters.parent_ids ) { if(parent_id) parent_ids.push(parent_id) };
-	var page_filter = $('.page-filter')[0];
-	if( ids.length+child_ids.length+parent_ids.length > 0 ) {
-		$(page_filter).addClass( 'page-filter-active' );
-	} else {
-		$(page_filter).removeClass( 'page-filter-active' );
-	}
-	$('.ems-content').empty();
-	var scroll_offset = 0;
-	var scroll_step = 10;
-	var scroll_time = (new Date()).getTime();
-	offsets_loaded = {};
-	offsets_loaded[ scroll_offset ] = true;
-	load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', ids: ids, child_ids: child_ids, parent_ids: parent_ids} );
-	var handle_scroll_event = function() {
-		var scrollTop = document.documentElement.scrollTop ||
-			document.body.scrollTop;
-		var offsetHeight = document.body.offsetHeight;
-		var clientHeight = document.documentElement.clientHeight;
-		if (offsetHeight <= scrollTop + clientHeight) {
-			// Scroll end detected
-			var new_scroll_time = (new Date()).getTime();
-			if( new_scroll_time-scroll_time > 1000 ) {
-				// Mindestwartezeit für Nachladeaktionen überschritten
-				scroll_time = new_scroll_time;
-				scroll_offset += scroll_step;
-				if( offsets_loaded[scroll_offset]!=true ) {
-					offsets_loaded[ scroll_offset ] = true;
-					var ids = []; for( var _id in filters.ids ) { if(_id) ids.push(_id) };
-					var child_ids = []; for( var child_id in filters.child_ids ) { if(child_id) child_ids.push(child_id) };
-					var parent_ids = []; for( var parent_id in filters.parent_ids ) { if(parent_id) parent_ids.push(parent_id) };
-					load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', ids: ids, child_ids: child_ids, parent_ids: parent_ids} );
-				} else {
-					// discard doublicate event
-				}
-			}
-		}
-	};
-	window.removeEventListener( 'scroll', handle_scroll_event, false );
-	window.addEventListener( 'scroll', handle_scroll_event, false );
-}
 
 function edit_entry( button )
 {

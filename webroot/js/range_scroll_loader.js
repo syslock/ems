@@ -16,10 +16,11 @@ var RangeScrollLoader = function ( parms ) {
 		return offsetHeight <= scrollTop + clientHeight;
 	}
 	my.element_scroll_condition = function() {
+		// new variant from: https://stackoverflow.com/questions/3962558/javascript-detect-scroll-end
 		var scrollTop = my.scroll_container.scrollTop;
 		var offsetHeight = my.scroll_container.offsetHeight;
-		var clientHeight = my.scroll_container.clientHeight;
-		return offsetHeight <= scrollTop + clientHeight;
+		var scrollHeight = my.scroll_container.scrollHeight;
+		return offsetHeight + scrollTop >= scrollHeight;
 	}
 	my.scroll_condition = my.document_scroll_condition;
 	if( parms.scroll_condition ) {

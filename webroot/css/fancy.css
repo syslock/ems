@@ -958,12 +958,13 @@ div.user-groups-selection {
 }
 .upload-preview {
 	position: relative;
-	display: block;
+	display: inline-block;
 	margin-bottom: 15px;
 	border: 2px dashed red;
 	min-width: 200px;
 	min-height: 200px;
 	padding: 10px;
+	max-width: 90%;
 }
 .mini.upload-dialog .upload-preview {
 	margin: 0;
@@ -998,7 +999,7 @@ div.user-groups-selection {
 	margin-top: 73px;
 }
 .upload-chooser {
-	display: inline-block;
+	display: block;
 	margin-bottom: 1em;
 }
 .mini.upload-dialog .upload-chooser {
@@ -1094,27 +1095,29 @@ div.user-groups-selection {
 	display: none;
 }
 
-.upload-tools {
+.recent-uploads {
 	display: none;
-	float: right;
-	z-index: 1;
+	position: absolute;
+	margin-left: 10px;
+	z-index: 2;
+	text-align: left;
 }
-.recent-uploads-visible:hover .upload-tools {
+.recent-uploads-visible:hover .recent-uploads {
 	display: inline-block;
 }
-.upload-tools-decorator-left {
+.recent-uploads-decorator-left {
 	position: absolute;
 	margin-top: 13px;
-	margin-left: -29px;
+	margin-left: -28px;
 	width: 0px;
 	height: 0px;
 	border-right: 30px solid red;
 	border-top: 60px solid transparent;
 	border-bottom: 60px solid transparent;
 }
-.upload-tools-content {
+.recent-uploads-content {
 	position: absolute;
-	min-height: 126px;
+	min-height: 200px;
 	min-width: 140px;
 	max-width: 500px;
 	border-radius: 20px;
@@ -1124,18 +1127,52 @@ div.user-groups-selection {
 	padding: 10px;
 	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
-.upload-tools-content button {
-	position: relative;
-	width: 100%;
-}
-.upload-tools-decorator-right {
+.recent-uploads-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
 	position: absolute;
 	margin-left: -30px;
 	margin-top: -40px;
-	width: 200px;
-	height: 230px;
+	width: 600px;
+	height: 550px;
 	background-color: transparent;
+}
+.recent-uploads-selection {
+	display: block;
+	margin-top: 10px;
+	padding: 3px;
+	padding-top: 2px;
+	border: 1px solid red;
+	border-radius: 10px;
+	position: relative;
+}
+.recent-uploads-close-selection-button {
+	width: 0.8em;
+	height: 0.8em;
+	border: 1px solid red;
+	border-radius: 0.4em;
+	background-color: white;
+	position: absolute;
+	top: -0.48em;
+	right: -0.48em;
+	z-index: 10;
+}
+.recent-uploads-close-selection-button:hover {
+	width: 1.2em;
+	height: 1.2em;
+	border: 4px solid red;
+	border-radius: 0.8em;
+	background-color: white;
+	top: -0.9em;
+	right: -0.9em;
+}
+.recent-uploads-searchbar {
+	display: inline-block;
+}
+.recent-uploads-search-result {
+	padding-top: 1em;
+	padding-bottom: 3em;
+}
+.recent-uploads-search-result-scroll-container-hack {
 }
 
 /* ------------------------------------------------------------------------- */

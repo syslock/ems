@@ -267,9 +267,66 @@ var UploadDialog = function( parms ) {
 	my.show_recent_uploads = function() {
 		if( ! my.upload_dialog.hasClass("recent-uploads-visible") ) {
 			my.upload_dialog.addClass("recent-uploads-visible");
-			$(".upload-tools-content").empty();
-			load_visible_objects( {type: 'video/%,image/%,audio/%,application/octet-stream', permissions: ["write"], limit: 5, parent_ids: [global_user.id], dom_parent: my.upload_tools_content[0]} );
-			my.upload_tools.on( "click", function(event) {
+			$(".recent-uploads-search-result").empty();
+			my.upload_search_range_scroll_loader = null;
+			my.upload_search = new SearchBar( {
+				entry_parent : $(my.recent_uploads_searchbar),
+				result_handler : function( result ) {
+					var first_range = false;
+					if( $(my.recent_uploads_search_result).children().length==0 ) {
+						first_range = true;
+						var current_search = my.upload_search.entry.text().replace(/^\s*|\s*$/g,"");
+						if( current_search.length > 0 ) {
+							var current_search_found = false;
+							for( var i=0; i<result.hitlist.length; i++ ) {
+								var obj = result.hitlist[i];
+								if( obj.title && obj.title.toLowerCase()==current_search.toLowerCase() ) {
+									current_search_found = true;
+								}
+							}
+						}
+					}
+					result.dom_parent = my.recent_uploads_search_result;
+					show_search_result( result );
+					if( first_range ) {
+						// Falls my.recent_uploads_search_result initial leer war, müssen wir den Scroll-Container hier
+						// mit der Render-Höhe der ersten Ergebnis-Range initialiseren: 
+						// Der Ergebniscontainer ist ein in der Höhe unlimitiertes DIV in einem
+						// unsichtbaren Scroll-Container.
+						my.upload_search.entry.outerWidth( $(my.recent_uploads_selection).innerWidth()*0.95 );
+						$(my.recent_uploads_search_result).css( {position : 'relative'} );
+						$(my.recent_uploads_search_result_scroll_container_hack).css( {
+							'overflow-y' : 'scroll', 
+							'overflow-x' : 'hidden'
+						} );
+						$(my.recent_uploads_search_result_scroll_container_hack).height( 400 );
+						my.upload_search_range_scroll_loader.range_start = result.hitlist.length;
+						my.upload_search_range_scroll_loader.scroll_handler_parms = { search_count : my.upload_search.search_count };
+						my.upload_search_range_scroll_loader.start();
+					}
+				},
+				result_types : 'file',
+				empty_search : {phrase : 'user:'+global_user.nick, min_weight : "None"},
+				order_by : 'mtime',
+				order_reverse : 'true',
+				range_limit : 5,
+				new_search_handler : function( parms ) {
+					$(my.recent_uploads_search_result).empty();
+					$(my.recent_uploads_search_result_scroll_container_hack).show();
+					if( my.upload_search_range_scroll_loader ) my.upload_search_range_scroll_loader.stop();
+					my.upload_search_range_scroll_loader = new RangeScrollLoader( {
+						scroll_container : my.recent_uploads_search_result_scroll_container_hack[0],
+						scroll_handler : my.upload_search.search,
+						scroll_condition : "element_scroll_condition"
+					} );
+				},
+				on_ready : function() {
+					my.upload_search.entry.outerWidth( $(my.recent_uploads_selection).innerWidth()*0.95 );
+					my.upload_search.entry.focus();
+					my.upload_search.search();
+				}
+			} );
+			my.recent_uploads.on( "click", function(event) {
 				var obj = $(event.target).closest(".entry-media").data("obj");
 				if( obj && obj.id ) {
 					my.upload_dialog.removeClass("recent-uploads-visible");
@@ -304,8 +361,13 @@ var UploadDialog = function( parms ) {
 				if( parms.custom_class ) {
 					my.upload_dialog.addClass( parms.custom_class );
 				}
-				my.upload_tools = $(".upload-tools", my.upload_dialog);
-				my.upload_tools_content = $(".upload-tools-content", my.upload_tools);
+				my.recent_uploads = $(".recent-uploads", my.upload_dialog);
+				my.recent_uploads_close_selection_button = $(".recent-uploads-close-selection-button", my.recent_uploads);
+				my.recent_uploads_close_selection_button.on( "click", my.show_recent_uploads );
+				my.recent_uploads_selection = $(".recent-uploads-selection", my.recent_uploads);
+				my.recent_uploads_searchbar = $(".recent-uploads-searchbar", my.recent_uploads);
+				my.recent_uploads_search_result = $(".recent-uploads-search-result", my.recent_uploads);
+				my.recent_uploads_search_result_scroll_container_hack = $(".recent-uploads-search-result-scroll-container-hack", my.recent_uploads);
 				my.preview_area = $(".upload-preview", my.upload_dialog );
 				my.preview_area.on( "dragover", function( event ) {
 					return false;

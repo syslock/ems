@@ -93,15 +93,7 @@ def store_object( app, file_item=None ):
 		if "sequence" in query.parms:
 			sequence = int( query.parms["sequence"] )
 		obj = None
-		if media_type == db_object.Text.media_type:
-			obj = db_object.Text( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
-		elif media_type == db_object.HTML.media_type:
-			obj = db_object.HTML( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
-		elif media_type == user.User.media_type and object_id:
-			obj = user.User( app, user_id=object_id )
-		elif media_type == publication.Publication.media_type:
-			obj = publication.Publication( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
-		elif file_item!=None:
+		if file_item!=None:
 			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
 			# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
 			obj = db_object.File( app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
@@ -117,6 +109,14 @@ def store_object( app, file_item=None ):
 					"chunk_end" : int(chunk_end_exclusive) - 1,
 					"chunk_size" : int(chunk_end_exclusive) - int(chunk_start),
 					"file_expected_size" : int( file_expected_size )} )
+		elif media_type == db_object.Text.media_type:
+			obj = db_object.Text( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
+		elif media_type == db_object.HTML.media_type:
+			obj = db_object.HTML( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
+		elif media_type == user.User.media_type and object_id:
+			obj = user.User( app, user_id=object_id )
+		elif media_type == publication.Publication.media_type:
+			obj = publication.Publication( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		else:
 			obj = db_object.DBObject( app, object_id=object_id, 
 									  parent_id=parent_id, 

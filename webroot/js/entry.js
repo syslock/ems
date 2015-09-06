@@ -126,29 +126,6 @@ function create_download( obj ) {
 	return link;
 }
 
-function load_visible_objects( parms ) {
-	var get_args = { view : "all", recursive : true };
-	if( parms.offset ) get_args.offset = parms.offset;
-	if( parms.limit ) get_args.limit = parms.limit;
-	if( parms.type ) get_args.type = parms.type;
-	if( parms.ids && parms.ids.length ) get_args.id = parms.ids.join(",");
-	if( parms.parent_ids && parms.parent_ids.length ) get_args.parent_id = parms.parent_ids.join(",");
-	if( parms.child_ids && parms.child_ids.length ) get_args.child_id = parms.child_ids.join(",");
-	if( parms.permissions && parms.permissions.length ) get_args.permissions = parms.permissions.join(",");
-	var dom_parent = (parms.dom_parent ? parms.dom_parent : $(".ems-content")[0]);
-	GlobalRequestQueue.add( {
-		module : "get",
-		args : get_args,
-		done : function( result ) {
-			result = parse_result( result );
-			for( i in result ) {
-				show_object( {obj: result[i], dom_parent: dom_parent, limit: parms.limit} );
-			}
-		}
-	});
-	GlobalRequestQueue.process();
-}
-
 function show_search_result( parms ) {
 	var dom_parent = (parms.dom_parent ? parms.dom_parent : $(".ems-content")[0]);
 	for( i in parms.hitlist ) {

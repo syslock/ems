@@ -148,10 +148,12 @@ class DBObject:
 			result.add( parent_id )
 		return result
 	
-	def resolve_parents( self, child_id=None, cache=None, parent_type_set={} ):
-		# FIXME: Hat das einen grund cache hier zu initialisieren und nicht in der Parameterliste?
+	def resolve_parents( self, child_id=None, cache=None, parent_type_set=None ):
+		# Komplexe Datentypen hier initialisieren, um global state singletons aus der Signatur zu vermeiden
 		if cache==None:
 			cache = {}
+		if parent_type_set==None:
+			parent_type_set = set()
 		result = []
 		child_id = child_id or self.id
 		c = self.app.db.cursor()
@@ -168,10 +170,12 @@ class DBObject:
 				result += self.resolve_parents( parent_id, cache, parent_type_set )
 		return result
 	
-	def resolve_children( self, parent_id=None, cache=None, child_type_set={} ):
-		# FIXME: Hat das einen grund cache hier zu initialisieren und nicht in der Parameterliste?
+	def resolve_children( self, parent_id=None, cache=None, child_type_set=None ):
+		# Komplexe Datentypen hier initialisieren, um global state singletons aus der Signatur zu vermeiden
 		if cache==None:
 			cache = {}
+		if child_type_set==None:
+			child_type_set = set()
 		result = []
 		parent_id = parent_id or self.id
 		c = self.app.db.cursor()

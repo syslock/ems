@@ -365,10 +365,19 @@ class File( DBObject ):
 		if hasattr(self.app.config,"upload_path"):
 			upload_path = self.app.config.upload_path
 		self.storage_path = os.path.join( self.app.path, upload_path, "%d" % (self.id) )
+		# Bisher unbekannte Datentypen in der Typ-Hierarchie von File speichern
 		if not File.supports( self.app, self.media_type ):
-			c = self.app.db.cursor()
-			c.execute( """insert into type_hierarchy (base_type, derived_type) values(?, ?)""", [self.base_type, self.media_type] )
-			self.app.db.commit()
+			# (Ausnahmen: text/plain, text/html und application/x-obj.*; 
+			#	Dies wäre an Stellen an denen File-Objekte von anderen abgegrenzt werden sollen, z.b. search, hinderlich.)
+			if self.media_type not in ("text/plain","text/html") and not self.media_type.startswith("application/x-obj."):
+				c = self.app.db.cursor()
+				c.execute( """insert into type_hierarchy (base_type, derived_type) values(?, ?)""", [self.base_type, self.media_type] )
+				self.app.db.commit()
+			else:
+				# Speicherung der oben ausgeklammerten, internen Datentypen als Blobs erlauben:
+				self.media_type = File.base_type
+				c = self.app.db.cursor()
+				c.execute( """update objects set type=? where id=?""", [self.media_type, self.id] )
 	@classmethod
 	def supports( cls, app, file_type ):
 		if file_type==cls.base_type:

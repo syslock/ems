@@ -102,11 +102,6 @@ def store_object( app, file_item=None ):
 		elif media_type == publication.Publication.media_type:
 			obj = publication.Publication( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		elif file_item!=None:
-			# ====== DEBUG REMOVE ME ==========
-			#import random
-			#if random.randrange(0,10)<5:
-			#	raise errors.InternalProgramError("Testfehler")
-			# ====== DEBUG REMOVE ME ==========
 			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
 			# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
 			obj = db_object.File( app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )

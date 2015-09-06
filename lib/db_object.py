@@ -163,7 +163,7 @@ class DBObject:
 		for row in c:
 			parent_id = row[0]
 			curr_parent_type = row[1]
-			if not parent_type_set or curr_parent_type in parent_type_set:
+			if not parent_type_set or curr_parent_type in parent_type_set or "file" in parent_type_set and File.supports(self.app, curr_parent_type):
 				result += [parent_id]
 			if parent_id not in cache:
 				cache[ parent_id ] = True
@@ -185,7 +185,7 @@ class DBObject:
 		for row in c:
 			child_id = row[0]
 			curr_child_type = row[1]
-			if not child_type_set or curr_child_type in child_type_set:
+			if not child_type_set or curr_child_type in child_type_set or "file" in child_type_set and File.supports(self.app, curr_child_type):
 				result += [child_id]
 			if child_id not in cache:
 				cache[ child_id ] = True

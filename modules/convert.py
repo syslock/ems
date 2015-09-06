@@ -36,8 +36,12 @@ def process( app ):
 				("compatible",480,"video/mp4"),
 				("compatible",480,"video/webm"),
 			]
-			substitute_list = []
 			c = app.db.cursor()
+			# Hier müssen wir zunächst prüfen ob das angefragte Objekt selbst schon ein Substitute-Objekt ist, ...
+			c.execute( """select original_id from substitutes where substitute_id=?""", [target_obj.id] )
+			if c.fetchone():
+				# ... denn für Substitute-Objekte sollten keine weiteren Substitute-Objekte generiert werden.
+				missing_conversions = []
 			c.execute( """select s.substitute_id, s.type, s.size, s.priority, sobj.id from substitutes s
 							left join objects sobj on sobj.id=s.substitute_id
 							where s.original_id=?""", [target_obj.id] )

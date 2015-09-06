@@ -248,7 +248,7 @@ button.entry-delete-button {
 	position: absolute;
 	margin-left: -30px;
 	margin-top: -40px;
-	width: 200px;
+	width: 250px;
 	height: 230px;
 	background-color: transparent;
 }
@@ -428,7 +428,7 @@ button.entry-edit-discard-button {
 	position: absolute;
 	margin-left: -30px;
 	margin-top: -40px;
-	width: 200px;
+	width: 250px;
 	height: 230px;
 	background-color: transparent;
 }

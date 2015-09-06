@@ -126,24 +126,36 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 			object_type = hit["object_type"]
 			search_word = hit["search_word"]
 			if app.user.can_read( object_id ):
-				if object_type in result_types or not result_types:
-					hit["extra_reasons"]["valid_types"].append( object_type )
-					if object_id in filtered_results:
-						filtered_results[object_id].append( hit )
-					else:
-						filtered_results[object_id] = [ hit ]
-					search_word_hits[search_word] += 1
-				else:
+				direct_hit = False
+				if object_type in result_types or "file" in result_types and db_object.File.supports(app, object_type) or not result_types:
+					c = app.db.cursor()
+					# Hier müssen wir zunächst prüfen ob das gefundene Objekt ein Substitute-Objekt ist, denn 
+					# Substitute-Objekte sollten nicht als Treffer zurück geliefert werden.
+					c.execute( """select original_id from substitutes where substitute_id=?""", [object_id] )
+					if c.fetchone()==None:
+						direct_hit = True
+						hit["extra_reasons"]["valid_types"].append( object_type )
+						if object_id in filtered_results:
+							filtered_results[object_id].append( hit )
+						else:
+							filtered_results[object_id] = [ hit ]
+						search_word_hits[search_word] += 1
+				if not direct_hit:
 					obj = db_object.DBObject( app, object_id )
-					matching_associates = obj.resolve_parents( parent_type_set=result_types ) + obj.resolve_children( child_type_set=result_types )
+					matching_associates = obj.resolve_parents( parent_type_set=set(result_types) ) + obj.resolve_children( child_type_set=set(result_types) )
 					for alt_obj_id in matching_associates:
 						if app.user.can_read( alt_obj_id ):
-							hit["extra_reasons"]["associated_to"].append( alt_obj_id )
-							if alt_obj_id in filtered_results:
-								filtered_results[alt_obj_id].append( hit )
-							else:
-								filtered_results[alt_obj_id] = [ hit ]
-							search_word_hits[search_word] += 1
+							c = app.db.cursor()
+							# Hier müssen wir zunächst prüfen ob das gefundene Objekt ein Substitute-Objekt ist, denn 
+							# Substitute-Objekte sollten nicht als Treffer zurück geliefert werden.
+							c.execute( """select original_id from substitutes where substitute_id=?""", [alt_obj_id] )
+							if c.fetchone()==None:
+								hit["extra_reasons"]["associated_to"].append( alt_obj_id )
+								if alt_obj_id in filtered_results:
+									filtered_results[alt_obj_id].append( hit )
+								else:
+									filtered_results[alt_obj_id] = [ hit ]
+								search_word_hits[search_word] += 1
 	
 	# 4.) Treffer sortieren
 	if order_by=="weight" or min_weight!=None:

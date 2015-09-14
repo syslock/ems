@@ -75,6 +75,10 @@
 							},
 							on_ready : function() {
 								global_search.entry.focus();
+								var url_query = '${app.query.parms["q"].replace("'","") if "q" in app.query.parms else ""}';
+								if( url_query!='' ) {
+									global_search.entry.text( url_query );
+								}
 								global_search.search();
 							}
 						} );

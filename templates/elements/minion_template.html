@@ -1,3 +1,41 @@
-			<div id="ems-minion-template" class="ems-minion" style="display:none">
-				<div class="minion-content"></div>
+			<div id="ems-minion-template" class="ems-minion">
+				<div class="minion-content">
+					<div class="minion-details-dialog" style="display:none">
+						<div class="minion-setting minion-details-title">
+							<div class="minion-details-title-label minion-details-label">${_("Titel")}</div>
+							<input class="minion-details-title-input"></input>
+						</div>
+						<div class="minion-setting minion-details-query">
+							<div class="minion-details-query-label minion-details-label">${_("Suchanfrage")}</div>
+							<input class="minion-details-query-input"></input>
+						</div>
+						<button class="minion-delete require-permission-delete-minion" >
+							${_("Suchsymbol löschen")}
+						</button>
+						<button class="minion-details-cancel">
+							${_("Abbrechen")}
+						</button>
+						<button class="minion-details-save require-permission-write-minion">
+							${_("Speichern")}
+						</button>
+					</div>
+				</div>
+				<div class="minion-tools">
+					<div class="minion-tools-decorator-left"></div>
+					<div class="minion-tools-decorator-top"></div>
+					<div class="minion-tools-content">
+						<div class="minion-title"></div>
+						<button class="minion-filter-include">
+							${_("Beiträge suchen")}
+						</button>
+						<button class="minion-filter-exclude">
+							${_("Beiträge ausblenden")}
+						</button>
+						<button class="minion-show-details require-permission-write-minion">
+							${_("Bearbeiten")}
+						</button>
+					</div>
+					<div class="minion-tools-decorator-bottom"></div>
+					<div class="minion-tools-decorator-right"></div>
+				</div>
 			</div>

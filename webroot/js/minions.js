@@ -1,3 +1,72 @@
+var Minion = function( parms ) {
+	var my = this;
+	my.dom_object = parms.dom_object;
+	my.obj = parms.obj;
+	
+	my.filter_include = function( event ) {
+		global_search.entry.text( my.obj.data );
+		global_search.search();
+	}
+	
+	my.filter_exclude = function( event ) {
+		var search_phrase = global_search.entry.text();
+		if( search_phrase=='' ) search_phrase = 'type:entry';
+		global_search.entry.text( search_phrase+' --'+my.obj.data );
+		global_search.search();
+	}
+	
+	my.fill_details = function() {
+		my.details_title_input.val( my.obj.title );
+		my.details_query_input.val( my.obj.data );
+	}
+	
+	my.show_details = function( event ) {
+		my.fill_details()
+		my.details_dialog.show();
+	};
+	
+	my.hide_details = function( event ) {
+		my.details_dialog.hide();
+	};
+	
+	my.save_details = function( event ) {
+		get_module( "store", {
+			args : {id : my.obj.id, title : my.details_title_input.val(), data : my.details_query_input.val()},
+			done : function( result ) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					get_module( "get", {
+						args : {id : my.obj.id, view : "all"},
+						done : function( result ) {
+							result = parse_result( result );
+							if( result[0] ) {
+								var updt_obj = result[0];
+								show_object( {obj : updt_obj, dom_parent : my.dom_parent} );
+							}
+						}
+					});
+				}
+			}
+		});
+		my.hide_details();
+	};
+	
+	my.title = $( ".minion-title", my.dom_object );
+	my.filter_include_button = $( ".minion-filter-include", my.dom_object );
+	my.filter_include_button.on( "click", my.filter_include );
+	my.filter_exclude_button = $( ".minion-filter-exclude", my.dom_object );
+	my.filter_exclude_button.on( "click", my.filter_exclude );
+	my.details_button = $( ".minion-show-details", my.dom_object );
+	my.details_button.on( "click", my.show_details );
+	my.details_dialog = $( ".minion-details-dialog", my.dom_object );
+	my.details_title_input = $( ".minion-details-title-input", my.details_dialog );
+	my.details_query_input = $( ".minion-details-query-input", my.details_dialog );
+	my.details_cancel_button = $( ".minion-details-cancel", my.details_dialog );
+	my.details_cancel_button.on( "click", my.hide_details );
+	my.details_save_button = $( ".minion-details-save", my.details_dialog );
+	my.details_save_button.on( "click", my.save_details );
+};
+
 var Minions = function( parms ) {
 	var my = this;
 	my.dom_parent = parms.dom_parent;

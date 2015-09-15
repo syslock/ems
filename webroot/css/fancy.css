@@ -1302,6 +1302,84 @@ div.user-groups-selection {
 	max-width: 200px;
 	max-height: 60px;
 }
+.minion-content {
+	position: relative;
+	min-width: 60px;
+	text-align: center;
+}
+.minion-tools {
+	display: none;
+	position: absolute;
+	margin-top: +12px;
+}
+.minion-content:hover+.minion-tools {
+	display: block;
+}
+.minion-tools:hover {
+	display: block;
+}
+.minion-tools-decorator-top {
+	position: absolute;
+	margin-top: -15px;
+	margin-left: 20px;
+	width: 0px;
+	height: 0px;
+	border-bottom: 15px solid darkblue;
+	border-left: 15px solid transparent;
+	border-right: 15px solid transparent;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.minion-tools-decorator-left {
+	position: absolute;
+	background-color: transparent;
+	/* sollte einen konfortablen Fokus-Schutz-Bereich um die Toolbox herum abdecken, damit sie nicht ungewollte verschwindet */
+	min-width: 80px;
+	min-height: 60px;
+	border-radius: 50%;
+	margin-top: -50px;
+	z-index: 1; /* sollte über anderen standardmäßig sichtbaren Elementen, außer der Toolbox liegen */
+}
+.minion-tools-content {
+	position: absolute;
+	min-width: 160px;
+	border-radius: 20px;
+	border: 1px solid darkblue;
+	border-top: 3px solid darkblue;
+	padding: 10px;
+	background-color: white;
+	text-align: center;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.minion-title {
+	font-weight: bold;
+	margin-bottom: 5px;
+}
+.minion-tools-content>button {
+	display: block;
+	position: relative;
+	width: 100%;
+}
+.minion-details-dialog {
+	display: inline-block;
+	position: absolute;
+/* 	margin-left: -200%; */
+	margin-top: 150%;
+	background-color: white;
+	border: 3px solid darkblue;
+	border-radius: 20px;
+	padding: 10px;
+	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
+	text-align: right;
+}
+.minion-setting {
+	margin-bottom: 1em;
+}
+.minion-details-label {
+	display: inline-block;
+}
+.minion-delete {
+	font-size: small;
+}
 
 /* -------------------------------------------------------------------------- */
 /* --------------------------------- Confirm -------------------------------- */

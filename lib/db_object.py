@@ -275,9 +275,9 @@ class Text( DBObject ):
 		c.execute( """select data from text where object_id=?""", 
 			[self.id] )
 		result = c.fetchone()
-		if not result:
-			raise errors.ObjectError( "Missing object data" )
-		data = result[0]
+		data = None
+		if result:
+			data = result[0]
 		data = data or "" # Nicht None zurück geben, um andere Programmteile nicht zu verwirren...
 		return data
 

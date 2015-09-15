@@ -1,5 +1,5 @@
 var Minions = function( parms ) {
-	my = this;
+	var my = this;
 	my.dom_parent = parms.dom_parent;
 	my.limit = parms.limit;
 	

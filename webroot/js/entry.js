@@ -369,7 +369,7 @@ function show_object( parms )
 			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
 			$(tag_label_obj).text( tag_label );
 			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
-				global_search.entry.text( global_search.entry.text()+' tag:'+tag_label );
+				global_search.entry.text( 'tag:'+tag_label );
 				global_search.search();
 			};
 			$('.entry-tag-tool-filter-exclude', obj.dom_object)[0].onclick = function(ev) {
@@ -430,8 +430,7 @@ function filter_user_content( button, mode ) {
 	var user_nick = $(user_element).data().obj.nick;
 	var search_phrase = global_search.entry.text();
 	if( mode=='for' ) {
-		if( search_phrase.length ) search_phrase += ' ';
-		search_phrase += 'user:'+user_nick;
+		search_phrase = 'user:'+user_nick;
 	} else {
 		if( !search_phrase.length ) search_phrase += 'type:entry';
 		search_phrase += ' --user:'+user_nick;

@@ -200,6 +200,14 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					response.media_type = object_type
 				elif view=="all":
 					obj["data"] = data
+			if object_type == db_object.Minion.media_type:
+				text_obj = db_object.Minion( app=app, object_id=object_id )
+				data = text_obj.get_data()
+				if view=="data":
+					response.output += data
+					response.media_type = object_type
+				elif view=="all":
+					obj["data"] = data
 			if object_type == user.User.media_type:
 				if view=="all":
 					c.execute( """select u.nick, u.avatar_id from users u 

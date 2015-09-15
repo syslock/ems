@@ -298,6 +298,16 @@ class HTML( Text ):
 		return result
 
 
+class Minion( Text ):
+	media_type = "application/x-obj.minion"
+	def __init__( self, app, **keyargs ):
+		keyargs["media_type"] = self.media_type
+		super().__init__( app, **keyargs )
+	def get_data( self, **keyargs ):
+		result = super().get_data( **keyargs )
+		return result
+
+
 class UserAttributes( DBObject ):
 	"""Abstrakte Basisklasse, für nutzerspezifische Zusatzattribute, wie z.b.
 		Profildaten etc.; Implementierungen benötigen die Klassenattribute

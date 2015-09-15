@@ -117,6 +117,8 @@ def store_object( app, file_item=None ):
 			obj = user.User( app, user_id=object_id )
 		elif media_type == publication.Publication.media_type:
 			obj = publication.Publication( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
+		elif media_type == db_object.Minion.media_type:
+			obj = db_object.Minion( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 		else:
 			obj = db_object.DBObject( app, object_id=object_id, 
 									  parent_id=parent_id, 

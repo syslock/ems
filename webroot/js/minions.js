@@ -66,6 +66,7 @@ var Minion = function( parms ) {
 	my.title = $( ".minion-title", my.dom_object );
 	my.filter_include_button = $( ".minion-filter-include", my.dom_object );
 	my.filter_include_button.on( "click", my.filter_include );
+	$(my.dom_object).on( "click", my.filter_include );
 	my.filter_exclude_button = $( ".minion-filter-exclude", my.dom_object );
 	my.filter_exclude_button.on( "click", my.filter_exclude );
 	my.details_button = $( ".minion-show-details", my.dom_object );

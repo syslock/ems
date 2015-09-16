@@ -1277,6 +1277,19 @@ div.user-groups-selection {
 /* ------------------------------------------------------------------------- */
 /* ----------------------- Minions! ---------------------------------------- */
 /* ------------------------------------------------------------------------- */
+.ems-minion {
+	border: 2px solid transparent;
+	border-top: none;
+	border-bottom: none;
+	border-radius: 5px;
+	padding-top: 2px;
+}
+.ems-minion:hover {
+	border: 2px solid darkblue;
+	border-top: none;
+	border-bottom: none;
+	background-color: #efefef;
+}
 .ems-minion .entry-media {
 	margin: 0;
 	border: none;

@@ -51,6 +51,18 @@ var Minion = function( parms ) {
 		my.hide_details();
 	};
 	
+	my.delete = function( event ) {
+		get_module( "delete", {
+			args : {id : my.obj.id},
+			done : function( result ) {
+				result = parse_result( result );
+				if( result.succeeded ) {
+					$(my.dom_object).remove();
+				}
+			}
+		});
+	};
+	
 	my.title = $( ".minion-title", my.dom_object );
 	my.filter_include_button = $( ".minion-filter-include", my.dom_object );
 	my.filter_include_button.on( "click", my.filter_include );
@@ -65,6 +77,8 @@ var Minion = function( parms ) {
 	my.details_cancel_button.on( "click", my.hide_details );
 	my.details_save_button = $( ".minion-details-save", my.details_dialog );
 	my.details_save_button.on( "click", my.save_details );
+	my.delete_button = $( ".minion-delete", my.details_dialog );
+	my.delete_button.on( "click", my.delete );
 };
 
 var Minions = function( parms ) {

@@ -1372,6 +1372,9 @@ div.user-groups-selection {
 	position: relative;
 	width: 100%;
 }
+button.minion-filter-include {
+	font-size: larger;
+}
 .minion-details-dialog {
 	display: inline-block;
 	position: absolute;

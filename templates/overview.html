@@ -128,7 +128,7 @@
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename" />
 			<div class="page-widgets">
 				<div class="page-widgets-left-stack">
-					<button class="new-entry-button require-permissions-write-self" style="visibility:hidden" onclick="new_response(global_user)">
+					<button class="new-entry-button require-permissions-write-self" style="visibility:hidden" onclick="new Entry( {virtual:true, obj:{parents:[global_user],permissions:['read','write']}, duplicates:true, dom_parent:$('.ems-content')[0], prepend:true} ).edit();">
 						${_("Beitrag erstellen")}
 					</button>
 					<!--<div class="page-filter">
@@ -146,7 +146,6 @@
 		<%include file="/elements/status_box.html" />
 		<%include file="/elements/group_template.html" />
 		<%include file="/elements/user_template.html" />
-		<%include file="/elements/entry_template.html" />
 		<%include file="/elements/text_template.html" />
 		<%include file="/elements/minion_template.html" />
 		<%include file="/elements/confirm_dialog.html" />

@@ -1,77 +1,116 @@
 function get_short_type( type ) {
 	return type.match(/.*\.([^.]*)/)[1]
 }
-function new_item( parms ) {
-	if( !parms.obj ) {
-		show_error( "new_item ohne Objektdefinition" )
-		return;
-	}
-	var obj = parms.obj;
-	if( !obj.type ) {
-		show_error( "new_item ohne Objekt-Typ-Definition" )
-		return;
-	}
-	var short_type = get_short_type( obj.type )
-	if( obj.id==undefined ) {
-		// Neues Objekt auf dem Server anlegen:
-		var get_args = { type : obj.type };
-		// optionale Zusatzparameter:
-		if( obj.title ) get_args["title"]=obj.title;
-		if( obj.nick ) get_args["nick"]=obj.nick;
-		if( obj.name ) get_args["name"]=obj.name;
-		get_module( 'store', {
-			args : get_args,
-			async : false, // TODO: Sicherstellen, dass new_item nur in asynchronen Request-Handlern aufgerufen wird!
-			done : function( result ) {
-				result = parse_result( result )
-				if( result.succeeded && result.id!=undefined ) {
-					obj.id = Number(result.id)
-					if( !parms.dom_object ) {
-						// Neues Element im Browser anlegen:
-						var item = new_item( parms )
-						var button = $("."+short_type+"-edit",item)[0]
-						if( button ) edit_entry( button )
-					}
-					else {
-						$(parms.dom_object).data( {obj: obj} );
-					}
-				}
-			}
-		});
-		return undefined;
+
+
+function BaseItem( parms ) {
+	var my = this;
+	my.obj = parms.obj;
+	my.short_type = get_short_type( my.obj.type )
+	my.dom_object = parms.dom_object;
+	my.dom_parent = parms.dom_parent;
+	my.dom_child = parms.dom_child;
+	my.update = parms.update;
+	my.duplicates = parms.duplicates;
+	my.prepend = parms.prepend;
+	my.ready = parms.ready ? parms.ready : function(item){};
+	my.parent = parms.parent;
+	my.virtual = parms.virtual ? parms.virtual : false;
+	my.custom_class = parms.custom_class;
+	
+	my.init();
+}
+
+BaseItem.prototype.init = function() {
+	var my = this;
+	if( my.obj.id==undefined && !my.virtual ) {
+		my.store( { callback: function(){my.init();} } );
+	} else if( !my.dom_object ) {
+		// Neues Element im Browser anlegen:
+		my.display();
+		my.ready( my );
 	} else {
-		var item = parms.dom_object;
-		if( !item && parms.update ) {
-			if( parms.dom_parent ) {
-				item = $(".ems-"+short_type, parms.dom_parent)[0]
-			} else if( parms.dom_child ) {
-				item = $(parms.dom_child).closest(".ems-"+short_type)[0]
-			}
-		}
-		if( !item && !parms.duplicates ) {
-			item = $("#ems-"+short_type+"-"+String(obj.id))[0]
-		}
-		if( !item ) {
-			item = $("#ems-"+short_type+"-template").first().clone()[0];
-			item.id = "ems-"+short_type+"-"+String(obj.id)
-			item.style.display = ""
-			if( parms.dom_parent ) {
-				if( parms.prepend ) {
-					$(parms.dom_parent).first().prepend( item );
-				} else {
-					$(parms.dom_parent).first().append( item );
+		$(my.dom_object).data( {obj: my.obj} );
+		my.ready( my );
+	}
+	if( my.obj && my.dom_object && my.custom_class ) {
+		$(my.dom_object).addClass( my.custom_class );
+	}
+};
+
+BaseItem.prototype.store = function( parms ) {
+	var my = this;
+	var get_args = {}
+	if( my.obj.id ) {
+		// Bestehende Objekt-ID für Update nutzen:
+		get_args["id"] = my.obj.id;
+	} else {
+		// Neues, typisiertes Objekt auf dem Server anlegen:
+		get_args["type"] = my.obj.type;
+	}
+	// optionale Zusatzparameter:
+	if( my.obj.title ) get_args["title"]=my.obj.title;
+	if( my.obj.nick ) get_args["nick"]=my.obj.nick;
+	if( my.obj.name ) get_args["name"]=my.obj.name;
+	get_module( 'store', {
+		args : get_args,
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded && result.id!=undefined ) {
+				my.obj.id = Number(result.id);
+				my.virtual = false;
+				if( parms && parms.callback ) {
+					parms.callback();
 				}
-				// Im DOM eingehängte Objekte kapseln wir auf der obersten Ebene mit .ems-item
-				$(item).wrap( '<div class="ems-item"></div>' );
-			} else if( parms.dom_child ) {
-				$(parms.dom_child).first().before( item );
-				$("."+short_type+"-content",item).append( parms.dom_child );
 			}
-			$(item).data( {obj: obj} );
 		}
-		if( !obj.dom_object ) obj.dom_object = item;
-		for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
-			var value = obj[ field_name ];
+	});
+};
+
+BaseItem.prototype.display = function() {
+	var my = this;
+	var item = my.dom_object;
+	if( !item && my.update ) {
+		if( my.dom_parent ) {
+			item = $(".ems-"+my.short_type, my.dom_parent)[0]
+		} else if( my.dom_child ) {
+			item = $(my.dom_child).closest(".ems-"+my.short_type)[0]
+		}
+	}
+	if( !item && !my.duplicates ) {
+		item = $("#ems-"+my.short_type+"-"+String(my.obj.id))[0]
+	}
+	if( !item ) {
+		item = $('<div class="ems-item"></div>')[0];
+		if( my.template ) {
+			$(item).html( my.template );
+		} else {
+			$(item).append( $("#ems-"+my.short_type+"-template").first().clone().attr({"id":""}).css({"display":""}) );
+		}
+		if( my.obj.id ) {
+			item.id = "ems-"+my.short_type+"-"+String(my.obj.id);
+		}
+		if( my.dom_parent ) {
+			if( my.prepend ) {
+				$(my.dom_parent).first().prepend( item );
+			} else {
+				$(my.dom_parent).first().append( item );
+			}
+		} else if( my.dom_child ) {
+			$(my.dom_child).first().before( item );
+			$("."+my.short_type+"-content",item).append( my.dom_child );
+		}
+		$(item).data( {obj: my.obj} );
+		// FIXME: Früher haben wir data für das jeweilige Template-Root-Element und nicht ems-items gesetzt!
+		//        Welche Probleme werden dadurch verursacht? 
+		//        Sollten wir data als Hack auch für das erste Kind-Element setzen?
+		//$(item.children[0]).data( {obj: my.obj} );
+	}
+	if( my.dom_object!=item ) my.dom_object = item;
+	if( my.obj.dom_object!=item ) my.obj.dom_object = item;
+	for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
+		var value = my.obj[ field_name ];
+		if( value!=undefined ) {
 			if( field_name in {"ctime":1, "mtime":1} ) {
 				var date = new Date(value*1000);
 				var day = date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear()
@@ -80,32 +119,33 @@ function new_item( parms ) {
 				var minutes = date.getMinutes();
 				minutes = (minutes<10) ? "0"+String(minutes) : String(minutes);
 				var time = hours+":"+minutes;
-				$( "."+short_type+"-"+field_name+"-day", item ).first().text( day );
-				$( "."+short_type+"-"+field_name+"-time", item ).first().text( time );
+				$( "."+my.short_type+"-"+field_name+"-day", item ).first().text( day );
+				$( "."+my.short_type+"-"+field_name+"-time", item ).first().text( time );
 			} else {
-				$( "."+short_type+"-"+field_name, item ).first().text( value );
+				$( "."+my.short_type+"-"+field_name, item ).first().text( value );
 			}
 		}
-		if( obj.ctime && obj.mtime && Math.round(obj.ctime/60)==Math.round(obj.mtime/60) ) {
-			$( "."+short_type+"-mtime", item ).first().hide();
-		}
-		for( permission in {"read":1,"write":1,"delete":1,"insert":1} ) {
-			// show/hide child elements depending on permission markers related to the object:
-			if( $.inArray(permission, obj.permissions)==-1 ) {
-				$( ".require-permission-"+permission+"-"+short_type, item ).hide();
-			} else {
-				$( ".require-permission-"+permission+"-"+short_type, item ).show();
-			}
-			// show/hide child elements depending on permission marker related to the user:
-			if( global_user && $.inArray(permission, global_user.permissions)!=-1 ) {
-				$( ".require-permission-"+permission+"-self", item ).show();
-			} else {
-				$( ".require-permission-"+permission+"-self", item ).hide();
-			}
-		}
-		return item;
 	}
+	if( my.obj.ctime && my.obj.mtime && Math.round(my.obj.ctime/60)==Math.round(my.obj.mtime/60) ) {
+		$( "."+my.short_type+"-mtime", item ).first().hide();
+	}
+	for( permission in {"read":1,"write":1,"delete":1,"insert":1} ) {
+		// show/hide child elements depending on permission markers related to the object:
+		if( $.inArray(permission, my.obj.permissions)==-1 ) {
+			$( ".require-permission-"+permission+"-"+my.short_type, item ).hide();
+		} else {
+			$( ".require-permission-"+permission+"-"+my.short_type, item ).show();
+		}
+		// show/hide child elements depending on permission marker related to the user:
+		if( global_user && $.inArray(permission, global_user.permissions)!=-1 ) {
+			$( ".require-permission-"+permission+"-self", item ).show();
+		} else {
+			$( ".require-permission-"+permission+"-self", item ).hide();
+		}
+	}
+	return item;
 }
+
 
 function create_download( obj ) {
 	var prettyprint_title = function(obj) {
@@ -129,7 +169,7 @@ function create_download( obj ) {
 function show_search_result( parms ) {
 	var dom_parent = (parms.dom_parent ? parms.dom_parent : $(".ems-content")[0]);
 	for( i in parms.hitlist ) {
-		show_object( {obj: parms.hitlist[i], dom_parent: dom_parent, limit: parms.limit} )
+		show_object( {obj: parms.hitlist[i], dom_parent: dom_parent, limit: parms.limit, parent: parms.parent} )
 	}
 }
 
@@ -142,6 +182,7 @@ function show_object( parms )
 	var duplicates = parms.duplicates;
 	var prepend = parms.prepend;
 	var update = parms.update;
+	var parent = parms.parent;
 	if( obj.id && !obj.type ) {
 		var get_args = { id : obj.id, view : 'all', recursive : 'true' };
 		if( limit ) get_args['limit'] = limit;
@@ -160,49 +201,38 @@ function show_object( parms )
 			}
 		});
 	} else if( obj.type == "application/x-obj.group" ) {
-		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
-		if( dom_parent ) {
-			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
-			}
-		}
-	} else if( obj.type == "application/x-obj.minion" ) {
-		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} );
-		var minion = new Minion( {dom_object: item, obj:obj} );
-		if( dom_parent ) {
-			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
-			}
-		}
-	} else if( obj.type == "application/x-obj.user" ) {
-		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
-		if( obj.avatar_id ) {
-			replace_user_image( item, obj.avatar_id );
-		}
-		if( dom_parent ) {
-			/*for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
-			}*/
-		}
-	} else if( obj.type == "application/x-obj.entry" ) {
-		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
-		var entry_author = $('.entry-author', item)[0];
-		if( dom_parent ) {
-			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
-			}
-			var user_found = false;
-			for( var i in obj.parents ) {
-				var parent = obj.parents[i];
-				if( parent.type == "application/x-obj.user" ) {
-					user_found = true;
-					show_object( {obj:parent, dom_parent:entry_author, limit:limit, duplicates:true, update:update} );
+		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, ready: function(item) {
+			item.parent = parent;
+			if( dom_parent ) {
+				for( var i in obj.children ) {
+					show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
 				}
 			}
-			if( !user_found ) {
-				show_object( {obj:{id:3}, dom_parent:entry_author, limit:limit, duplicates:true, update:update} );
+		}});
+	} else if( obj.type == "application/x-obj.minion" ) {
+		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, ready: function(item) {
+			var minion = new Minion( {dom_object: item.dom_object, obj:obj} );
+			minion.parent = parent;
+			if( dom_parent ) {
+				for( var i in obj.children ) {
+					show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
+				}
 			}
-		}
+		}});
+	} else if( obj.type == "application/x-obj.user" ) {
+		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, ready: function(item) {
+			item.parent = parent;
+			if( obj.avatar_id ) {
+				replace_user_image( item.dom_object, obj.avatar_id );
+			}
+			if( dom_parent ) {
+				/*for( var i in obj.children ) {
+					show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
+				}*/
+			}
+		}});
+	} else if( obj.type == "application/x-obj.entry" ) {
+		new Entry( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} );
 	} else if( obj.type == "text/plain" ) {
 		if( dom_parent && obj.data ) {
 			obj.dom_object = $('<span>').attr( {class: 'entry-text'} )[0];
@@ -363,51 +393,15 @@ function show_object( parms )
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
 		if( dom_parent && obj.title ) {
-			obj.dom_object = $('#entry-tag-template').clone().attr( {title: obj.title} ).removeAttr("id")[0];
-			$(obj.dom_object).data( {obj: obj} );
-			var tag_label_obj = $('.entry-tag-label', obj.dom_object)[0];
-			var tag_label_limit = 30;
-			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
-			$(tag_label_obj).text( tag_label );
-			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
-				global_search.entry.text( 'tag:'+tag_label );
-				global_search.search();
-			};
-			$('.entry-tag-tool-filter-exclude', obj.dom_object)[0].onclick = function(ev) {
-				var search_phrase = global_search.entry.text();
-				if( search_phrase=='' ) search_phrase = 'type:entry';
-				global_search.entry.text( search_phrase+' --tag:'+tag_label );
-				global_search.search();
-			};
-			var entry = $(dom_parent).closest('.ems-entry')[0];
-			if( entry && $(entry).data("obj") ) {
-				if( $(dom_parent).hasClass('entry-tags-search-result') ) {
-					$(dom_parent).append( obj.dom_object );
-					if( obj.permissions.indexOf("write")>=0 && $(entry).data("obj").permissions.indexOf("write")>=0 ) {
-						$('.entry-tag-add', obj.dom_object).show();
-					} else {
-						$('.entry-tag-add', obj.dom_object).hide();
-					}
-					$('.entry-tag-remove', obj.dom_object).hide();
-				} else {
-					$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
-					$('.entry-tag-add', obj.dom_object).hide();
-					if( obj.permissions.indexOf("write")>=0 && $(entry).data("obj").permissions.indexOf("write")>=0 ) {
-						$('.entry-tag-remove', obj.dom_object).show();
-					} else {
-						$('.entry-tag-remove', obj.dom_object).hide();
-					}
-				}
-			}
-			obj.dom_object.style.display="";
+			new EntryTag( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent} );
 		}
 	} else if ( obj.type && obj.type=="application/x-obj.publication" ) {
-		if( dom_parent ) {
-			obj.dom_object = $(dom_parent).closest('.ems-entry').find('.entry-publication')[0];
+		if( parent ) {
+			obj.dom_object = $(parent.dom_object).find('.entry-publication')[0];
 			$(obj.dom_object).addClass('entry-publication-active');
 			$(obj.dom_object).data( {obj: obj} );
 			var pub_link_obj = $('.entry-publication-link', obj.dom_object)[0];
-			var entry_id = $(dom_parent).closest('.ems-entry').data("obj").id;
+			var entry_id = parent.obj.id;
 			var url = get_tpl_url("overview.html")+"&id="+String(entry_id)+"&sid="+obj.data;
 			$(pub_link_obj).attr( {href: url} );
 			$(pub_link_obj).click( function() {
@@ -420,15 +414,11 @@ function show_object( parms )
 		var download_link = create_download( obj );
 		$(dom_parent).append( download_link );
 	}
-	
-	if( obj && obj.dom_object && parms.custom_class ) {
-		$(obj.dom_object).addClass( parms.custom_class );
-	}
 }
 
 function filter_user_content( button, mode ) {
 	var user_element = $(button).closest('.ems-user')[0];
-	var user_nick = $(user_element).data().obj.nick;
+	var user_nick = $(user_element.parentNode).data().obj.nick;
 	var search_phrase = global_search.entry.text();
 	if( mode=='for' ) {
 		search_phrase = 'user:'+user_nick;
@@ -443,41 +433,126 @@ function filter_user_content( button, mode ) {
 var offsets_loaded = {};
 var filters = { ids:{}, child_ids:{}, parent_ids:{} };
 
-function edit_entry( button )
-{
-	var entry = $(button).closest(".ems-entry")[0];
-	$(entry).addClass("new-entry");
-	var title = $( ".entry-title", entry )[0]
-	var content = $( ".entry-content", entry )[0]
-	if( title ) {
-		title.contentEditable = true
-		if( title.innerHTML.length==0 || !content ) title.focus()
-	}
-	if( content ) {
-		content.contentEditable = true
-		if( title.innerHTML.length>0 ) content.focus()
+
+var Entry = function( parms ) {
+	var my = this;
+	parms = parms ? parms : {};
+	parms.obj = parms.obj ? parms.obj : {};
+	parms.obj.type = parms.obj.type ? parms.obj.type : "application/x-obj.entry";
+	BaseItem.call( this, parms );
+};
+Entry.prototype = Object.create( BaseItem.prototype );
+Entry.prototype.constructor = Entry;
+
+Entry.prototype.init = function() {
+	var my = this;
+	if( my.template==undefined ) {
+		// FIXME: We should try to do only one request for the template,
+		//        even if a bunch of objects are initiated the same time,
+		//        e.g. at initial page load.
+		GlobalRequestQueue.add({
+			module : "render",
+			args : {tpl : "elements/entry.html"},
+			done : function(result) {
+				Entry.prototype.template = result;
+				my.init();
+			}, 
+			fail : function(result) {
+				show_error( result )
+			}
+		});
+		GlobalRequestQueue.process();
+	} else {
+		BaseItem.prototype.init.call( this );
+		my.entry = $( ".ems-entry", my.dom_object )[0];
+		my.title = $( ".entry-title", my.entry )[0];
+		my.content = $( ".entry-content", my.entry )[0];
+		my.std_tools = $( ".entry-tools", my.entry )[0];
+		my.std_tags = $( ".entry-tags", my.std_tools )[0];
+		my.edit_tools = $( ".entry-edit-tools", my.entry )[0];
+		my.edit_tags = $( ".entry-tags", my.edit_tools )[0];
+		my.author = $('.entry-author', my.dom_object)[0];
+		my.tags_selection = $(".entry-tags-selection", my.entry)[0];
+		my.tags_searchbar = $(".entry-tags-searchbar", my.entry)[0];
+		my.tags_search_result = $(".entry-tags-search-result", my.entry)[0];
+		my.tags_search_result_scroll_container_hack = $(".entry-tags-search-result-scroll-container-hack", my.entry)[0];
+		my.tags_content = $(".entry-tags-content", my.entry)[0];
 		
-		$('.entry-media', content).each( function(i, element) {
+		$(my.content).empty();
+		$(my.author).empty();
+		$(my.tags_content).empty();
+		
+		if( my.dom_parent ) {
+			for( var i in my.obj.children ) {
+				var dom_parent = my.content;
+				var child = my.obj.children[i];
+				if( child.type == "application/x-obj.tag" ) {
+					dom_parent = my.tags_content;
+				}
+				show_object( {obj:my.obj.children[i], dom_parent:dom_parent, parent:my} )
+			}
+			var user_found = false;
+			for( var i in my.obj.parents ) {
+				var parent = my.obj.parents[i];
+				if( parent.type == "application/x-obj.user" ) {
+					user_found = true;
+					show_object( {obj:parent, dom_parent:my.author, duplicates:true, parent:my} );
+				}
+			}
+			if( !user_found ) {
+				show_object( {obj:{id:3}, dom_parent:my.author, duplicates:true, parent:my} );
+			}
+		}
+		
+		my.button_show_tag_selection = $( ".entry-tags-show-selection-button", my.dom_object )[0];
+		$(my.button_show_tag_selection).on( "click", function(){ my.show_tag_selection(); } );
+		my.button_hide_tag_selection = $( ".entry-tags-close-selection-button", my.dom_object )[0];
+		$(my.button_hide_tag_selection).on( "click", function(){ my.hide_tag_selection(); } );
+		my.button_respond = $( ".entry-response-button", my.dom_object )[0];
+		$(my.button_respond).on( "click", function(){ my.new_response(); } );
+		my.button_link_external = $( ".entry-link-button", my.dom_object )[0];
+		$(my.button_link_external).on( "click", function(){ my.link_external(); } );
+		my.button_edit = $( ".entry-edit-button", my.dom_object )[0];
+		$(my.button_edit).on( "click", function(){ my.edit(); } );
+		my.button_delete = $( ".entry-delete-button", my.dom_object )[0];
+		$(my.button_delete).on( "click", function(){ my.delete_entry(); } );
+		my.button_file = $( ".entry-edit-file-button", my.dom_object )[0];
+		$(my.button_file).on( "click", function() { new UploadDialog( {dom_parent: my.content, wrap: true} ); } );
+		my.button_save = $( ".entry-edit-send-button", my.dom_object )[0];
+		$(my.button_save).on( "click", function() { my.store(); } );
+		my.button_discard = $( ".entry-edit-discard-button", my.dom_object )[0];
+		$(my.button_discard).on( "click", function() { my.discard_response(); } );
+	}
+}
+
+Entry.prototype.edit = function() {
+	var my = this;
+	$(my.entry).addClass("new-entry");
+	
+	if( my.title ) {
+		my.title.contentEditable = true
+		if( my.title.innerHTML.length==0 || !my.content ) my.title.focus()
+	}
+	if( my.content ) {
+		my.content.contentEditable = true
+		if( my.title.innerHTML.length>0 ) my.content.focus()
+		
+		$('.entry-media', my.content).each( function(i, element) {
 			new UploadDialog( {replace_content: element} );
 		});
 	}
 	
-	// Standard-Toolbox verbergen und Editieren-Toolbox anzeigen:
-	var std_tools = $( ".entry-tools", entry )[0];
-	$(std_tools.style).hide();
-	var edit_tools = $( ".entry-edit-tools", entry )[0];
-	//$(edit_tools).show();
-	$(edit_tools).css( {display:'inline-block'} );
-	// Themen des Beitrages kopieren:
-	$(".entry-tags",edit_tools).empty().append( $(".entry-tags",std_tools).clone(true,true).contents() );
-}
+	// Themen des Beitrages vom Standardwerkzeug in das Bearbeitungswerkzeug verschieben:
+	$(my.edit_tags).empty().append( $(my.std_tags).contents().detach() );
+};
 
-function get_plain_text( element ) {
+Entry.prototype.get_plain_text = function( element ) {
+	var my = this;
 	var current_plain_text = "";
 	for( var i=0; i<element.childNodes.length; i++ ) {
 		var child = element.childNodes[i];
 		if( child.nodeName!="#text" ) {
-			current_plain_text += get_plain_text( child );
+			current_plain_text += my.get_plain_text( child );
 			if( child.nodeName=="BR" || child.nodeName=="DIV" ) {
 				current_plain_text += "\n";
 			}
@@ -485,14 +560,18 @@ function get_plain_text( element ) {
 		else current_plain_text += child.textContent;
 	}
 	return current_plain_text;
-}
+};
 
-function get_object_list( element, text_obj ) {
+Entry.prototype.get_object_list = function( element, text_obj ) {
+	var my = this;
 	var current_list = [];
 	if( element.nodeName=="#text" ) {
+		// Text-Knoten werden mittels Regex in eine Liste von einzelnen Zeichen und HTTP(S)-URLs zerlegt
 		var token_list = element.textContent.match( /https?:\/\/[^ ]+|./gim );
 		token_list = token_list ? token_list : [];
 		var current_plain_text = "";
+		// finalize_plain_text speichert ein text/plain-Objekt mit den derzeit zwischengespeicherten, 
+		// einzelnen Zeichen in der Ergebnisliste
 		var finalize_plain_text = function( plain_text ) {
 			var obj = { 'type': 'text/plain', 'data': plain_text };
 			if( text_obj && text_obj.unassigned ) {
@@ -511,8 +590,12 @@ function get_object_list( element, text_obj ) {
 		}
 		for( var i=0; i<token_list.length; i++ ) {
 			if( token_list[i].length==1 ) {
+				// Token der Länge 1 werden als Einzelzeichen interpretiert und dem Textpuffer hinzugefügt
 				current_plain_text += token_list[i];
 			} else if( token_list[i].length>1 ) {
+				// Token mit Länge>1 werden als HTTP(S)-Links interpretiert, wobei zunächst der aktuelle Textpuffer
+				// als text/plain-Objekt und anschließend der HTTP(S)-Link als text/html-Objekt in der Ergebnisliste
+				// abgelegt werden
 				if( current_plain_text.length) {
 					finalize_plain_text( current_plain_text );
 					current_plain_text = "";
@@ -521,10 +604,12 @@ function get_object_list( element, text_obj ) {
 				current_list.push( obj );
 			}
 		}
+		// Zuletzt werden die abschließenden Einzelzeichen als text/plain-Objekt zusammengefasst
 		if( current_plain_text.length) {
 			finalize_plain_text( current_plain_text );
 		}
 	} else if( element.nodeName=="BR" || element.nodeName=="A" ) {
+		// BR- und A-Knoten werden als HTML-Quelltext in text/html-Objekten gespeichert oder aktualisiert
 		if( $(element).data().obj ) {
 			if( $(element).data().obj.data != element.outerHTML ) {
 				$(element).data().obj.data = element.outerHTML;
@@ -536,228 +621,191 @@ function get_object_list( element, text_obj ) {
 			current_list.push( obj );
 		}
 	} else if( $(element).data().obj && $(element).data().obj.type!="text/plain" ) {
-		// bestehende text/plain-Objekte werden beim Baumdurchlauf dem erst besten 
-		// Text-Node zugewiesen und nicht, wie andere Objekte direkt hier übernommen...
+		// Bei anderen Knoten mit bestehender Objekt-Attributierung, wird diese in diese
+		// in die Ergebnisliste übernommen. Bestehende text/plain-Objekte werden hier
+		// ignoriert, da ihr Inhalt bei der Text-Knoten-Verarbeitung erfasst wird.
 		current_list.push( $(element).data().obj );
 	}
 	if( !$(element).data().obj || $(element).data().obj.type=="text/plain" ) {
+		// Knoten ohne Objekt-Attributierung und bestehende text/plain-Objekte werden durch
+		// rekursiven Aufruf verarbeitet und das Verarbeitungsergbnis der Ergebnisliste angefügt.
+		// Dabei wird ein bestehende text/plain-Objekt dem rekursiven Aufruf als primäres
+		// Speicherziel für den Inhalt von TEXT-Knoten mitgegeben.
 		if( $(element).data().obj && $(element).data().obj.type=="text/plain" ) {
 			text_obj = $(element).data().obj;
 			text_obj.unassigned = true;
 		}
 		for( var i=0; i<element.childNodes.length; i++ ) {
 			var child = element.childNodes[i];
-			current_list = current_list.concat( get_object_list(child, text_obj) );
+			current_list = current_list.concat( my.get_object_list(child, text_obj) );
 		}
 	}
 	return current_list;
-}
+};
 
-function restore_standard_tools( entry ) {
-	// temporären Klon der Editieren-Toolbox wieder aus diesem Beitrag löschen und Standard-Toolbox wieder anzeigen:
-	var edit_tools = $( ".entry-edit-tools", entry )[0];
-	$(edit_tools).hide();
-	var std_tools = $( ".entry-tools", entry )[0];
-	$(std_tools).show();
-}
+Entry.prototype.restore_standard_tools = function() {
+	var my = this;
+	// Themen vom Bearbeitungswerkzeug zurück in das Standardwerkzeug verschieben:
+	$(my.std_tags).empty().append( $(my.edit_tags).contents().detach() );
+};
 
-function remove_new_entry_item( entry ) {
+Entry.prototype.remove_new_entry_item = function() {
+	var my = this;
 	// neues entry-Objekt und Pseudo-Item löschen:
-	var item = $(entry).closest(".ems-item")[0];
+	var item = $(my.entry).closest(".ems-item")[0];
 	$(item).remove();
-}
+};
 
-/* FIXME: save_entry führt zur Reihenfolgeerhaltung der Abläufe Speichern/Löschen mehrere synchrone AJAX-Requests aus 
- *        und sollte daher nur in asynchronen Handlern aufgerufen werden! 
- *        Eventuell wär es sinnvoll die Funktion umzubenennen in save_entry_sync und einen Wrapper save_entry zu definieren,
- *        für einfache Fälle ohne Notwendigkeit der Reihenfolgeerhaltung mehrerer save_entry_sync-Aufrufe. */
-function save_entry( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	var upload_dialog = $( ".upload-dialog", entry );
-	upload_dialog.each( function(i, element) {
+Entry.prototype.store = function() {
+	var my = this;
+	var upload_dialogs = $( ".upload-dialog", my.entry );
+	upload_dialogs.each( function(i, element) {
 		if( element && $(element).data && $(element).data("upload_dialog") ) {
+			// FIXME: Wir sollten einen generischen Weg haben die JS-Objekte in den DOM-Elementen zu referenzieren.
 			$(element).data("upload_dialog").confirm_upload();
 		}
-	} );
+	});
 	
-	$(entry).removeClass("new-entry");
+	$(my.entry).removeClass("new-entry");
 	var new_entry_created = false;
-	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
-		// neues entry-Objekt mit einem neuen DB-Objekt assoziieren:
-		new_item( {obj:{type: "application/x-obj.entry"}, dom_object: entry} );
+	if( !my.obj || !my.obj.id ) {
+		// BaseItem.prototype.store() erledigt die eigentliche Speicherung
 		new_entry_created = true;
 	}
-	var entry_id = $(entry).data().obj.id;
-	var title = $( ".entry-title", entry )[0];
-	if( title ) {
-		title.contentEditable = false
-		var title_text = get_plain_text( title )
-		post_module( "store", {
-			args : {id : String(entry_id)},
-			data : { title: title_text },
-			async : false
-		});
+	if( my.title ) {
+		my.title.contentEditable = false
+		my.obj.title = my.get_plain_text( my.title )
 	}
-	var content = $( ".entry-content", entry )[0];
-	if( content ) {
-		content.contentEditable = false
-		var content_list = get_object_list( content );
-		// Themen des Beitrages zurück kopieren:
-		var edit_tools = $( ".entry-edit-tools", entry )[0];
-		var std_tools = $( ".entry-tools", entry )[0];
-		$(".entry-tags",std_tools).empty().append( $(".entry-tags",edit_tools).clone(true,true).contents() );
-		$(".entry-tags",edit_tools).empty();
-		var tags = $( ".entry-tags-content", entry )[0];
-		if( tags ) {
-			content_list = content_list.concat( get_object_list(tags) );
-		}
-		// Inhalt speichern:
-		var part_id_list = []
-		for( var i in content_list ) {
-			var obj = content_list[i];
-			if( obj.id==undefined && obj.type && obj.data ) {
-				// neu zu speichernde Objekte mit Inhalt, ohne bestehende ID-Zuordnung:
-				// (bisher nur text/plain)
-				post_module( "store", {
-					args : {type : obj.type, parent_id : String(entry_id), sequence : String(i)},
-					data : { data: obj.data },
-					async : false, /* hier, ohne komplizierteres Event-Handling, wichtig zur Vermeidung von Race-Conditions */
-					done : function( result ) {
-						result = parse_result( result )
-						if( result.succeeded ) {
-							part_id_list.push( result.id )
-						}
-					}
-				});
-			} else if( obj.id && (obj.unassigned==undefined || obj.unassigned==true || obj.changed==true) ) {
-				// bereits gespeicherte oder lokal geänderte Objekte, mit bestehender ID-Zuordnung, 
-				// die dem Eintrag in korrekter Sequenz (neu) zugewiesen oder gespeichert werden müssen:
-				get_module( "store", {
-					args : {id : obj.id, parent_id : String(entry_id), sequence : String(i)},
-					type : obj.changed ? "POST" : "GET",
-					data : obj.changed ? { data: obj.data } : undefined,
-					async : false, /* hier, ohne komplizierteres Event-Handling, wichtig zur Vermeidung von Race-Conditions */
-					done : function( result ) {
-						result = parse_result( result )
-						if( result.succeeded ) {
-							part_id_list.push( result.id )
-						}
-					}
-				});
+	BaseItem.prototype.store.call( my, {callback: function() {
+		if( my.content ) {
+			my.content.contentEditable = false
+			var content_list = my.get_object_list( my.content );
+			// Standard-Tools wiederherstellen und Themen des Beitrages dabei zurück kopieren:
+			my.restore_standard_tools();
+			if( my.tags_content ) {
+				content_list = content_list.concat( my.get_object_list(my.tags_content) );
 			}
-		}
-		// serverseitige Bereinigung alter Daten:
-		// (Damit das so funktioniert, ist es wichtig, dass der Neuzuordnungsfall bestehender Objekte (2. Fall oben)
-		//  eine Duplikatbehandlung der Eltern-Kind-Beziehungen vornimmt, sodass bestehende Zuordnungen aktualisiert
-		//  (Sequenz) und nicht vermehrt werden...)
-		get_module( "delete", {
-			args : {parent_id : String(entry_id), child_not_in : part_id_list.join(",")},
-			async : false,
-			done : function( result ) {
-				result = parse_result( result )
+			// Inhalt speichern:
+			var part_id_list = []
+			for( var i in content_list ) {
+				var obj = content_list[i];
+				if( obj.id==undefined && obj.type && obj.data ) {
+					// neu zu speichernde Objekte mit Inhalt, ohne bestehende ID-Zuordnung:
+					// (bisher nur text/plain)
+					post_module( "store", {
+						args : {type : obj.type, parent_id : String(my.obj.id), sequence : String(i)},
+						data : { data: obj.data },
+						async : false, /* hier, ohne komplizierteres Event-Handling, wichtig zur Vermeidung von Race-Conditions */
+						done : function( result ) {
+							result = parse_result( result )
+							if( result.succeeded ) {
+								part_id_list.push( result.id )
+							}
+						}
+					});
+				} else if( obj.id && (obj.unassigned==undefined || obj.unassigned==true || obj.changed==true) ) {
+					// bereits gespeicherte oder lokal geänderte Objekte, mit bestehender ID-Zuordnung, 
+					// die dem Eintrag in korrekter Sequenz (neu) zugewiesen oder gespeichert werden müssen:
+					get_module( "store", {
+						args : {id : obj.id, parent_id : String(my.obj.id), sequence : String(i)},
+						type : obj.changed ? "POST" : "GET",
+						data : obj.changed ? { data: obj.data } : undefined,
+						async : false, /* hier, ohne komplizierteres Event-Handling, wichtig zur Vermeidung von Race-Conditions */
+						done : function( result ) {
+							result = parse_result( result )
+							if( result.succeeded ) {
+								part_id_list.push( result.id )
+							}
+						}
+					});
+				}
 			}
-		});
-	}
-	if( new_entry_created ) {
-		remove_new_entry_item( entry );
-		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry_id}, prepend: true} );
-	} else {
-		restore_standard_tools( entry );
-	}
-}
-
-function new_response( user, button ) {
-	var reference_item = undefined;
-	if( button ) {
-		reference_item = $(button).closest(".ems-item")[0];
-	}
-	var new_entry = $("#ems-entry-template").first().clone().removeAttr("id")[0];
-	$(new_entry).data( {obj : {type : 'application/x-obj.entry', permissions : ["read","write"]}} );
-	if( reference_item ) {
-		$(reference_item).before( new_entry );
-	} else {
-		$(".ems-content").first().prepend( new_entry );
-	}
-	$(new_entry).wrap( '<div class="ems-item"></div>' )
-	if( reference_item ) {
-		// Antworttitel aus Titel des Referenzbeitrages generieren:
-		reference_title = $(".entry-title", reference_item).first().text();
-		if( !reference_title.match(/^Re:/i) ) {
-			reference_title = "Re: "+reference_title;
-		}
-		$(".entry-title", new_entry).text( reference_title );
-		// Themen des Referenzbeitrages kopieren:
-		var ref_tags = $( ".entry-tags-content", reference_item )[0];
-		var new_tags = $( ".entry-tags-content", new_entry )[0];
-		$(new_tags).empty().append( $(ref_tags).clone(true,true).contents() );
-	}
-	new_entry.style.display="";
-	var entry_author = $( ".entry-author", new_entry )[0];
-	user_element = new_item( {obj:user, duplicates: true, dom_parent: entry_author} );
-	if( user_element && user.avatar_id ) {
-		replace_user_image( user_element, user.avatar_id );
-	}
-	edit_entry( new_entry );
-}
-
-function delete_entry( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	Confirm.confirm( {message: 'Diesen Eintrag wirklich löschen?', before: $('.entry-tools',entry).first(),
-		ok_parms: {entry: entry}, ok_callback: function( parms ) {
-			var entry = parms.entry;
+			// serverseitige Bereinigung alter Daten:
+			// (Damit das so funktioniert, ist es wichtig, dass der Neuzuordnungsfall bestehender Objekte (2. Fall oben)
+			//  eine Duplikatbehandlung der Eltern-Kind-Beziehungen vornimmt, sodass bestehende Zuordnungen aktualisiert
+			//  (Sequenz) und nicht vermehrt werden...)
 			get_module( "delete", {
-				args : {id : String($(entry).data().obj.id)},
+				args : {parent_id : String(my.obj.id), child_not_in : part_id_list.join(",")},
+				async : false,
+				done : function( result ) {
+					result = parse_result( result )
+				}
+			});
+		}
+		if( new_entry_created ) {
+			// Neuen Beitrag vorn neu anfügen:
+			my.remove_new_entry_item();
+			show_object( {dom_parent: my.dom_parent, obj: {id: my.obj.id}, prepend: true} );
+		}
+	}});
+};
+
+Entry.prototype.new_response = function() {
+	var my = this;
+	var user = global_user; // FIXME: should not use globals
+	var new_entry = new Entry( {virtual:true, obj:{parents:[user],permissions:['read','write']}, duplicates:true, dom_parent:my.dom_parent, prepend:true} );
+	$(my.dom_object).before( $(new_entry.dom_object).detach() );
+	// Antworttitel aus Titel des Referenzbeitrages generieren:
+	var reference_title = $(my.title).text();
+	if( !reference_title.match(/^Re:/i) ) {
+		reference_title = "Re: "+reference_title;
+	}
+	$(new_entry.title).text( reference_title );
+	// Themen des Referenzbeitrages kopieren:
+	$(new_entry.tags_content).empty().append( $(my.tags_content).contents().clone(true,true) );
+	var entry_author = $( ".entry-author", new_entry )[0];
+	new_entry.edit();
+};
+
+Entry.prototype.delete_entry = function() {
+	var my = this;
+	Confirm.confirm( {message: 'Diesen Eintrag wirklich löschen?', before: $(my.std_tools).first(),
+		ok_callback: function( parms ) {
+			get_module( "delete", {
+				args : {id : String(my.obj.id)},
 				done : function( result ) {
 					result = parse_result( result );
 					if( result.succeeded ) {
-						var item = $(entry).closest(".ems-item").remove();
+						my.remove_new_entry_item();
 					}
 				}
 			});
 		}
 	});
-}
+};
 
-function discard_response( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	$(entry).removeClass("new-entry");
-	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
-		remove_new_entry_item( entry );
-	}
-	else {
-		restore_standard_tools( entry );
-		var title = $( ".entry-title", entry )[0]
-		var content = $( ".entry-content", entry )[0]
-		if( title ) {
-			title.contentEditable = false;
+Entry.prototype.discard_response = function() {
+	var my = this;
+	$(my.entry).removeClass("new-entry");
+	if( !my.obj || !my.obj.id ) {
+		my.remove_new_entry_item();
+	} else {
+		my.restore_standard_tools();
+		if( my.title ) {
+			$(my.title).empty()
+			my.title.contentEditable = false;
 		}
-		if( content ) {
-			content.contentEditable = false;
+		if( my.content ) {
+			$(my.content).empty()
+			my.content.contentEditable = false;
 		}
+		$(".entry-tags-content", my.entry).empty()
 		// Daten neu laden, um lokale Änderungen zu beseitigen:
-		$(".entry-content", entry).empty()
-		$(".entry-tags-content", entry).empty()
-		show_object( {dom_parent: entry, obj: $(entry).data().obj, update: true} );
+		show_object( {dom_parent: my.entry, obj: my.obj, update: true} );
 	}
-}
+};
 
-function show_tag_selection( button ) {
-	$(button).hide();
-	var entry_tools = $(button).closest(".entry-tools")[0];
-	var entry_tags = $(button).closest(".entry-tags")[0];
-	var tags_selection = $(".entry-tags-selection", entry_tags)[0];
-	var tags_searchbar = $(".entry-tags-searchbar", entry_tags)[0];
-	var tags_search_result = $(".entry-tags-search-result", entry_tags)[0];
-	var tags_search_result_scroll_container_hack = $(".entry-tags-search-result-scroll-container-hack", entry_tags)[0];
-	var tags_content = $(".entry-tags-content", entry_tags)[0];
+Entry.prototype.show_tag_selection = function() {
+	var my = this;
+	$(my.button_show_tag_selection).hide();
 	
 	// Suchtool für Tags initialisieren:
 	var range_scroll_loader = null;
 	var tag_search = new SearchBar( {
-		entry_parent : $(tags_searchbar),
+		entry_parent : $(my.tags_searchbar),
 		result_handler : function( result ) {
 			var first_range = false;
-			if( $(tags_search_result).children().length==0 ) {
+			if( $(my.tags_search_result).children().length==0 ) {
 				first_range = true;
 				var current_search = tag_search.entry.text().replace(/^\s*|\s*$/g,"");
 				if( current_search.length > 0 ) {
@@ -769,19 +817,22 @@ function show_tag_selection( button ) {
 						}
 					}
 					if( !current_search_found ) {
-						show_object( {
+						new EntryTag( {
 							obj : {
 								type : 'application/x-obj.tag', 
 								title : current_search,
 								permissions : ["read","write"]
 							},
-							dom_parent : tags_search_result,
-							custom_class : 'entry-tag-new'
+							dom_parent : my.tags_search_result,
+							custom_class : 'entry-tag-new',
+							parent: my,
+							virtual: true
 						} );
 					}
 				}
 			}
-			result.dom_parent = tags_search_result;
+			result.dom_parent = my.tags_search_result;
+			result.parent = my;
 			show_search_result( result );
 			if( first_range ) {
 				// Falls tags_search_result initial leer war, müssen wir den Scroll-Container hier
@@ -791,15 +842,15 @@ function show_tag_selection( button ) {
 				//   Zusatzwerkzeuge beinhalten zu können. Diese würden sonst beschnitten, da
 				//   CSS derzeit nicht erlaubt overflow-y: scroll und overflow-X: visible zu
 				//   kombinieren. Letzterer Wert wird zu auto (hidden oder scroll) geändert.
-				$(tags_search_result).width( $(tags_search_result).width() );
-				$(tags_search_result).css( {position : 'relative', left : '300px'} );
-				$(tags_search_result_scroll_container_hack).css( {
+				$(my.tags_search_result).width( $(my.tags_search_result).width() );
+				$(my.tags_search_result).css( {position : 'relative', left : '300px'} );
+				$(my.tags_search_result_scroll_container_hack).css( {
 					'overflow-y' : 'scroll', 
 					'overflow-x' : 'hidden', 
 					'margin-left' : '-300px',
 					'margin-right' : '-20px'
 				} );
-				$(tags_search_result_scroll_container_hack).height( Math.max(100,$(tags_search_result).height()*0.9) );
+				$(my.tags_search_result_scroll_container_hack).height( Math.max(100,$(my.tags_search_result).height()*0.9) );
 				range_scroll_loader.range_start = result.hitlist.length;
 				range_scroll_loader.scroll_handler_parms = { search_count : tag_search.search_count };
 				range_scroll_loader.start();
@@ -811,99 +862,34 @@ function show_tag_selection( button ) {
 		order_reverse : 'true',
 		range_limit : 10,
 		new_search_handler : function( parms ) {
-			$(tags_search_result).empty();
-			$(tags_search_result_scroll_container_hack).show();
+			$(my.tags_search_result).empty();
+			$(my.tags_search_result_scroll_container_hack).show();
 			if( range_scroll_loader ) range_scroll_loader.stop();
 			range_scroll_loader = new RangeScrollLoader( {
-				scroll_container : tags_search_result_scroll_container_hack,
+				scroll_container : my.tags_search_result_scroll_container_hack,
 				scroll_handler : tag_search.search,
 				scroll_condition : "element_scroll_condition"
 			} );
 		},
 		on_ready : function() {
-			$(tags_selection).show();
-			tag_search.entry.outerWidth( $(tags_selection).innerWidth()*0.95 );
+			$(my.tags_selection).show();
+			tag_search.entry.outerWidth( $(my.tags_selection).innerWidth()*0.95 );
 			tag_search.entry.focus();
 			tag_search.search();
 		}
 	} );
-}
+};
 
-function hide_tag_selection( button ) {
-	var entry_tags = $(button).closest(".entry-tags")[0];
-	$('.entry-tags-show-selection-button', entry_tags).show();
-	$(".entry-tags-selection", entry_tags).hide();
-	$(".entry-tags-search-result-scroll-container-hack", entry_tags).hide();
-	$(".entry-tags-search-result", entry_tags).empty();
-}
+Entry.prototype.hide_tag_selection = function() {
+	var my = this;
+	$(my.button_show_tag_selection).show();
+	$(my.tags_selection).hide();
+	$(my.tags_search_result_scroll_container_hack).hide();
+	$(my.tags_search_result).empty();
+};
 
-function add_tag( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	var entry_id = $(entry).data().obj ? $(entry).data().obj.id : undefined;
-	var tag = $(button).closest('.entry-tag')[0];
-	tag = tag ? tag : button;
-	var tag_id = $(tag).data().obj.id;
-	var tags_selection = $(button).closest('.entry-tags-selection')[0];
-	var tags_content = $('.entry-edit-tools .entry-tags-content',entry)[0];
-	var get_args = { parent_id : String(5) };
-	if( entry_id ) get_args.parent_id += ","+String(entry_id);
-	if( tag_id ) {
-		get_args["id"] = String(tag_id);
-	} else {
-		get_args["title"] = $(tag).data().obj.title;
-		get_args["type"] = $(tag).data().obj.type;
-	}
-	get_module( "store", {
-		args : get_args,
-		done : function( result ) {
-			result = parse_result( result );
-			if( result.succeeded ) {
-				tag_id = Number(result.id);
-				hide_tag_selection( button );
-				if( entry_id ) {
-					// Daten neu laden, um Änderungen zu übernehmen:
-					get_module( "get", {
-						args : {id : entry_id, view : "all", recursive : true},
-						done : function( result ) {
-							result = parse_result( result );
-							if( result.length ) {
-								obj = result[0];
-								$(".entry-content", entry).empty()
-								$(".entry-tags-content", entry).empty()
-								show_object( {dom_parent: entry, obj: obj, update: true} );
-							}
-						}
-					});
-				} else {
-					show_object( {dom_parent: tags_content, obj: {id: tag_id}} );
-				}
-			}
-		}
-	});
-}
-
-function remove_tag( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	var tag = $(button).closest('.entry-tag')[0];
-	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
-		$(tag).remove();
-		return;
-	}
-	var entry_id = $(entry).data().obj.id;
-	var tag_id = $(tag).data().obj.id;
-	var tags_content = $(button).closest('.entry-tags-content')[0];
-	get_module( "delete", {
-		args : {parent_id : entry_id, id : tag_id},
-		done : function( result ) {
-			result = parse_result( result );
-			if( result.succeeded ) {
-				$(tag).remove();
-			}
-		}
-	});
-}
-
-function link_external( button, recursive ) {
+Entry.prototype.link_external = function( button, recursive ) {
+	var my = this;
 	var entry = $(button).closest(".ems-entry")[0];
 	var entry_id = $(entry).data().obj.id;
 	get_module( "get", {
@@ -929,4 +915,140 @@ function link_external( button, recursive ) {
 			}
 		}
 	});
-}
+};
+
+var EntryTag = function( parms ) {
+	var my = this;
+	parms = parms ? parms : {};
+	BaseItem.call( this, parms );
+};
+EntryTag.prototype = Object.create( BaseItem.prototype );
+EntryTag.prototype.constructor = EntryTag;
+
+EntryTag.prototype.init = function() {
+	var my = this;
+	if( my.template==undefined ) {
+		// FIXME: We should try to do only one request for the template,
+		//        even if a bunch of objects are initiated the same time,
+		//        e.g. at initial page load.
+		GlobalRequestQueue.add({
+			module : "render",
+			args : {tpl : "elements/entry-tag.html"},
+			done : function(result) {
+				EntryTag.prototype.template = result;
+				my.init();
+			}, 
+			fail : function(result) {
+				show_error( result )
+			}
+		});
+		GlobalRequestQueue.process();
+	} else {
+		BaseItem.prototype.init.call( this );
+		my.label = $( ".entry-tag-label", my.dom_object )[0];
+		my.tools = $( ".entry-tag-tools", my.dom_object )[0];
+		my.button_search = $( ".entry-tag-tool-filter-for", my.dom_object )[0];
+		my.button_exclude = $( ".entry-tag-tool-filter-exclude", my.dom_object )[0];
+		my.button_add = $( ".entry-tag-add", my.dom_object )[0];
+		my.button_remove = $( ".entry-tag-remove", my.dom_object )[0];
+		
+		$(my.dom_object).attr( {title: my.obj.title} );
+		var label_limit = 30;
+		var label_text = my.obj.title.length<=label_limit-3 ? my.obj.title : my.obj.title.substr(0,label_limit-3)+"...";
+		$(my.label).text( label_text );
+		my.get_tag_search_query = function( label, modifier ) {
+			modifier = modifier ? modifier : "";
+			var parts = my.obj.title.match( /(\S+)/g );
+			var tag_search_query = "";
+			for( var i=0; i<parts.length; i++ ) {
+				tag_search_query += (i>0 ? " " : "")+modifier+"tag:"+parts[i];
+			}
+			return tag_search_query;
+		}
+		$(my.button_search).on("click", function(ev) {
+			global_search.entry.text( my.get_tag_search_query(my.obj.title) );
+			global_search.search();
+		});
+		$(my.button_exclude).on("click", function(ev) {
+			var search_phrase = global_search.entry.text();
+			if( search_phrase=='' ) search_phrase = 'type:entry';
+			global_search.entry.text( search_phrase+' '+my.get_tag_search_query(my.obj.title,"--") );
+			global_search.search();
+		});
+		if( my.parent && my.parent.obj ) {
+			if( $(my.dom_parent).hasClass('entry-tags-search-result') ) {
+				$(my.button_remove).hide();
+				if( my.obj.permissions.indexOf("write")>=0 && my.parent.obj.permissions.indexOf("write")>=0 ) {
+					$(my.button_add).show();
+				} else {
+					$(my.button_add).hide();
+				}
+			} else {
+				$(my.button_add).hide();
+				if( my.obj.permissions.indexOf("write")>=0 && my.parent.obj.permissions.indexOf("write")>=0 ) {
+					$(my.button_remove).show();
+				} else {
+					$(my.button_remove).hide();
+				}
+			}
+		}
+		
+		my.button_add_tag = $(".entry-tag-add", my.dom_object)[0];
+		$(my.button_add_tag).on( "click", function() { my.add_tag(); } );
+		my.button_remove_tag = $(".entry-tag-remove", my.dom_object)[0];
+		$(my.button_remove_tag).on( "click", function() { my.remove_tag(); } );
+	}
+};
+
+EntryTag.prototype.add_tag = function() {
+	var my = this;
+	var get_args = { parent_id : String(5) };
+	if( my.parent.obj.id ) {
+		get_args.parent_id += ","+String(my.parent.obj.id);
+	}
+	if( my.obj && my.obj.id ) {
+		get_args["id"] = String(my.obj.id);
+	} else {
+		get_args["title"] = my.obj.title;
+		get_args["type"] = my.obj.type;
+	}
+	get_module( "store", {
+		args : get_args,
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded ) {
+				var tag_id = Number(result.id);
+				my.parent.hide_tag_selection();
+				// Daten neu laden, um Änderungen zu übernehmen:
+				get_module( "get", {
+					args : {id : tag_id, view : "all", recursive : false},
+					done : function( result ) {
+						result = parse_result( result );
+						if( result.length ) {
+							var obj = result[0];
+							new EntryTag( {obj: obj, parent: my.parent, dom_parent: my.parent.tags_content} );
+						}
+					}
+				});
+			}
+		}
+	});
+};
+
+EntryTag.prototype.remove_tag = function() {
+	var my = this;
+	if( !my.parent || !my.parent.obj || !my.obj || !my.obj.id ) {
+		$(my.dom_object).remove();
+		return;
+	}
+	get_module( "delete", {
+		args : {parent_id : my.parent.obj.id, id : my.obj.id},
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded ) {
+				$(my.dom_object).remove();
+			}
+		}
+	});
+};
+

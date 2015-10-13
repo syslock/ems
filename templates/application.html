@@ -164,8 +164,8 @@
 							unlight( button.parentNode );
 						} else if( result ) {
 							var parms = { obj:{type:'application/x-obj.entry'}, dom_object:button.parentNode };
-							new_item( parms );
-							if( parms.id ) {
+							var item = new BaseItem( parms );
+							if( item.obj.id ) {
 								store_application( button );
 								edit_entry( button );
 								unlight( button.parentNode );

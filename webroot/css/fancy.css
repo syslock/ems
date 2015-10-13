@@ -377,7 +377,7 @@ button.entry-delete-button {
 .new-entry .entry-bubble {
 	border: 2px solid orange;
 }
-.ems-item:hover .new-entry .entry-tools {
+.new-entry .entry-tools {
 	display: none;
 }
 .entry-edit-tools {
@@ -385,7 +385,7 @@ button.entry-delete-button {
 	position: absolute;
 	margin-left: 10px;
 }
-.ems-item:hover .new-entry .entry-edit-tools {
+.new-entry .entry-edit-tools {
 	display: inline-block;
 }
 .entry-edit-tools-decorator-left {
@@ -492,7 +492,7 @@ input.entry-tag {
 }
 .entry-tag-remove {
 }
-.entry-tag-new {
+.entry-tag-new .entry-tag {
 	background-color: #ffdfdf;
 }
 

@@ -60,8 +60,7 @@ function reload_page() {
 	document.location.href = document.location.href;
 }
 
-function parse_result( result )
-{
+function parse_result( result ) {
 	if( typeof(result)=="object" ) {
 		var xhr = result;
 		result = xhr.responseText;
@@ -83,7 +82,7 @@ function parse_result( result )
 		}
 	}
 	hide_status();
-	if( result.error ) {
+	if( result && result.error ) {
 		if( result.error.message ) {
 			show_message( result.error.message );
 			console.log( result.error.message );

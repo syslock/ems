@@ -1,4 +1,8 @@
-var Entry = function( parms ) {
+// FIXME: module encapsulation:
+var Entry = null;
+
+define( ["jquery","item"], function($,BaseItem) {
+Entry = function( parms ) {
 	var my = this;
 	parms = parms ? parms : {};
 	parms.obj = parms.obj ? parms.obj : {};
@@ -481,3 +485,5 @@ Entry.prototype.link_external = function( recursive ) {
 		show_message( "Bitte speichere den Beitrag bevor du einen Link erstellst" );
 	}
 };
+return Entry;
+}); //define()

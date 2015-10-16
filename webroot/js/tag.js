@@ -1,4 +1,8 @@
-var EntryTag = function( parms ) {
+// FIXME: module encapsulation:
+var EntryTag = null;
+
+define(["jquery","item"], function($,BaseItem) {
+EntryTag = function( parms ) {
 	var my = this;
 	parms = parms ? parms : {};
 	BaseItem.call( this, parms );
@@ -132,3 +136,6 @@ EntryTag.prototype.remove_tag = function() {
 		}
 	});
 };
+
+return EntryTag;
+}); //define()

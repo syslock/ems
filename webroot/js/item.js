@@ -1,6 +1,8 @@
+// FIXME: module encapsulation:
+var BaseItem = null;
 
-
-function BaseItem( parms ) {
+define( ["jquery"], function($) {
+BaseItem = function( parms ) {
 	var my = this;
 	my.obj = parms.obj;
 	my.short_type = my.get_short_type()
@@ -149,6 +151,8 @@ BaseItem.prototype.display = function() {
 	return item;
 }
 
+return BaseItem;
+}); //define()
 
 function create_download( obj ) {
 	var prettyprint_title = function(obj) {

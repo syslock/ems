@@ -60,8 +60,9 @@ function change_password( button, old_password, new_password ) {
 }
 
 function change_user_image( button ) {
-	var user_element = $(button).closest(".ems-user")[0];
-	var user_id = $(user_element).data().obj.id;
+	var user_element = $(button).closest(".ems-item > .ems-user")[0];
+	var user_item = user_element.parentNode;
+	var user_id = $(user_item).data().obj.id;
 	$('.user-image-dialog',user_element)[0].style.display='';
 	var preview_area = $('.user-image-preview',user_element)[0];
 	$(preview_area).bind( "dragover", function(event) {
@@ -139,8 +140,9 @@ function replace_user_image( user_element, avatar_id ) {
 }
 
 function confirm_user_image( button ) {
-	var user_element = $(button).closest(".ems-user")[0];
-	var user_id = $(user_element).data().obj.id;
+	var user_element = $(button).closest(".ems-item > .ems-user")[0];
+	var user_item = user_element.parentNode;
+	var user_id = $(user_item).data().obj.id;
 	var preview_image = $('.user-image-preview img',user_element)[0];
 	if( preview_image && $(preview_image).data().obj && $(preview_image).data().obj.id ) {
 		var avatar_id = $(preview_image).data().obj.id;

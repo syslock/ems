@@ -1,12 +1,9 @@
-function get_short_type( type ) {
-	return type.match(/.*\.([^.]*)/)[1]
-}
 
 
 function BaseItem( parms ) {
 	var my = this;
 	my.obj = parms.obj;
-	my.short_type = get_short_type( my.obj.type )
+	my.short_type = my.get_short_type()
 	my.dom_object = parms.dom_object;
 	my.dom_parent = parms.dom_parent;
 	my.dom_child = parms.dom_child;
@@ -19,6 +16,12 @@ function BaseItem( parms ) {
 	my.custom_class = parms.custom_class;
 	
 	my.init();
+}
+
+BaseItem.prototype.get_short_type = function( type ) {
+	var my = this;
+	var _type = type ? type : my.obj.type;
+	return _type.match(/.*\.([^.]*)/)[1];
 }
 
 BaseItem.prototype.init = function() {
@@ -173,8 +176,7 @@ function show_search_result( parms ) {
 	}
 }
 
-function show_object( parms )
-{
+function show_object( parms ){
 	var obj = parms.obj;
 	var dom_parent = parms.dom_parent;
 	var dom_child = parms.dom_child;
@@ -205,7 +207,7 @@ function show_object( parms )
 			item.parent = parent;
 			if( dom_parent ) {
 				for( var i in obj.children ) {
-					show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
+					show_object( {obj:obj.children[i], dom_parent:$("."+item.get_short_type()+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
 				}
 			}
 		}});
@@ -215,7 +217,7 @@ function show_object( parms )
 			minion.parent = parent;
 			if( dom_parent ) {
 				for( var i in obj.children ) {
-					show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
+					show_object( {obj:obj.children[i], dom_parent:$("."+item.get_short_type()+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
 				}
 			}
 		}});
@@ -227,7 +229,7 @@ function show_object( parms )
 			}
 			if( dom_parent ) {
 				/*for( var i in obj.children ) {
-					show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
+					show_object( {obj:obj.children[i], dom_parent:$("."+item.get_short_type()+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
 				}*/
 			}
 		}});
@@ -429,7 +431,3 @@ function filter_user_content( button, mode ) {
 	global_search.entry.text( search_phrase );
 	global_search.search();
 }
-
-var offsets_loaded = {};
-var filters = { ids:{}, child_ids:{}, parent_ids:{} };
-

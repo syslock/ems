@@ -221,13 +221,6 @@ Entry.prototype.remove_new_entry_item = function() {
 
 Entry.prototype.store = function() {
 	var my = this;
-	var upload_dialogs = $( ".upload-dialog", my.entry );
-	upload_dialogs.each( function(i, element) {
-		if( element && $(element).data && $(element).data("upload_dialog") ) {
-			// FIXME: Wir sollten einen generischen Weg haben die JS-Objekte in den DOM-Elementen zu referenzieren.
-			$(element).data("upload_dialog").confirm_upload();
-		}
-	});
 	
 	$(my.entry).removeClass("new-entry");
 	var new_entry_created = false;
@@ -241,6 +234,13 @@ Entry.prototype.store = function() {
 	}
 	BaseItem.prototype.store.call( my, {callback: function() {
 		if( my.content ) {
+			var upload_dialogs = $( ".upload-dialog", my.content );
+			upload_dialogs.each( function(i, element) {
+				if( element && $(element).data && $(element).data("upload_dialog") ) {
+					// FIXME: Wir sollten einen generischen Weg haben die JS-Objekte in den DOM-Elementen zu referenzieren.
+					$(element).data("upload_dialog").confirm_upload();
+				}
+			});
 			my.content.contentEditable = false
 			var content_list = my.get_object_list( my.content );
 			// Standard-Tools wiederherstellen und Themen des Beitrages dabei zurück kopieren:

@@ -1,6 +1,7 @@
 function edit_password( button ) {
-	var user_element = $(button).closest(".ems-user")[0];
-	var user_id = $(user_element).data().obj.id;
+	var user_element = $(button).closest(".ems-item > .ems-user")[0];
+	var user_item = user_element.parentNode;
+	var user_id = $(user_item).data().obj.id;
 	if( global_user.id == user_id ) {
 		// Bei Änderung des eigenen Passworts aus Sicherheitsgründen das alte abfragen:
 		// (serverseitige Berechtigungsprüfung übernimmt in jedem Fall der Store-Handler)
@@ -12,8 +13,9 @@ function edit_password( button ) {
 }
 
 function change_password( button, old_password, new_password ) {
-	var user_element = $(button).closest(".ems-user")[0];
-	var user_id = $(user_element).data().obj.id;
+	var user_element = $(button).closest(".ems-item > .ems-user")[0];
+	var user_item = user_element.parentNode;
+	var user_id = $(user_item).data().obj.id;
 	var old_password = $('.user-old-password-input',user_element)[0].value;
 	var new_password = $('.user-new-password-input',user_element)[0].value;
 	var new_password_2 = $('.user-new-password-input-2',user_element)[0].value;
@@ -160,10 +162,11 @@ function confirm_user_image( button ) {
 }
 
 function show_user_details( button ) {
-	var user_element = $(button).closest(".ems-user")[0];
+	var user_element = $(button).closest(".ems-item > .ems-user")[0];
+	var user_item = user_element.parentNode;
 	var dialog = $('.user-details-dialog',user_element)[0];
 	dialog.style.display=''
-	var user = $(user_element).data().obj;
+	var user = $(user_item).data().obj;
 	$('.user-details-nick-input',dialog).attr( {value: user.nick} );
 	$('.user-details-id-input',dialog).attr( {value: user.id} );
 	$('.user-details-ctime-input',dialog).attr( {value: (new Date(user.ctime*1000)).toLocaleString()} );
@@ -194,11 +197,12 @@ function close_user_details( button ) {
 }
 
 function show_group_selection( button ) {
-	var user_element = $(button).closest(".ems-user")[0];
+	var user_element = $(button).closest(".ems-item > .ems-user")[0];
+	var user_item = user_element.parentNode;
 	var dialog = $('.user-details-dialog',user_element)[0];
 	var groups = $(button).closest(".user-details-groups")[0];
 	var groups_selection = $(".user-groups-selection", groups)[0];
-	var user = $(user_element).data().obj;
+	var user = $(user_item).data().obj;
 	get_module( "get", {
 		args : {type : "application/x-obj.group", child_id : -user.id, permissions : "write", limit : 50},
 		done : function( result ) {
@@ -223,10 +227,12 @@ function show_group_selection( button ) {
 	});
 }
 function add_group( button ) {
-	var user = $(button).closest(".ems-user")[0];
-	var user_id = $(user).data().obj ? $(user).data().obj.id : undefined;
-	var group = $(button).closest('.ems-group')[0];
-	var group_id = $(group).data().obj.id;
+	var user = $(button).closest(".ems-item > .ems-user")[0];
+	var user_item = user.parentNode;
+	var user_id = $(user_item).data().obj ? $(user_item).data().obj.id : undefined;
+	var group = $(button).closest('.ems-item > .ems-group')[0];
+	var group_item = group.parentNode;
+	var group_id = $(group_item).data().obj.id;
 	var groups_selection = $(button).closest('.user-groups-selection')[0];
 	var groups_content = $('.user-groups-content',user)[0];
 	get_module( "store", {
@@ -242,14 +248,16 @@ function add_group( button ) {
 	});
 }
 function remove_group( button ) {
-	var user = $(button).closest(".ems-user")[0];
-	var group = $(button).closest('.ems-group')[0];
-	if( !$(user).data().obj || !$(user).data().obj.id ) {
-		$(group).remove();
+	var user = $(button).closest(".ems-item > .ems-user")[0];
+	var user_item = user.parentNode;
+	var group = $(button).closest('.ems-item > .ems-group')[0];
+	var group_item = group.parentNode;
+	if( !$(user_item).data().obj || !$(user_item).data().obj.id ) {
+		$(group_item).remove();
 		return;
 	}
-	var user_id = $(user).data().obj.id;
-	var group_id = $(group).data().obj.id;
+	var user_id = $(user_item).data().obj.id;
+	var group_id = $(group_item).data().obj.id;
 	var groups_content = $(button).closest('.user-groups-content')[0];
 	get_module( "delete", {
 		args : {id : user_id, parent_id : group_id},

@@ -216,8 +216,7 @@ Entry.prototype.restore_standard_tools = function() {
 Entry.prototype.remove_new_entry_item = function() {
 	var my = this;
 	// neues entry-Objekt und Pseudo-Item löschen:
-	var item = $(my.entry).closest(".ems-item")[0];
-	$(item).remove();
+	$(my.dom_object).remove();
 };
 
 Entry.prototype.store = function() {
@@ -452,31 +451,33 @@ Entry.prototype.hide_tag_selection = function() {
 	$(my.tags_search_result).empty();
 };
 
-Entry.prototype.link_external = function( button, recursive ) {
+Entry.prototype.link_external = function( recursive ) {
 	var my = this;
-	var entry = $(button).closest(".ems-entry")[0];
-	var entry_id = $(entry).data().obj.id;
-	get_module( "get", {
-		args : {type : 'application/x-obj.publication', parent_id : entry_id},
-		done : function( result ) {
-			result = parse_result( result );
-			if( result.length ) {
-				var pub = result[0];
-				show_object( {dom_parent: entry, obj: pub, update: true} );
-				$( ".entry-publication-link", entry ).wrap( $("<div>").addClass("highlight") );
-			} else if( !recursive ) {
-				get_module( "store", {
-					args : {type : 'application/x-obj.publication', parent_id : entry_id},
-					done : function( result ) {
-						result = parse_result( result );
-						if( result.succeeded ) {
-							link_external( button, /*recursive=*/true );
+	if( my.obj && my.obj.id ) {
+		get_module( "get", {
+			args : {type : 'application/x-obj.publication', parent_id : my.obj.id},
+			done : function( result ) {
+				result = parse_result( result );
+				if( result.length ) {
+					var pub = result[0];
+					show_object( {parent: my, obj: pub, update: true} );
+					$( ".entry-publication-link", my.entry ).wrap( $("<div>").addClass("highlight") );
+				} else if( !recursive ) {
+					get_module( "store", {
+						args : {type : 'application/x-obj.publication', parent_id : my.obj.id},
+						done : function( result ) {
+							result = parse_result( result );
+							if( result.succeeded ) {
+								my.link_external( /*recursive=*/true );
+							}
 						}
-					}
-				});
-			} else {
-				show_message( "Externer Link konnte nicht erstellt werden" );
+					});
+				} else {
+					show_message( "Externer Link konnte nicht erstellt werden" );
+				}
 			}
-		}
-	});
+		});
+	} else {
+		show_message( "Bitte speichere den Beitrag bevor du einen Link erstellst" );
+	}
 };

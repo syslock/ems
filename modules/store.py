@@ -77,58 +77,65 @@ def store_object( app, file_item=None ):
 		else:
 			raise errors.ParameterError()
 	else:
-		object_id = None
 		if "id" in query.parms:
-			object_id = int( query.parms["id"] )
-			if not app.user.can_write( object_id ):
-				raise errors.PrivilegeError()
-			if not media_type:
-				# nicht explizit angegebenen media_type aus dem DBObject holen:
-				obj = db_object.DBObject( app, object_id=object_id )
-				media_type = obj.media_type
+			object_id_list = [ int(x) for x in query.parms["id"].split(",") ]
+			for object_id in object_id_list:
+				if not app.user.can_write( object_id ):
+					raise errors.PrivilegeError()
+		else:
+			object_id_list = [None]
 		parent_id = None
 		if "parent_id" in query.parms:
 			parent_id = [ int(x) for x in query.parms["parent_id"].split(",") ]
 		sequence = 0
 		if "sequence" in query.parms:
 			sequence = int( query.parms["sequence"] )
-		obj = None
-		if file_item!=None:
-			# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
-			# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
-			obj = db_object.File( app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
-			# Chunk-Position parsen, falls vorhanden:
-			try:
-				chunk_name, chunk_start, chunk_end_exclusive, file_expected_size = file_item.name.split(":")
-			except ValueError:
-				pass
+		store_id_list = []
+		for object_id in object_id_list:
+			if not media_type:
+				# nicht explizit angegebenen media_type aus dem DBObject holen:
+				obj = db_object.DBObject( app, object_id=object_id )
+				media_type = obj.media_type
+			obj = None
+			if file_item!=None:
+				# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
+				# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
+				obj = db_object.File( app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
+				# Chunk-Position parsen, falls vorhanden:
+				try:
+					chunk_name, chunk_start, chunk_end_exclusive, file_expected_size = file_item.name.split(":")
+				except ValueError:
+					pass
+				else:
+					query.parms.update( {
+						"chunk_name" : chunk_name,
+						"chunk_start" : int( chunk_start ),
+						"chunk_end" : int(chunk_end_exclusive) - 1,
+						"chunk_size" : int(chunk_end_exclusive) - int(chunk_start),
+						"file_expected_size" : int( file_expected_size )} )
+			elif media_type == db_object.Text.media_type:
+				obj = db_object.Text( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
+			elif media_type == db_object.HTML.media_type:
+				obj = db_object.HTML( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
+			elif media_type == user.User.media_type and object_id:
+				obj = user.User( app, user_id=object_id )
+			elif media_type == publication.Publication.media_type:
+				obj = publication.Publication( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
+			elif media_type == db_object.Minion.media_type:
+				obj = db_object.Minion( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 			else:
-				query.parms.update( {
-					"chunk_name" : chunk_name,
-					"chunk_start" : int( chunk_start ),
-					"chunk_end" : int(chunk_end_exclusive) - 1,
-					"chunk_size" : int(chunk_end_exclusive) - int(chunk_start),
-					"file_expected_size" : int( file_expected_size )} )
-		elif media_type == db_object.Text.media_type:
-			obj = db_object.Text( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
-		elif media_type == db_object.HTML.media_type:
-			obj = db_object.HTML( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
-		elif media_type == user.User.media_type and object_id:
-			obj = user.User( app, user_id=object_id )
-		elif media_type == publication.Publication.media_type:
-			obj = publication.Publication( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
-		elif media_type == db_object.Minion.media_type:
-			obj = db_object.Minion( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
+				obj = db_object.DBObject( app, object_id=object_id, 
+										parent_id=parent_id, 
+										media_type=media_type,
+										sequence=sequence )
+			obj.update( **dict(itertools.chain( 
+							query.parms.items(),
+							{"parent_id":parent_id, "data":data, "title":title, 
+								"sequence":sequence}.items(),
+							)) )
+			store_id_list.append( obj.id );
+		if len(store_id_list):
+			response.output = json.dumps( {"succeeded" : True, 
+									"id" : store_id_list if len(store_id_list)>1 else store_id_list[0]} )
 		else:
-			obj = db_object.DBObject( app, object_id=object_id, 
-									  parent_id=parent_id, 
-									  media_type=media_type,
-									  sequence=sequence )
-		obj.update( **dict(itertools.chain( 
-						query.parms.items(),
-						{"parent_id":parent_id, "data":data, "title":title, 
-							"sequence":sequence}.items(),
-						 )) )
-		response.output = json.dumps( {"succeeded" : True, 
-								"id" : obj.id} )
-
+			raise errors.StateError( _("Nothing Stored") )

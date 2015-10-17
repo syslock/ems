@@ -245,57 +245,111 @@ Entry.prototype.store = function() {
 					$(element).data("upload_dialog").confirm_upload();
 				}
 			});
-			my.content.contentEditable = false
-			var content_list = my.get_object_list( my.content );
-			// Standard-Tools wiederherstellen und Themen des Beitrages dabei zurück kopieren:
+			var old_objrefs = $( ".objref", my.content );
+			old_objrefs.each( function(i, objref) {
+				if( !$(objref).data("obj") || !$(objref).data("obj").id ) {
+					// Alte objref-Elemente, ohne Objektmetadaten werden unter Beibehaltung
+					// ihrer Kindelemente herausgelöst...
+					$(objref).children().unwrap();
+				} else {
+					// solche mit Objektmetadaten, umgeformt, da beim Speichern 
+					// nur die aktuellen Objektmetadaten verwendet werden sollen.
+					$(objref).removeClass( "objref" ).removeAttr( "oid" );
+				}
+			});
+			my.content.contentEditable = false;
+			var store_content = $(my.content).clone(true,true);
+			var extract_children = function( element, data ) {
+				$(element).children().each( function(i,element) {
+					var obj = $(element).data("obj");
+					if( obj && obj.id ) {
+						if( obj.type=="text/html" || obj.type=="text/plain" ) {
+							if( !data.html_obj.id && obj.type=="text/html" ) {
+								// Das erste bestehende HTML-Objekt wird als Speicherplatz für den ganzen HTML-Content 
+								// verwendet, bei bestehenden Beiträgen ist dies in der Regel bereits das Top-Level-Item.
+								data.html_obj = obj;
+							}
+							$(element).data( {"obj":undefined} );
+							if( obj.children && obj.children.length ) {
+								data.extracted_children = data.extracted_children.concat( obj.chilren );
+							}
+							extract_children( element, data );
+						} else {
+							$(element).replaceWith( $("<div></div>").attr({'class':'objref', 'oid':String(obj.id)}) );
+							data.extracted_children.push( obj );
+						}
+					} else {
+						extract_children( element, data );
+					}
+				});
+			};
+			var content_data = { html_obj:{type:"text/html"}, extracted_children:[] };
+			extract_children( store_content, content_data );
+			// Standard-Tools wiederherstellen und Themen des Beitrages ermitteln:
 			my.restore_standard_tools();
 			if( my.tags_content ) {
-				content_list = content_list.concat( my.get_object_list(my.tags_content) );
+				var tag_data = { html_obj:{}, extracted_children:[] };
+				extract_children( my.tags_content, tag_data );
 			}
 			// Inhalt speichern:
-			var part_id_list = []
-			for( var i in content_list ) {
-				var obj = content_list[i];
-				if( obj.id==undefined && obj.type && obj.data ) {
-					// neu zu speichernde Objekte mit Inhalt, ohne bestehende ID-Zuordnung:
-					// (bisher nur text/plain)
-					post_module( "store", {
-						args : {type : obj.type, parent_id : String(my.obj.id), sequence : String(i)},
-						data : { data: obj.data },
-						async : false, /* hier, ohne komplizierteres Event-Handling, wichtig zur Vermeidung von Race-Conditions */
-						done : function( result ) {
-							result = parse_result( result )
-							if( result.succeeded ) {
-								part_id_list.push( result.id )
-							}
-						}
-					});
-				} else if( obj.id && (obj.unassigned==undefined || obj.unassigned==true || obj.changed==true) ) {
-					// bereits gespeicherte oder lokal geänderte Objekte, mit bestehender ID-Zuordnung, 
-					// die dem Eintrag in korrekter Sequenz (neu) zugewiesen oder gespeichert werden müssen:
-					get_module( "store", {
-						args : {id : obj.id, parent_id : String(my.obj.id), sequence : String(i)},
-						type : obj.changed ? "POST" : "GET",
-						data : obj.changed ? { data: obj.data } : undefined,
-						async : false, /* hier, ohne komplizierteres Event-Handling, wichtig zur Vermeidung von Race-Conditions */
-						done : function( result ) {
-							result = parse_result( result )
-							if( result.succeeded ) {
-								part_id_list.push( result.id )
-							}
-						}
-					});
-				}
+			var html_obj = content_data.html_obj;
+			$(".entry-html",store_content).children().unwrap();
+			html_obj.data = store_content.html();
+			var html_store_args = { type: html_obj.type, parent_id: String(my.obj.id), data: html_obj.data };
+			if( html_obj.id ) {
+				html_store_args.id = html_obj.id;
 			}
-			// serverseitige Bereinigung alter Daten:
-			// (Damit das so funktioniert, ist es wichtig, dass der Neuzuordnungsfall bestehender Objekte (2. Fall oben)
-			//  eine Duplikatbehandlung der Eltern-Kind-Beziehungen vornimmt, sodass bestehende Zuordnungen aktualisiert
-			//  (Sequenz) und nicht vermehrt werden...)
-			get_module( "delete", {
-				args : {parent_id : String(my.obj.id), child_not_in : part_id_list.join(",")},
-				async : false,
-				done : function( result ) {
-					result = parse_result( result )
+			post_module( "store", {
+				args : html_store_args,
+				done : function(result) {
+					result = parse_result(result);
+					if( result.succeeded && result.id ) {
+						var html_id = result.id;
+						// im Beitragstext referenzierte Kindobjekte speichern:
+						var content_id_list = [];
+						for( var i in content_data.extracted_children ) {
+							var obj = content_data.extracted_children[i];
+							if( obj && obj.id ) {
+								content_id_list.push( obj.id );
+							}
+						}
+						post_module( "store", {
+							args : { parent_id: String(html_id), id: content_id_list.join(",") },
+							done : function(result) {
+								result = parse_result(result);
+								if( result.succeeded && result.id ) {
+									post_module( "delete", {
+										args : {parent_id : String(html_id), child_not_in : content_id_list.join(",")}
+									});
+								}
+							}
+						});
+						// Tags (TODO: und andere dem Beitrag direkt untergeordnete Objekte) speichern und verbliebene Kindobjekte bereinigen:
+						var tag_id_list = [];
+						for( var i in tag_data.extracted_children ) {
+							var obj = tag_data.extracted_children[i];
+							if( obj && obj.id ) {
+								tag_id_list.push( obj.id );
+							}
+						}
+						if( tag_id_list.length ) {
+							post_module( "store", {
+								args : { parent_id: String(my.obj.id), id: tag_id_list.join(",") },
+								done : function(result) {
+									result = parse_result(result);
+									if( result.succeeded && result.id ) {
+										post_module( "delete", {
+											args : {parent_id : String(my.obj.id), child_not_in : [html_id].concat(tag_id_list).join(",")}
+										});
+									}
+								}
+							});
+						} else {
+							post_module( "delete", {
+								args : {parent_id : String(my.obj.id), child_not_in : [html_id].join(",")}
+							});
+						}
+					}
 				}
 			});
 		}

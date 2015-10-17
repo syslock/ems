@@ -248,9 +248,14 @@ function show_object( parms ){
 		}
 	} else if( obj.type == "text/html" ) {
 		if( dom_parent && obj.data ) {
-			obj.dom_object = $( obj.data )[0];
+			obj.dom_object = $( "<div></div>" ).attr( {'class':'entry-html'} ).html( obj.data )[0];
 			$(obj.dom_object).data( {obj: obj} );
 			$(dom_parent).append( obj.dom_object );
+			for( var i in obj.children ) {
+				var child = obj.children[i];
+				var objref = $( '.objref[oid='+String(child.id)+']', obj.dom_object )[0];
+				show_object( {obj:obj.children[i], dom_parent:(objref ? objref : obj.dom_object), limit:limit, update:update, parent:obj/*FIXME: should be instance of BaseItem*/} )
+			}
 		}
 	} else if( obj.type && obj.type.match(/^image\//) && obj.id ) {
 		if( dom_parent ) {

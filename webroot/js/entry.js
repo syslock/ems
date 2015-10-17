@@ -257,6 +257,14 @@ Entry.prototype.store = function() {
 					$(objref).removeClass( "objref" ).removeAttr( "oid" );
 				}
 			});
+			// HTTP(S)-Link-Signaturen in Text-Knoten außerhalb von A-Element mit neuen A-Elementen ummanteln:
+			var text_nodes = getTextNodesIn( $('.entry-content')[0] );
+			for( var i in text_nodes ) {
+				var text_node = text_nodes[i];
+				if( $(text_node).closest('a').length==0 ) {
+					$(text_node).replaceWith( $(text_node).text().replace(/(https?:\/\/[^ ]+)/gim,'<a href="$1" target="_blank">$1</a>') );
+				}
+			}
 			my.content.contentEditable = false;
 			var store_content = $(my.content).clone(true,true);
 			var extract_children = function( element, data ) {

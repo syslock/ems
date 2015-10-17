@@ -343,7 +343,7 @@ var UploadDialog = function( parms ) {
 			my.poster_dialog.close_upload_dialog();
 		}
 		var upload_object = $('.upload-object', my.upload_dialog);
-		my.upload_dialog.after( upload_object );
+		my.upload_dialog.after( upload_object.detach() );
 		if( upload_object.hasClass('download-link') ) {
 			// fancy.css braucht wegen eines Offset-Bugs einen zusätzlichen Zeilenumbruch nach Links:
 			upload_object.after( '<br>' );

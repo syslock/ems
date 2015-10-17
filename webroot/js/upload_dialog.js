@@ -344,10 +344,6 @@ var UploadDialog = function( parms ) {
 		}
 		var upload_object = $('.upload-object', my.upload_dialog);
 		my.upload_dialog.after( upload_object.detach() );
-		if( upload_object.hasClass('download-link') ) {
-			// fancy.css braucht wegen eines Offset-Bugs einen zusätzlichen Zeilenumbruch nach Links:
-			upload_object.after( '<br>' );
-		}
 		upload_object[0].contentEditable = false; // verhindert Editierbarkeit des Links
 		my.close_upload_dialog();
 	};

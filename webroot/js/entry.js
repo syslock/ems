@@ -313,17 +313,25 @@ Entry.prototype.store = function() {
 								content_id_list.push( obj.id );
 							}
 						}
-						post_module( "store", {
-							args : { parent_id: String(html_id), id: content_id_list.join(",") },
-							done : function(result) {
-								result = parse_result(result);
-								if( result.succeeded && result.id ) {
-									post_module( "delete", {
-										args : {parent_id : String(html_id), child_not_in : content_id_list.join(",")}
-									});
+						var delete_childs_not_in = function( parent_id, child_not_in, done ) {
+							post_module( "delete", {
+								args : {parent_id : String(parent_id), child_not_in : child_not_in.join(",")},
+								done : done
+							});
+						}
+						if( content_id_list.length ) {
+							post_module( "store", {
+								args : { parent_id: String(html_id), id: content_id_list.join(",") },
+								done : function(result) {
+									result = parse_result(result);
+									if( result.succeeded && result.id ) {
+										delete_childs_not_in( html_id, content_id_list );
+									}
 								}
-							}
-						});
+							});
+						} else {
+							delete_childs_not_in( html_id, [] );
+						}
 						// Tags (TODO: und andere dem Beitrag direkt untergeordnete Objekte) speichern und verbliebene Kindobjekte bereinigen:
 						var tag_id_list = [];
 						for( var i in tag_data.extracted_children ) {
@@ -338,16 +346,12 @@ Entry.prototype.store = function() {
 								done : function(result) {
 									result = parse_result(result);
 									if( result.succeeded && result.id ) {
-										post_module( "delete", {
-											args : {parent_id : String(my.obj.id), child_not_in : [html_id].concat(tag_id_list).join(",")}
-										});
+										delete_childs_not_in( my.obj.id, [html_id].concat(tag_id_list) );
 									}
 								}
 							});
 						} else {
-							post_module( "delete", {
-								args : {parent_id : String(my.obj.id), child_not_in : [html_id].join(",")}
-							});
+							delete_childs_not_in( my.obj.id, [html_id] );
 						}
 					}
 				}

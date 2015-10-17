@@ -41,9 +41,9 @@ def store_object( app, file_item=None ):
 	query = app.query
 	response = app.response
 	session = app.session
-	media_type = None
+	request_media_type = None
 	if "type" in query.parms:
-		media_type = query.parms["type"]
+		request_media_type = query.parms["type"]
 	title = None
 	if "title" in query.parms:
 		title = query.parms["title"]
@@ -51,13 +51,13 @@ def store_object( app, file_item=None ):
 	if "data" in query.parms:
 		data = query.parms["data"]
 	if file_item!=None:
-		media_type = file_item.type
+		request_media_type = file_item.type
 		title = file_item.filename
 		data = file_item.file
 	# FIXME: Hier blacklisten wir kritische Objekttypen vor unautorisierter
 	# Erstellung (z.B. x-obj.user). Sicherer, aber im Prototyping unpraktischer 
 	# wär es unkritische Objekttypen zu whitelisten.
-	if media_type == user.User.media_type and not "id" in query.parms:
+	if request_media_type == user.User.media_type and not "id" in query.parms:
 		raise NotImplementedError( "Missing feature" ) # TODO
 		c = app.db.cursor()
 		c.execute( """select count(*) from privileges 
@@ -92,6 +92,11 @@ def store_object( app, file_item=None ):
 			sequence = int( query.parms["sequence"] )
 		store_id_list = []
 		for object_id in object_id_list:
+			# Falls wir mehrere Objekt-IDs unter einer Parent-ID gespeichert werden sollen,
+			# können die einzelnen Objekt-Medientypen abweichen, weshalb bei solchen
+			# Requests kein Medientyp mitgegeben und dieser für die einzelnen Objekte
+			# aus der Datenbank abgefragt wird.
+			media_type = request_media_type
 			if not media_type:
 				# nicht explizit angegebenen media_type aus dem DBObject holen:
 				obj = db_object.DBObject( app, object_id=object_id )

@@ -310,7 +310,7 @@ function get_input_text_before_cursor( text_input, parms ) {
 
 /* https://stackoverflow.com/questions/298750/how-do-i-select-text-nodes-with-jquery
 	"jQuery doesn't have a convenient function for this... so here is non-jQuery solution using a simple recursive function." */
-function getTextNodesIn(node, includeWhitespaceNodes) {
+function get_text_nodes_in(node, includeWhitespaceNodes) {
     var textNodes = [], nonWhitespaceMatcher = /\S/;
 
     function getTextNodes(node) {

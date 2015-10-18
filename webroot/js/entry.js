@@ -177,7 +177,7 @@ Entry.prototype.store = function() {
 				}
 			});
 			// HTTP(S)-Link-Signaturen in Text-Knoten außerhalb von A-Element mit neuen A-Elementen ummanteln:
-			var text_nodes = getTextNodesIn( $('.entry-content')[0] );
+			var text_nodes = get_text_nodes_in( $('.entry-content')[0] );
 			for( var i in text_nodes ) {
 				var text_node = text_nodes[i];
 				if( $(text_node).closest('a').length==0 ) {

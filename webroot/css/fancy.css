@@ -357,8 +357,37 @@ button.entry-delete-button {
 	font-weight: normal;
 	font-size: x-small;
 }
+
 .entry-content img {
 	image-orientation: from-image;
+}
+
+.text-marking {
+	background-color: yellow;
+}
+.text-bold {
+	font-weight: bold;
+}
+.text-italic {
+	font-style: italic;
+}
+.text-fixed {
+	font-family: monospace;
+}
+.text-underline {
+	text-decoration: underline;
+}
+.text-strikethrough {
+	text-decoration: line-through;
+}
+.text-overline {
+	text-decoration: overline;
+}
+.text-larger {
+	font-size: larger;
+}
+.text-smaller {
+	font-size: smaller;
 }
 
 /* ------------------------------------------------------------------------- */

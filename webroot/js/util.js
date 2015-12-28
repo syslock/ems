@@ -272,6 +272,19 @@ function get_element_cursor_pos( editableDiv ) {
 
 var get_cursor_pos = get_element_cursor_pos;
 
+function get_element_cursor_range( editableDiv ) {
+  var sel, range;
+  if (window.getSelection) {
+    sel = window.getSelection();
+    if (sel.rangeCount) {
+      range = sel.getRangeAt(0);
+    }
+  } else if (document.selection && document.selection.createRange) {
+    range = document.selection.createRange();
+  }
+  return range;
+}
+
 function get_cursor_word( text_input, parms ) {
 	if( !parms ) {
 		parms = {};

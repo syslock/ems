@@ -254,6 +254,7 @@ function show_object( parms ){
 			for( var i in obj.children ) {
 				var child = obj.children[i];
 				var objref = $( '.objref[oid='+String(child.id)+']', obj.dom_object )[0];
+				$(objref).attr( {'contentEditable': false} );
 				show_object( {obj:obj.children[i], dom_parent:(objref ? objref : obj.dom_object), limit:limit, update:update, parent:obj/*FIXME: should be instance of BaseItem*/} )
 			}
 		}

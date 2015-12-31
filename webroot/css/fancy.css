@@ -390,6 +390,55 @@ button.entry-delete-button {
 	font-size: smaller;
 }
 
+.link-tool {
+	display: inline-block;
+	position: relative;
+	top: 1.2em;
+	left: -3em;
+}
+.link-tool-decorator-top {
+	position: absolute;
+	margin-top: -15px;
+	margin-left: 20px;
+	width: 0px;
+	height: 0px;
+	border-bottom: 15px solid darkviolet;
+	border-left: 30px solid transparent;
+	border-right: 30px solid transparent;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.link-tool-content {
+	position: absolute;
+	min-width: 400px;
+	border-radius: 20px;
+	border: 1px solid darkviolet;
+	border-top: 3px solid darkviolet;
+	padding: 10px;
+	background-color: white;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.link-tool-option {
+	display: flex;
+}
+.link-tool-option + .link-tool-option {
+	margin-top: 1em;
+}
+.link-tool-title {
+	display: inline-block;
+	min-width: 3em;
+	padding-top: 3px;
+}
+.link-tool-value {
+	width: 100%;
+	border: 1px solid darkviolet;
+	border-radius: 5px;
+	padding: 3px;
+}
+.link-tool-buttons {
+	text-align: right;
+	margin-top: 1em;
+}
+
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */
 /* ------------------------------------------------------------------------- */

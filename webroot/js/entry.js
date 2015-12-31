@@ -1,7 +1,7 @@
 // FIXME: module encapsulation:
 var Entry = null;
 
-define( ["jquery","item"], function($,BaseItem) {
+define( ["jquery","item","link-tool"], function($,BaseItem) {
 Entry = function( parms ) {
 	var my = this;
 	parms = parms ? parms : {};
@@ -109,6 +109,7 @@ Entry.prototype.edit = function() {
 			new UploadDialog( {replace_content: element} );
 		});
 		
+		$(my.content).off( "keypress keydown" );
 		$(my.content).on( "keypress", function(e) { my.on_keypress(e); } );
 		$(my.content).on( "keydown", function(e) { my.on_keydown(e); } );
 	}
@@ -166,7 +167,8 @@ Entry.prototype.on_keydown = function( event ) {
 		's' : 'text-strikethrough',
 		'o' : 'text-overline',
 		'+' : 'text-larger',
-		'-' : 'text-smaller'
+		'-' : 'text-smaller',
+		'l' : 'link'
 	}
 	if( event.keyCode==9 ) {
 		var range = get_element_cursor_range( event.target );
@@ -198,7 +200,32 @@ Entry.prototype.on_keydown = function( event ) {
 	} else if( event.ctrlKey==true && format_keys[event.key]!=undefined ) {
 		var format = format_keys[event.key];
 		var range = get_element_cursor_range( event.target );
-		if( !range.collapsed ) {
+		if( format=='link' ) {
+			var existing_links_found = false;
+			for( var current_container = range.startContainer; 
+					current_container != null; 
+					current_container = (current_container==range.endContainer ? null : current_container.nextSibling) ) {
+				$( 'a', current_container ).each( function(i,item) {
+					var new_link_tool = new LinkTool( {link_node: item} );
+					existing_links_found = true;
+				});
+			}
+			if( !existing_links_found && range.startContainer==range.endContainer ) {
+				var closest_link = $(range.startContainer).closest('a')[0];
+				if( closest_link ) {
+					var new_link_tool = new LinkTool( {link_node: closest_link} );
+					existing_links_found = true;
+				}
+			}
+			if( !existing_links_found ) {
+				var contents = range.extractContents();
+				var new_link = $('<a></a>').attr({'href' : ''}).append(contents)[0];
+				range.insertNode( new_link );
+				range.collapse();
+				var new_link_tool = new LinkTool( {link_node: new_link} );
+			}
+			event.preventDefault();
+		} else if( !range.collapsed ) {
 			var contents = range.extractContents();
 			var remove_count = 0;
 			$( 'span.'+format, contents ).each( function(i,item) {

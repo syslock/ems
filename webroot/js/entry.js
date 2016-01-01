@@ -202,28 +202,42 @@ Entry.prototype.on_keydown = function( event ) {
 		var range = get_element_cursor_range( event.target );
 		if( format=='link' ) {
 			var existing_links_found = false;
+			// Zunächst alle existierenden Hyperlinks in aktueller (nicht leerer) Markierung suchen und ggf. bearbeiten:
+			var links_to_edit = []; // But we must not modify the dom while iterating over it!
 			for( var current_container = range.startContainer; 
-					current_container != null; 
-					current_container = (current_container==range.endContainer ? null : current_container.nextSibling) ) {
-				$( 'a', current_container ).each( function(i,item) {
-					var new_link_tool = new LinkTool( {link_node: item} );
-					existing_links_found = true;
-				});
+					!range.collapsed && current_container != null;
+					current_container = (current_container==range.endContainer || current_container.contains(range.endContainer) ? null : current_container.nextSibling) ) {
+				if( current_container.nodeName=='A' ) links_to_edit.push( current_container );
+				for( var i = (current_container==range.startContainer ? range.startOffset : 0 );
+						current_container.nodeName!='#text' && i < (current_container==range.endContainer ? range.endOffset : current_container.length);
+						i++ ) {
+					var current_node = current_container.childNodes[i];
+					if( current_node ) {
+						if( current_node.nodeName=='A' ) links_to_edit.push( current_node );
+						$( 'a', current_node ).each( function(i, item) { links_to_edit.push(item); } );
+					}
+				}
 			}
-			if( !existing_links_found && range.startContainer==range.endContainer ) {
+			for( var i=0; i<links_to_edit.length; i++ ) {
+				var new_link_tool = new LinkTool( {link_node: links_to_edit[i]} );
+				existing_links_found = true;
+			}
+			// Alternativ tiefsten, existierenden Hyperlink an aktueller Cursorposition finden und bearbeiten:
+			if( !existing_links_found ) {
 				var closest_link = $(range.startContainer).closest('a')[0];
 				if( closest_link ) {
 					var new_link_tool = new LinkTool( {link_node: closest_link} );
 					existing_links_found = true;
 				}
 			}
-			if( !existing_links_found ) {
+			// Alternativ den markierten (nicht leeren) Content als neuen Hyperlink auszeichnen:
+			if( !existing_links_found && range.collapsed==false ) {
 				var contents = range.extractContents();
 				var new_link = $('<a></a>').attr({'href' : ''}).append(contents)[0];
 				range.insertNode( new_link );
-				range.collapse();
 				var new_link_tool = new LinkTool( {link_node: new_link} );
 			}
+			range.collapse();
 			event.preventDefault();
 		} else if( !range.collapsed ) {
 			var contents = range.extractContents();

@@ -172,28 +172,30 @@ Entry.prototype.on_keydown = function( event ) {
 	}
 	if( event.keyCode==9 ) {
 		var range = get_element_cursor_range( event.target );
-		if( range && range.startContainer.parentNode.nodeName=='LI' ) {
-			var list_item = range.startContainer.parentNode;
-			if( event.shiftKey==false && list_item.previousSibling && list_item.previousSibling.nodeName=='LI' ) {
-				var prev_list_item = list_item.previousSibling;
-				$(list_item).detach();
-				if( $(prev_list_item).children().last().length && $(prev_list_item).children().last()[0].nodeName=='UL' ) {
-					$(prev_list_item).children().last().append( list_item );
-				} else {
-					$(prev_list_item).append( list_item );
-					$(list_item).wrap('<ul></ul>');
-				}
-			} else if( event.shiftKey==true && list_item.parentNode.parentNode.nodeName=='LI' ) {
-				var list = list_item.parentNode;
-				var parent_item = list_item.parentNode.parentNode;
-				for( var i=list.childNodes.length-1; i>=0; i-- ) {
-					var li = list.childNodes[i];
-					if( li.nodeName=='LI' ) {
-						$(li).detach();
-						$(li).insertAfter( parent_item );
+		if( range ) {
+			var list_item = range.startContainer.nodeName=='LI' ? range.startContainer : $(range.startContainer).closest('li')[0];
+			if( list_item ) {
+				if( event.shiftKey==false && list_item.previousSibling && list_item.previousSibling.nodeName=='LI' ) {
+					var prev_list_item = list_item.previousSibling;
+					$(list_item).detach();
+					if( $(prev_list_item).children().last().length && $(prev_list_item).children().last()[0].nodeName=='UL' ) {
+						$(prev_list_item).children().last().append( list_item );
+					} else {
+						$(prev_list_item).append( list_item );
+						$(list_item).wrap('<ul></ul>');
 					}
+				} else if( event.shiftKey==true && list_item.parentNode.parentNode.nodeName=='LI' ) {
+					var list = list_item.parentNode;
+					var parent_item = list_item.parentNode.parentNode;
+					for( var i=list.childNodes.length-1; i>=0; i-- ) {
+						var li = list.childNodes[i];
+						if( li.nodeName=='LI' ) {
+							$(li).detach();
+							$(li).insertAfter( parent_item );
+						}
+					}
+					$(list).remove();
 				}
-				$(list).remove();
 			}
 		}
 		event.preventDefault();

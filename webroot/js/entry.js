@@ -112,6 +112,8 @@ Entry.prototype.init = function() {
 		$(my.button_large).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'+', preventDefault:function(){}} ); } );
 		my.button_small = $( ".keysym-small", my.dom_object )[0];
 		$(my.button_small).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'-', preventDefault:function(){}} ); } );
+		my.button_toolbar_file = $( ".keysym-upload", my.dom_object )[0];
+		$(my.button_toolbar_file).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'d', preventDefault:function(){}} ); } );
 		my.button_tab_right = $( ".keysym-tab-right", my.dom_object )[0];
 		$(my.button_tab_right).on( "click", function(){ my.on_keydown( {shiftKey:false, keyCode:9, preventDefault:function(){}} ); } );
 		my.button_tab_left = $( ".keysym-tab-left", my.dom_object )[0];
@@ -194,7 +196,8 @@ Entry.prototype.on_keydown = function( event ) {
 		'o' : 'text-overline',
 		'+' : 'text-larger',
 		'-' : 'text-smaller',
-		'l' : 'link'
+		'l' : 'link',
+		'd' : 'upload'
 	}
 	if( event.keyCode==9 ) {
 		var range = get_element_cursor_range();
@@ -266,6 +269,9 @@ Entry.prototype.on_keydown = function( event ) {
 				var new_link_tool = new LinkTool( {link_node: new_link} );
 			}
 			range.collapse();
+			event.preventDefault();
+		} else if( format=='upload' ) {
+			new UploadDialog( {dom_parent: my.content, wrap: true} );
 			event.preventDefault();
 		} else if( !range.collapsed ) {
 			var contents = range.extractContents();

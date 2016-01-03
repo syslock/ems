@@ -272,7 +272,7 @@ function get_element_cursor_pos( editableDiv ) {
 
 var get_cursor_pos = get_element_cursor_pos;
 
-function get_element_cursor_range( editableDiv ) {
+function get_element_cursor_range() {
   var sel, range;
   if (window.getSelection) {
     sel = window.getSelection();

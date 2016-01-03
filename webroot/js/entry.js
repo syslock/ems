@@ -171,7 +171,7 @@ Entry.prototype.on_keydown = function( event ) {
 		'l' : 'link'
 	}
 	if( event.keyCode==9 ) {
-		var range = get_element_cursor_range( event.target );
+		var range = get_element_cursor_range();
 		if( range ) {
 			var list_item = range.startContainer.nodeName=='LI' ? range.startContainer : $(range.startContainer).closest('li')[0];
 			if( list_item ) {
@@ -201,7 +201,7 @@ Entry.prototype.on_keydown = function( event ) {
 		event.preventDefault();
 	} else if( event.ctrlKey==true && format_keys[event.key]!=undefined ) {
 		var format = format_keys[event.key];
-		var range = get_element_cursor_range( event.target );
+		var range = get_element_cursor_range();
 		if( format=='link' ) {
 			var existing_links_found = false;
 			// Zunächst alle existierenden Hyperlinks in aktueller (nicht leerer) Markierung suchen und ggf. bearbeiten:

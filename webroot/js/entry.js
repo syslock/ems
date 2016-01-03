@@ -122,7 +122,7 @@ Entry.prototype.on_keypress = function( event ) {
 	var my = this;
 	var key_char = String.fromCharCode( event.which );
 	if( key_char=='-' || key_char=='*' ) {
-		var range = get_element_cursor_range( event.target );
+		var range = get_element_cursor_range();
 		var is_block_node = function( node ) {
 			var block_names = {
 				'DIV' : true,

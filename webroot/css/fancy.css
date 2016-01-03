@@ -235,6 +235,11 @@ body {
 	margin-top: 2px;
 	margin-bottom: 2px;
 }
+.entry-tools-button-symbol {
+    position: absolute;
+	height: 90%;
+	left: 0;
+}
 button.entry-response-button {
 	font-size: larger;
 }

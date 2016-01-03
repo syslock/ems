@@ -90,6 +90,9 @@ Entry.prototype.init = function() {
 		$(my.button_save).on( "click", function() { my.store(); } );
 		my.button_discard = $( ".entry-edit-discard-button", my.dom_object )[0];
 		$(my.button_discard).on( "click", function() { my.discard_response(); } );
+		my.edit_toolbar = $( ".entry-edit-toolbar", my.dom_object )[0];
+		my.button_toggle_toolbar = $(".entry-edit-toggle-toolbar", my.dom_object )[0];
+		$(my.button_toggle_toolbar).on( "click", function() { $(my.edit_toolbar).toggle(); } );
 		
 		my.button_hyperlink = $( ".keysym-hyperlink", my.dom_object )[0];
 		$(my.button_hyperlink).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'l', preventDefault:function(){}} ); } );

@@ -463,9 +463,6 @@ button.entry-delete-button {
 .entry-edit-toolbar {
 	display: none;
 }
-.new-entry .entry-edit-toolbar {
-	display: block;
-}
 .entry-edit-range-tools {
 	display: inline-block;
 }

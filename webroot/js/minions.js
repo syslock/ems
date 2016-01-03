@@ -101,24 +101,22 @@ var Minions = function( parms ) {
 					// Neues Minion anlegen:
 					minion_obj = $('<div class="ems-minion"></div>')[0];
 					$(parms.obj.dom_object).wrap( minion_obj );
-					new BaseItem( {obj:{type: "application/x-obj.minion"}, dom_object: minion_obj} );
-					var minion_id = $(minion_obj).data().obj.id;
-					get_module( "store", {
-						args : {id : parms.obj.id, parent_id : minion_id},
-						async : false,
-						done : function( result ) {
-							result = parse_result( result )
-							if( result.succeeded ) {
-								my.search.search();
+					new BaseItem( {obj:{type: "application/x-obj.minion"}, dom_object: minion_obj, ready: function(item) {
+						get_module( "store", {
+							args : {id : parms.obj.id, parent_id : item.obj.id},
+							done : function( result ) {
+								result = parse_result( result )
+								if( result.succeeded ) {
+									my.search.search();
+								}
 							}
-						}
-					});
+						} );
+					}} );
 				} else {
 					// Altes Minion durch mtime-Update nach vorn ziehen:
 					var minion_id = $(minion_obj).data().obj.id;
 					get_module( "store", {
 						args : {id : minion_id},
-						async : false,
 						done : function( result ) {
 							result = parse_result( result )
 							if( result.succeeded ) {

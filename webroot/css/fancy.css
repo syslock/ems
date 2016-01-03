@@ -236,12 +236,12 @@ body {
 	margin-bottom: 2px;
 }
 button.entry-response-button {
-	font-size: large;
+	font-size: larger;
 }
 button.entry-delete-button {
 	width: 50%;
 	margin-left: 50%;
-	font-size: small;
+	font-size: smaller;
 }
 .entry-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
@@ -516,12 +516,12 @@ button.entry-delete-button {
 	margin-bottom: 2px;
 }
 button.entry-edit-send-button {
-	font-size: large;
+	font-size: larger;
 }
 button.entry-edit-discard-button {
 	width: 50%;
 	margin-left: 50%;
-	font-size: small;
+	font-size: smaller;
 }
 .entry-edit-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */

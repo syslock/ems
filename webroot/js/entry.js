@@ -90,6 +90,29 @@ Entry.prototype.init = function() {
 		$(my.button_save).on( "click", function() { my.store(); } );
 		my.button_discard = $( ".entry-edit-discard-button", my.dom_object )[0];
 		$(my.button_discard).on( "click", function() { my.discard_response(); } );
+		
+		my.button_hyperlink = $( ".keysym-hyperlink", my.dom_object )[0];
+		$(my.button_hyperlink).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'l', preventDefault:function(){}} ); } );
+		my.button_highlight = $( ".keysym-highlight", my.dom_object )[0];
+		$(my.button_highlight).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'h', preventDefault:function(){}} ); } );
+		my.button_bold = $( ".keysym-bold", my.dom_object )[0];
+		$(my.button_bold).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'b', preventDefault:function(){}} ); } );
+		my.button_italic = $( ".keysym-italic", my.dom_object )[0];
+		$(my.button_italic).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'i', preventDefault:function(){}} ); } );
+		my.button_fixed = $( ".keysym-fixed", my.dom_object )[0];
+		$(my.button_fixed).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'f', preventDefault:function(){}} ); } );
+		my.button_underline = $( ".keysym-underline", my.dom_object )[0];
+		$(my.button_underline).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'u', preventDefault:function(){}} ); } );
+		my.button_strikethrough = $( ".keysym-strikethrough", my.dom_object )[0];
+		$(my.button_strikethrough).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'s', preventDefault:function(){}} ); } );
+		my.button_large = $( ".keysym-large", my.dom_object )[0];
+		$(my.button_large).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'+', preventDefault:function(){}} ); } );
+		my.button_small = $( ".keysym-small", my.dom_object )[0];
+		$(my.button_small).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'-', preventDefault:function(){}} ); } );
+		my.button_tab_right = $( ".keysym-tab-right", my.dom_object )[0];
+		$(my.button_tab_right).on( "click", function(){ my.on_keydown( {shiftKey:false, keyCode:9, preventDefault:function(){}} ); } );
+		my.button_tab_left = $( ".keysym-tab-left", my.dom_object )[0];
+		$(my.button_tab_left).on( "click", function(){ my.on_keydown( {shiftKey:true, keyCode:9, preventDefault:function(){}} ); } );
 	}
 }
 

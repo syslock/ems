@@ -455,6 +455,28 @@ button.entry-delete-button {
 .new-entry .entry-bubble {
 	border: 2px solid orange;
 }
+.entry-edit-toolbar {
+	display: none;
+}
+.new-entry .entry-edit-toolbar {
+	display: block;
+}
+.entry-edit-range-tools {
+	display: inline-block;
+}
+.entry-edit-range-tools-symbols img {
+	height: 3em;
+}
+.entry-edit-range-tools-symbols .keysym-ctrl {
+	opacity: 0.5;
+}
+.entry-edit-list-tools {
+	display: inline-block;
+	margin-left: 1em;
+}
+.entry-edit-list-tools-symbols img {
+	height: 3em;
+}
 .new-entry .entry-tools {
 	display: none;
 }

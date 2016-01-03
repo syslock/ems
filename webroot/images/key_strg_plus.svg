@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="svg2"
+   viewBox="0 0 89.683247 54.033007"
+   height="15.249315mm"
+   width="25.310606mm"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="key_strg_plus.svg">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     id="namedview4243"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:zoom="7.0381284"
+     inkscape:cx="56.563488"
+     inkscape:cy="27.016509"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient4170">
+      <stop
+         style="stop-color:#6a6a6a;stop-opacity:1"
+         offset="0"
+         id="stop4172" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1"
+         offset="1"
+         id="stop4174" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient4138">
+      <stop
+         id="stop4140"
+         offset="0"
+         style="stop-color:#c0c0c0;stop-opacity:1" />
+      <stop
+         id="stop4142"
+         offset="1"
+         style="stop-color:#ffffff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient
+       gradientTransform="matrix(0.42241545,0,0,1,-53.582843,-195.25285)"
+       gradientUnits="userSpaceOnUse"
+       y2="201.30867"
+       x2="325.76913"
+       y1="244.24016"
+       x1="138.90105"
+       id="linearGradient4144"
+       xlink:href="#linearGradient4138" />
+    <linearGradient
+       gradientUnits="userSpaceOnUse"
+       y2="203.32896"
+       x2="233.34018"
+       y1="257.37213"
+       x1="221.73355"
+       id="linearGradient4144-0"
+       xlink:href="#linearGradient4170"
+       gradientTransform="matrix(0.44791793,0,0,1,-64.881256,-198.78837)" />
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect
+     style="opacity:1;fill:url(#linearGradient4144-0);fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     id="rect4136-3"
+     width="88.68325"
+     height="53.033009"
+     x="0.49999997"
+     y="0.49999997"
+     ry="6.5659914"
+     rx="5.193161" />
+  <rect
+     style="opacity:1;fill:url(#linearGradient4144);fill-opacity:1;stroke:#000000;stroke-width:0.99999988;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     id="rect4136"
+     width="79.793648"
+     height="43.436558"
+     x="4.8756104"
+     y="5.5507507"
+     ry="6.5659914"
+     rx="5.0402646" />
+  <text
+     sodipodi:linespacing="125%"
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:20px;line-height:125%;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     x="14.815348"
+     y="34.576595"
+     id="text4180"><tspan
+       id="tspan4182"
+       x="14.815348"
+       y="34.576595">Strg +</tspan></text>
+</svg>

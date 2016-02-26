@@ -396,6 +396,19 @@ Entry.prototype.store = function() {
 			if( my.tags_content ) {
 				extract_children( my.tags_content, tag_data );
 			}
+			
+			// Refresh-Callback:
+			var entry_stored_callback = function() {
+				if( new_entry_created ) {
+					// Neuen Beitrag vorn neu anfügen:
+					my.remove_new_entry_item();
+					show_object( {dom_parent: my.dom_parent, obj: {id: my.obj.id}, prepend: true} );
+				} else {
+					// Daten neu laden, um lokale Änderungen zu beseitigen:
+					show_object( {dom_parent: my.entry, obj: my.obj, update: true} );
+				}
+			}
+			
 			// Inhalt speichern:
 			var html_obj = content_data.html_obj;
 			$(".entry-html",store_content).children().unwrap();
@@ -430,12 +443,12 @@ Entry.prototype.store = function() {
 								done : function(result) {
 									result = parse_result(result);
 									if( result.succeeded && result.id ) {
-										delete_childs_not_in( html_id, content_id_list );
+										delete_childs_not_in( html_id, content_id_list, entry_stored_callback );
 									}
 								}
 							});
 						} else {
-							delete_childs_not_in( html_id, [] );
+							delete_childs_not_in( html_id, [], entry_stored_callback );
 						}
 						// Tags (TODO: und andere dem Beitrag direkt untergeordnete Objekte) speichern und verbliebene Kindobjekte bereinigen:
 						var tag_id_list = [];
@@ -451,21 +464,16 @@ Entry.prototype.store = function() {
 								done : function(result) {
 									result = parse_result(result);
 									if( result.succeeded && result.id ) {
-										delete_childs_not_in( my.obj.id, [html_id].concat(tag_id_list) );
+										delete_childs_not_in( my.obj.id, [html_id].concat(tag_id_list), entry_stored_callback );
 									}
 								}
 							});
 						} else {
-							delete_childs_not_in( my.obj.id, [html_id] );
+							delete_childs_not_in( my.obj.id, [html_id], entry_stored_callback );
 						}
 					}
 				}
 			});
-		}
-		if( new_entry_created ) {
-			// Neuen Beitrag vorn neu anfügen:
-			my.remove_new_entry_item();
-			show_object( {dom_parent: my.dom_parent, obj: {id: my.obj.id}, prepend: true} );
 		}
 	}});
 };

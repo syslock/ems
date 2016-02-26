@@ -392,8 +392,8 @@ Entry.prototype.store = function() {
 			extract_children( store_content, content_data );
 			// Standard-Tools wiederherstellen und Themen des Beitrages ermitteln:
 			my.restore_standard_tools();
+			var tag_data = { html_obj:{}, extracted_children:[] };
 			if( my.tags_content ) {
-				var tag_data = { html_obj:{}, extracted_children:[] };
 				extract_children( my.tags_content, tag_data );
 			}
 			// Inhalt speichern:

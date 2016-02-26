@@ -311,6 +311,7 @@ Entry.prototype.restore_standard_tools = function() {
 	var my = this;
 	// Themen vom Bearbeitungswerkzeug zurück in das Standardwerkzeug verschieben:
 	$(my.std_tags).empty().append( $(my.edit_tags).contents().detach() );
+	$(my.edit_toolbar).hide();
 };
 
 Entry.prototype.remove_new_entry_item = function() {

@@ -133,8 +133,8 @@ Entry.prototype.edit = function() {
 		my.content.contentEditable = true
 		if( my.title.innerHTML.length>0 ) my.content.focus();
 		
-		$('.entry-media', my.content).each( function(i, element) {
-			new UploadDialog( {replace_content: element} );
+		$('.objref', my.content).each( function(i, element) {
+			new UploadDialog( {replace_content: $(element).children().first()} );
 		});
 		
 		$(my.content).off( "keypress keydown" );

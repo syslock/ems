@@ -399,14 +399,9 @@ Entry.prototype.store = function() {
 			
 			// Refresh-Callback:
 			var entry_stored_callback = function() {
-				if( new_entry_created ) {
-					// Neuen Beitrag vorn neu anfügen:
-					my.remove_new_entry_item();
-					show_object( {dom_parent: my.dom_parent, obj: {id: my.obj.id}, prepend: true} );
-				} else {
-					// Daten neu laden, um lokale Änderungen zu beseitigen:
-					show_object( {dom_parent: my.entry, obj: my.obj, update: true} );
-				}
+				// Beitrag vorn neu anfügen:
+				my.remove_new_entry_item();
+				show_object( {dom_parent: my.dom_parent, obj: {id: my.obj.id}, prepend: true} );
 			}
 			
 			// Inhalt speichern:
@@ -514,22 +509,10 @@ Entry.prototype.delete_entry = function() {
 
 Entry.prototype.discard_response = function() {
 	var my = this;
-	$(my.entry).removeClass("new-entry");
-	if( !my.obj || !my.obj.id ) {
-		my.remove_new_entry_item();
-	} else {
-		my.restore_standard_tools();
-		if( my.title ) {
-			$(my.title).empty()
-			my.title.contentEditable = false;
-		}
-		if( my.content ) {
-			$(my.content).empty()
-			my.content.contentEditable = false;
-		}
-		$(".entry-tags-content", my.entry).empty()
+	my.remove_new_entry_item();
+	if( my.obj && my.obj.id ) {
 		// Daten neu laden, um lokale Änderungen zu beseitigen:
-		show_object( {dom_parent: my.entry, obj: my.obj, update: true} );
+		show_object( {dom_parent: my.dom_parent, obj: {id: my.obj.id}, prepend: true} );
 	}
 };
 

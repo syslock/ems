@@ -86,8 +86,7 @@ class Cookie:
 		self.value = value
 		self.path = path
 		if not expires:
-			expires = datetime.datetime.utcnow()
-			expires = expires.replace( year=expires.year+1 )
+			expires = datetime.datetime.utcnow() + datetime.timedelta( days=365 )
 		self.expires = expires
 	def get_header( self ):
 		"""Erzeugt einen Set-Cookie-Header im von WSGI erwarteten Tupel-Format"""

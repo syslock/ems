@@ -238,6 +238,12 @@ Entry.prototype.on_keydown = function( event ) {
 						}
 					}
 					if( sibling_count==0 ) $(list).remove();
+					range.collapse();
+					range.selectNodeContents( list_item );
+					range.collapse();
+					var sel = window.getSelection();
+					sel.removeAllRanges();
+					sel.addRange( range );
 				}
 			}
 		}

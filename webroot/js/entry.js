@@ -219,6 +219,12 @@ Entry.prototype.on_keydown = function( event ) {
 						$(prev_list_item).append( list_item );
 						$(list_item).wrap('<ul></ul>');
 					}
+					range.collapse();
+					range.selectNodeContents( list_item );
+					range.collapse();
+					var sel = window.getSelection();
+					sel.removeAllRanges();
+					sel.addRange( range );
 				} else if( event.shiftKey==true && list_item.parentNode.parentNode.nodeName=='LI' ) {
 					var list = list_item.parentNode;
 					var parent_item = list_item.parentNode.parentNode;

@@ -178,6 +178,12 @@ Entry.prototype.on_keypress = function( event ) {
 			range.insertNode( new_list[0] );
 			range.collapse();
 			range.selectNodeContents( new_item[0] );
+			// In Firefox the range is selected by selectNodeContents,
+			// but in Chrome we have to clear the windows selection 
+			// and add the new range explicitly:
+			var sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange( range );
 			event.preventDefault();
 		}
 	}

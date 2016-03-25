@@ -150,6 +150,11 @@ Entry.prototype.on_keypress = function( event ) {
 	var my = this;
 	var key_char = String.fromCharCode( event.which );
 	if( key_char=='-' || key_char=='*' ) {
+		// Create new unordered list and first item in place of leading '-' or '*'
+		// Working: Firefox, Chrome, Android Stock Browser
+		// FIXME: Creation of lists not working at all in Mobile Chrome (different DOM?)
+		// FIXME: Unable to edit text within newly created list items in Mobile Firefox
+		// FIXME: Random crashes in Mobile Firefox?
 		var range = get_element_cursor_range();
 		var is_block_node = function( node ) {
 			var block_names = {
@@ -160,7 +165,6 @@ Entry.prototype.on_keypress = function( event ) {
 			}
 			return block_names[ node.nodeName ] ? true : false;
 		}
-		// FIXME: This sucks!!!
 		if( range 
 			&& (
 				(range.startContainer==my.content)

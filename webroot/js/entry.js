@@ -300,12 +300,29 @@ Entry.prototype.on_keydown = function( event ) {
 		} else if( !range.collapsed ) {
 			var contents = range.extractContents();
 			var remove_count = 0;
-			$( 'span.'+format, contents ).each( function(i,item) {
-				$(item).replaceWith( $(item).contents() );
-				remove_count += 1;
-			});
+			// Die Textformatierungsklassen text-larger und text-smaller wirken relativ 
+			// bezogen auf Elternelemente, und sollen daher beliebig geschachtelt werden können.
+			if( !(format=="text-larger" || format=="text-smaller") ) {
+				// Andere Textformatierungsklassen sollen innerhalb der Auswahl entfernt
+				// werden, falls sie darin früher gesetzt wurden:
+				$( "span."+format+",span."+format+"-off", contents ).each( function(i,item) {
+					$(item).replaceWith( $(item).contents() );
+					remove_count += 1;
+				});
+			}
 			if( remove_count==0 ) {
-				range.insertNode( $('<span></span>').attr({'class' : format}).append(contents)[0] );
+				// Falls in der Auswahl keine passende Textformatierung entfernt werden konnte,
+				// möchte der Nutzer:
+				var closest_format_switching_ancestor = $(range.commonAncestorContainer).closest( "span."+format+",span."+format+"-off" ).first();
+				if( closest_format_switching_ancestor.length && closest_format_switching_ancestor.hasClass(format) ) {
+					// a) die bereits wirksame, passende Textformatierung eines Elternelementes innerhalb 
+					// der Auswahl deaktivieren:
+					range.insertNode( $('<span></span>').attr({'class' : format+"-off"}).append(contents)[0] );
+				} else {
+					// b) die passende Textformatierung auf die Auswahl aktivieren:
+					range.insertNode( $('<span></span>').attr({'class' : format}).append(contents)[0] );
+				}
+				
 			} else {
 				range.insertNode( contents );
 			}

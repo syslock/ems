@@ -370,23 +370,53 @@ button.entry-delete-button {
 .text-marking {
 	background-color: yellow;
 }
+.text-marking-off {
+	background-color: white;
+}
 .text-bold {
 	font-weight: bold;
+}
+.text-bold-off {
+	font-weight: normal;
 }
 .text-italic {
 	font-style: italic;
 }
+.text-italic-off {
+	font-style: normal;
+}
 .text-fixed {
 	font-family: monospace;
+}
+.text-fixed-off {
+	font-family: sans-serif;
 }
 .text-underline {
 	text-decoration: underline;
 }
+.text-underline-off {
+	/* FIXME: Disabling text-decoration only works for block and inline-block elements,
+	 * so we set display:inline-block as a hack. Also this approach results in having
+	 * more than one way to disable any supported text-decoration style which might
+	 * be confusing to users... */
+	display: inline-block;
+	text-decoration: none;
+}
 .text-strikethrough {
 	text-decoration: line-through;
 }
+.text-strikethrough-off {
+	/* FIXME: See .text-underline-off */
+	display: inline-block;
+	text-decoration: none;
+}
 .text-overline {
 	text-decoration: overline;
+}
+.text-overline-off {
+	/* FIXME: See .text-underline-off */
+	display: inline-block;
+	text-decoration: none;
 }
 .text-larger {
 	font-size: larger;

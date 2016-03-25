@@ -216,14 +216,16 @@ Entry.prototype.on_keydown = function( event ) {
 				} else if( event.shiftKey==true && list_item.parentNode.parentNode.nodeName=='LI' ) {
 					var list = list_item.parentNode;
 					var parent_item = list_item.parentNode.parentNode;
+					$(list_item).detach();
+					$(list_item).insertAfter( parent_item );
+					sibling_count = 0;
 					for( var i=list.childNodes.length-1; i>=0; i-- ) {
 						var li = list.childNodes[i];
 						if( li.nodeName=='LI' ) {
-							$(li).detach();
-							$(li).insertAfter( parent_item );
+							sibling_count++;
 						}
 					}
-					$(list).remove();
+					if( sibling_count==0 ) $(list).remove();
 				}
 			}
 		}

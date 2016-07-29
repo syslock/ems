@@ -205,6 +205,18 @@ body {
 	position: absolute;
 	margin-left: 10px;
 }
+
+/* zusätzlich klassen damit die toolbox "sticky" ist wenn sie beim scrollen am oberen oder unteren rand ankommt*/
+.entry-tools {
+	top:10px;
+	position:sticky;
+}
+
+.entry-tools {
+	bottom:10%;
+	position:sticky;
+}
+
 .ems-item:hover .entry-tools {
 	display: inline-block;
 }
@@ -517,6 +529,19 @@ button.entry-delete-button {
 	position: absolute;
 	margin-left: 10px;
 }
+
+/* zusätzlich klassen damit die toolbox "sticky" ist wenn sie beim scrollen am oberen oder unteren rand ankommt*/
+.entry-edit-tools {
+	top: 10px;
+	position: sticky;
+}
+
+.entry-edit-tools {
+	bottom: 20%;
+	position: sticky
+}
+
+
 .new-entry .entry-edit-tools {
 	display: inline-block;
 }

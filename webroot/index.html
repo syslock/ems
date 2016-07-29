@@ -7,21 +7,46 @@
 		<script data-main="js/main.js" src="js/require.js"></script>
 		<script>
 			function init() {
+				var msid = null;
 				if( msid=document.location.search.match("[&?]msid=([^&]*)") ) {
-					msid=msid[1]
-					get_module( 'register', {
-						args : {msid : msid}, 
-						done : function( result ) {
-							result = parse_result( result );
-							if( result.succeeded ) {
-								open_tpl( 'login.html', {"hint": "registration-confirmation-complete"} )
+					msid=msid[1];
+					var action = document.location.search.match("[&?]action=([^&]*)");
+					if( action ) {
+						action = action[1];
+					} else {
+						action = "registration"
+					}
+					if( action=="registration" ) {
+						get_module( 'register', {
+							args : {msid : msid}, 
+							done : function( result ) {
+								result = parse_result( result );
+								if( result.succeeded ) {
+									open_tpl( 'login.html', {"hint": "registration-confirmation-complete"} )
+								}
+							},
+							fail : function( result ) {
+								result = parse_result( result );
+								open_tpl( 'login.html', {"hint": "registration-confirmation-failed"} )
 							}
-						},
-						fail : function( result ) {
-							result = parse_result( result );
-							open_tpl( 'login.html', {"hint": "registration-confirmation-failed"} )
-						}
-					});
+						});
+					} else if( action=="password_recovery" ) {
+						open_tpl( 'login.html', {"hint": "password-recovery", "msid": msid} );
+					} else if( action=="cancel_password_recovery" ) {
+						get_module( 'recover_password', {
+							args : {msid : msid, cancel : true},
+							done : function( result ) {
+								result = parse_result( result );
+								if( result.succeeded ) {
+									open_tpl( 'login.html', {"hint": "password-recovery-canceled"} )
+								}
+							},
+							fail : function( result ) {
+								result = parse_result( result );
+								open_tpl( 'login.html', {"hint": "password-recovery-cancel-failed"} )
+							}
+						});
+					}
 				}
 				else open_tpl( 'overview.html' )
 			}

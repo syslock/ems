@@ -18,7 +18,7 @@ function login() {
 			result = parse_result( result );
 			if( result.succeeded ) { 
 				$("input.login-password")[0].value = "";
-				init();
+				open_tpl( "login.html" );
 			}
 		},
 		fail : function( result ) {
@@ -40,7 +40,7 @@ function register() {
 	if( $("input.login-password")[0].value
 		!= $("input.register-password")[0].value )
 	{
-		show_register_password_match_message();
+		show_password_missmatch_message();
 		$("input.login-password")[0].value = "";
 		$("input.register-password")[0].value = "";
 		hilight( $("input.login-password")[0] );
@@ -129,18 +129,96 @@ function show_login() {
 }
 
 function hide_register() {
-	$(".register-form")[0].style.display="none"
-	$(".login-submit")[0].style.display=""
-	$(".login-register")[0].style.display=""
+	$(".login-form-buttons").show();
+	$(".register-form").hide();
 }
 
 function show_register() {
-	$(".register-form")[0].style.display=""
-	$(".login-submit")[0].style.display="none"
-	$(".login-register")[0].style.display="none"
+	$(".login-form-buttons").hide();
+	$(".register-form").show();
 	$(".register-password")[0].style.display=""
 	$(".register-submit")[0].style.display=""
 	$(".register-reconfirm")[0].style.display="none"
 }
 
+function show_password_recovery_request() {
+	$(".login-password").hide();
+	$(".login-form-buttons").hide();
+	$(".password-recovery-request-form").show();
+}
 
+function hide_password_recovery_request() {
+	$(".login-password").show();
+	$(".login-form-buttons").show();
+	$(".password-recovery-request-form").hide();
+}
+
+function show_password_recovery() {
+	$(".login-form-buttons").hide();
+	$(".password-recovery-form").show();
+}
+
+function hide_password_recovery() {
+	$(".login-form-buttons").show();
+	$(".password-recovery-form").hide();
+}
+
+function request_password_recovery() {
+	post_module( "recover_password", {
+		data : {
+			nick : $("input.login-nick").val(),
+			email : $("input.password-recovery-email").val()
+		},
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded )
+			{
+				hide_login();
+				hide_password_recovery_request();
+				show_password_recovery_request_succeeded_message();
+			}
+		},
+		fail : function( result ) {
+			result = parse_result( result );
+			hilight_error_fields( result.error );
+		}
+	});
+	$("input.login-password").val( "" );
+	$("input.password-recovery-password").val( "" );
+}
+
+function execute_password_recovery() {
+	if( $("input.login-password").val()
+		!= $("input.password-recovery-password").val() )
+	{
+		show_password_missmatch_message();
+		$("input.login-password").val( "" );
+		$("input.password-recovery-password").val( "" );
+		hilight( $("input.login-password")[0] );
+		hilight( $("input.password-recovery-password")[0] );
+		return;
+	}
+	post_module( "recover_password", {
+		data : {
+			nick : $("input.login-nick").val(),
+			new_password : $("input.login-password").val(),
+			msid : $("input.password-recovery-msid").val()
+		},
+		done : function( result ) {
+			result = parse_result( result );
+			if( result.succeeded )
+			{
+				show_login();
+				hide_password_recovery();
+				$(".login-hint").hide();
+				$(".password-recovery-succeeded").show();
+			}
+		},
+		fail : function( result ) {
+			result = parse_result( result );
+			hilight_error_fields( result.error );
+		}
+	});
+	$("input.login-password").val( "" );
+	$("input.password-recovery-password").val( "" );
+}

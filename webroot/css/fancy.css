@@ -1553,7 +1553,7 @@ button.minion-filter-include {
 }
 
 .ems-login-content {
-	display: inline-block;
+	text-align: center;
 }
 .login-hint {
 	margin-bottom: 1em;
@@ -1564,10 +1564,22 @@ button.minion-filter-include {
 .login-forms, register-form {
 	display: inline-block;
 }
-.login-form, .login-form>div, .register-form, .register-form>div {
+.login-form-entries, .register-form, .register-form>div {
 	text-align: right;
 }
-.login-form>button, .register-form>button {
+.login-form-entries>div {
+	margin-bottom: 0.5em;
+}
+.login-form-buttons {
+	margin-top: 1em;
+	text-align: right;
+}
+.login-form-primary-buttons {
+}
+.login-form-secondary-buttons {
+	margin-top: 2em;
+}
+.register-form>button {
 	margin-top: 1em;
 }
 .login-nick-label {
@@ -1581,6 +1593,29 @@ button.minion-filter-include {
 }
 .register-email-label {
 	display: inline-block;
+}
+.password-recovery-request-entries, .password-recovery-entries {
+	text-align: right;
+}
+.password-recovery-request-entries>div, .password-recovery-entries>div {
+	margin-bottom: 0.5em;
+}
+.password-recovery-email-label {
+	display: inline-block;
+}
+.password-recovery-request-buttons {
+	margin-top: 1em;
+	text-align: right;
+}
+.password-recovery-password-label {
+	display: inline-block;
+}
+.password-recovery-msid-label {
+	display: inline-block;
+}
+.password-recovery-buttons {
+	margin-top: 1em;
+	text-align: right;
 }
 
 /* -------------------------------------------------------------------------- */

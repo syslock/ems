@@ -17,5 +17,18 @@ https://example.org/ems/?msid=%(msid)s
 Regards,
 Your %(sitename)s Team"""
 
+password_recovery_message = """Dear user,
+
+a password recovery procedure was requested for your account at %(sitename)s. 
+
+If you want to proceed recovering your password please follow this link:
+https://example.org/ems/?msid=%(msid)s&action=password_recovery
+
+If you DID NOT request password recovery please cancel the request following this link:
+https://example.org/ems/?msid=%(msid)s&action=cancel_password_recovery
+
+Regards,
+Your %(sitename)s Team"""
+
 logfile = "ems.log"
 #tracefile = "ems.trace"

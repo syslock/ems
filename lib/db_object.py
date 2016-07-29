@@ -58,6 +58,8 @@ class DBObject:
 			raise errors.ParameterError( "Cannot create anonymous object without parent" )
 	
 	def update( self, **keyargs ):
+		if not self.app.user.can_write( self.id ):
+			raise errors.PrivilegeError()
 		sequence = 0
 		if "sequence" in keyargs and keyargs["sequence"]!=None:
 			sequence = keyargs["sequence"]

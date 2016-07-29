@@ -51,9 +51,8 @@ class User( db_object.DBObject ):
 			new_password = keyargs["new_password"]
 			User.check_password( new_password )
 			encrypted_new_password = password.encrypt( new_password )
-			if not "user_id" in self.app.session.parms:
-				raise errors.AuthenticationNeeded()
 			if self.app.user.id==self.id:
+				# normal users have to authorize the change with their old password
 				if not "old_password" in keyargs:
 					raise errors.PrivilegeError( "You need to authorize the change request with your old password" )
 				old_password = keyargs["old_password"]

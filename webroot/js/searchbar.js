@@ -148,6 +148,7 @@ var SearchBar = function ( parms ) {
 			my.entry.css( 'width', '' );
 			my.entry.on( 'keydown', my.handle_keydown_event );
 			my.entry.on( 'keyup', my.handle_keyup_event );
+			my.buttons = $( ".searchbar-buttons", my.entry_parent );
 			my.button_search = $( ".searchbar-button-search", my.entry_parent );
 			my.button_search.on( 'click', my.search );
 			my.button_clear = $( ".searchbar-button-clear", my.entry_parent );

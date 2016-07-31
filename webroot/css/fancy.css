@@ -1683,7 +1683,16 @@ div.searchbar-extender {
 }
 div.searchbar-interface {
 	position: absolute;
-	z-index: 10; /* raise entry above minions in title bar */
+	z-index: 1; /* raise entry above minions in title bar */
+	background-color: rgba(223,223,223,0.9);
+	border: 1px solid rgba(223,223,223,1);
+	border-radius: 4px;
+	padding: 2px;
+	border-right: 0;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+	padding-left: 0;
+	border-left: 0;
 }
 div.searchbar-entry {
 	min-height: 1.3em;
@@ -1701,13 +1710,24 @@ div.searchbar-entry {
 }
 div.searchbar-buttons {
 	display: inline-block;
+	position: absolute;
+	background-color: rgba(223,223,223,0.9);
+	border: 1px solid rgba(223,223,223,1);
+	border-radius: 4px;
+	padding: 2px;
+	border-left: 0;
+	margin-left: 2px;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	margin-top: -2px;
 }
 button.searchbar-button {
-	padding: 0;
-	height: 1.3em;
+	padding-left: 2mm;
+	padding-top: 1mm;
+	height: 1.5em;
 }
 img.searchbar-button-symbol {
-	height: 1.3em;
+	height: 1em;
 }
 /* Font and left offsets of apropos-spacer needs to be similar to input.searchbar, to
  * achieve current words hint to be displayed under the current word! */

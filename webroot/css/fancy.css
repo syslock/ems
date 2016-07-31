@@ -1673,12 +1673,15 @@ div.searchbar {
 }
 div.searchbar-extender {
 	min-height: 1.3em;
-	padding-bottom: 3px;
+	padding-bottom: 0.5em;
+}
+div.searchbar-interface {
+	position: absolute;
+	z-index: 10; /* raise entry above minions in title bar */
 }
 div.searchbar-entry {
-	position: absolute;
 	min-height: 1.3em;
-	display: block;
+	display: inline-block;
 	border: 1px solid gray;
 	border-radius: 4px;
 	background-color: white;
@@ -1688,8 +1691,17 @@ div.searchbar-entry {
 	padding-right: 8px;
 	font-size: 10pt;
 	font-family: sans-serif;
-	z-index: 1; /* raise entry above minions in title bar */
 	outline: 0px solid transparent;
+}
+div.searchbar-buttons {
+	display: inline-block;
+}
+button.searchbar-button {
+	padding: 0;
+	height: 1.3em;
+}
+img.searchbar-button-symbol {
+	height: 1.3em;
 }
 /* Font and left offsets of apropos-spacer needs to be similar to input.searchbar, to
  * achieve current words hint to be displayed under the current word! */

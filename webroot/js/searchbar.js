@@ -100,6 +100,11 @@ var SearchBar = function ( parms ) {
 		}
 	};
 	
+	my.clear = function( parms ) {
+		my.entry.empty();
+		my.search();
+	};
+	
 	my.apropos_word = null;
 	my.show_apropos_hints = function() {
 		if( my.apropos_hints_enabled ) {
@@ -135,6 +140,7 @@ var SearchBar = function ( parms ) {
 	if( my.entry_parent ) {
 		get_tpl( "elements/searchbar.html", { done : function(result) {
 			my.entry_parent.html( result );
+			my.interface = $( ".searchbar-interface", my.entry_parent );
 			my.entry = $( ".searchbar-entry", my.entry_parent );
 			my.entry[0].contentEditable = true;
 			my.entry.outerWidth( my.outer_width );
@@ -142,6 +148,10 @@ var SearchBar = function ( parms ) {
 			my.entry.css( 'width', '' );
 			my.entry.on( 'keydown', my.handle_keydown_event );
 			my.entry.on( 'keyup', my.handle_keyup_event );
+			my.button_search = $( ".searchbar-button-search", my.entry_parent );
+			my.button_search.on( 'click', my.search );
+			my.button_clear = $( ".searchbar-button-clear", my.entry_parent );
+			my.button_clear.on( 'click', my.clear );
 			my.apropos_hints = $( ".apropos-hints", my.entry_parent );
 			my.apropos_spacer = $( ".apropos-spacer", my.entry_parent );
 			if( my.on_ready ) {

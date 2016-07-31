@@ -716,7 +716,6 @@ input.entry-tag {
 }
 .entry-tag-tool {
 	display: block;
-	padding-left: 40px;
 	padding-top: 5px;
 	padding-bottom: 5px;
 }
@@ -724,15 +723,13 @@ input.entry-tag {
 	width: 100%;
 	text-align: left;
 }
-.entry-tag-tool:hover {
+.entry-tag-tool-button {
+	padding-left: 1.5em;
 }
-.entry-tag-tool-filter-for {
-	background: url(../tango-scalable/actions/system-search.svg) no-repeat 0 0;
-	background-size: contain;
-}
-.entry-tag-tool-filter-exclude {
-	background: url(../tango-scalable/actions/list-remove.svg) no-repeat 0 0;
-	background-size: contain;
+.entry-tag-tool-button-symbol {
+	position: absolute;
+	left: 0px;
+	height: 90%;
 }
 
 /* ------------------------------------------------------------------------- */

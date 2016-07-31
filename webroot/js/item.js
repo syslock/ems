@@ -92,7 +92,7 @@ BaseItem.prototype.display = function() {
 		} else {
 			$(item).append( $("#ems-"+my.short_type+"-template").first().clone().attr({"id":""}).css({"display":""}) );
 		}
-		if( my.obj.id ) {
+		if( my.obj.id && !my.duplicates ) {
 			item.id = "ems-"+my.short_type+"-"+String(my.obj.id);
 		}
 		if( my.dom_parent ) {

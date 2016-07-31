@@ -111,7 +111,7 @@ EntryTag.prototype.add_tag = function() {
 						result = parse_result( result );
 						if( result.length ) {
 							var obj = result[0];
-							new EntryTag( {obj: obj, parent: my.parent, dom_parent: my.parent.tags_content} );
+							new EntryTag( {obj: obj, parent: my.parent, dom_parent: my.parent.tags_content, duplicates: true} );
 						}
 					}
 				});

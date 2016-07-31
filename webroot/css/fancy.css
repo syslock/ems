@@ -4,6 +4,15 @@ body {
 	font-size: 10.5pt;
 }
 
+button {
+	border: 1px solid grey;
+	border-radius: 3px;
+	background-color: #dfdfdf;
+}
+button:hover {
+	background-color: #f0f0f0;
+}
+
 .page-menu {
 	position: absolute;
 	display: block;

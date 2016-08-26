@@ -25,10 +25,11 @@ def process( app ):
 		parents = q.parms["parents"].lower()=="true" if "parents" in q.parms else False
 		if "recursive" in q.parms:
 			children = parents = q.parms["recursive"].lower()=="true"
+		max_phrase_word_dist = int(q.parms["max_phrase_word_dist"]) if "max_phrase_word_dist" in q.parms else 3
 		search( app, search_phrase, result_types=result_types, min_weight=min_weight, 
 				order_by=order_by, order_reverse=order_reverse, 
 				range_offset=range_offset, range_limit=range_limit,
-				recursive=(parents,children) )
+				recursive=(parents,children), max_phrase_word_dist=max_phrase_word_dist )
 	elif "apropos" in q.parms:
 		prefix = q.parms["apropos"]
 		apropos( app, prefix, result_types=result_types, range_offset=range_offset, range_limit=range_limit )
@@ -52,30 +53,67 @@ search_type_alias = {
 	"webm" : "video/webm",
 }
 
-def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, order_reverse=True, range_offset=0, range_limit=None, recursive=(False,False) ):
+def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, order_reverse=True, range_offset=0, range_limit=None, recursive=(False,False), max_phrase_word_dist=3 ):
 	q = app.query
 	
 	# 1.) Suchausdruck parsen und Datenstrukturen initialisieren:
-	words = [ word.lower() for word in re.split(r'[ \t\r\n]',search_phrase) if word ]
+	phrase_parts = []
+	current_word = ""
+	in_phrase = False
+	phrase_start_char = None
+	for i,c in enumerate( search_phrase ):
+		if c in " \t\r\n" and not in_phrase:
+			if current_word:
+				phrase_parts.append( current_word )
+				current_word = ""
+		elif c in ['"',"'"] and not in_phrase:
+			in_phrase=True
+			phrase_start_char = c
+			current_word += c
+		elif in_phrase and c==phrase_start_char:
+			in_phrase=False
+			phrase_start_char = None
+			current_word += c
+		else:
+			current_word += c
+	if current_word:
+		phrase_parts.append( current_word )
+			
+	search_words = []
+	for part in phrase_parts:
+		match = re.fullmatch( "([+-]*)((?:[\w]+:)*)(.+)", part, re.DOTALL )
+		_word = match.group(3)
+		if len(_word)>1 and _word[0]==_word[-1] and _word[0] in ['"',"'"]:
+			_phrase = _word[1:-1]
+			_word = None
+		elif len(_word)>0 and _word[0] in ['"',"'"]:
+			# unterminierte phrasen erlauben
+			_phrase = _word[1:]
+			_word = None
+		else:
+			_phrase = None
+		word = {
+			"weight" : match.group(1),
+			"type" : match.group(2),
+			"word" : _word,
+			"phrase" : _phrase,
+			"raw_word" : part
+		}
+		search_words.append( word )
 	raw_results = {}
 	c = app.db.cursor()
-	search_words = [w for w in words]
 	search_word_rows = {}
+	search_word_hits = {} # hiermit zählen wir Treffer pro Suchwort im gefilterten Endergebnis
 	
 	# 2.) Einzelne Suchbegriffe mit optionaler Typbindung im Wortindex nachschlagen und 
 	#     getroffene Objekt-Ids mit der Suchbegriffwichtung verknüpft zwischenspeichern:
 	for i, search_word in enumerate(search_words):
-		word = search_word
 		# optionales Wichtungs-Präfix aus '-' und '+' parsen, wobei ein positiveres Präfix Treffer des Suchwortes
 		# höher bewertet und ein negativeres Präfix Treffer der Ausschlussmenge des Suchwortes höher bewertet:
-		weight_prefix = re.findall( "^([-+]*)", word )[0]
+		weight_prefix = search_word["weight"]
 		word_weight = sum( [(lambda x: 10 if x=='+' else -10)(c) for c in weight_prefix] ) + (10 if not weight_prefix else 0)
-		word = word[len(weight_prefix):]
 		# optionalen Typ-Selektor der Form <[typ1:[typ2:[...]]]wort> parsen:
-		parts = word.split(":")
-		word_types = parts[:-1]
-		word = parts[-1]
-		words[i] = word # Wort für spätere Trefferbewertung ohne Type-Präfix abspeichern
+		word_types = search_word["type"].split(":")[:-1]
 		type_query = ""
 		type_names = []
 		for j, word_type in enumerate(word_types):
@@ -89,12 +127,38 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 				type_names.append( word_type )
 		if type_query:
 			type_query = "and (" + type_query + ")"
-		c.execute( """select object_id, word, pos, scan_source, o.type from keywords 
-						inner join objects o on o.id=object_id
-						where word like ? %(type_query)s order by object_id, pos""" % locals(), [word]+type_names )
-		search_word_rows[ search_word ] = 0
+		search_word_rows[ search_word["raw_word"] ] = 0
+		search_word_hits[ search_word["raw_word"] ] = 0
+		if search_word["word"]:
+			word = search_word["word"]
+			c.execute( """select object_id, word, pos, scan_source, o.type from keywords 
+							inner join objects o on o.id=object_id
+							where word like ? %(type_query)s order by object_id, pos""" % locals(), [word]+type_names )
+		elif search_word["phrase"]:
+			phrase = search_word["phrase"]
+			phrase_words = phrase.split()
+			phrase_joins = []
+			phrase_queries = []
+			for i,phrase_word in enumerate(phrase_words):
+				if i>0:
+					prev_i = i-1
+					phrase_joins.append( """
+						inner join keywords k%(i)d 
+							on k0.object_id=k%(i)d.object_id 
+							and k0.scan_source=k%(i)d.scan_source 
+							and k%(i)d.pos-k%(prev_i)d.pos>0
+							and K%(i)d.pos-k%(prev_i)d.pos<=%(max_phrase_word_dist)d""" % locals() )
+					phrase_queries.append( "and k%(i)d.word like ?" % locals() )
+				else:
+					phrase_queries.append( "k%(i)d.word like ?" % locals() )
+			s_phrase_joins = "\n".join( phrase_joins )
+			s_phrase_queries = "\n".join( phrase_queries )
+			c.execute( """select k0.object_id, '', k0.pos, k0.scan_source, o.type from keywords k0 
+							inner join objects o on o.id=k0.object_id
+							%(s_phrase_joins)s
+							where %(s_phrase_queries)s %(type_query)s order by k0.object_id, k0.pos""" % locals(), phrase_words+type_names )
 		for row in c:
-			search_word_rows[ search_word ] += 1
+			search_word_rows[ search_word["raw_word"] ] += 1
 			object_id, result_word, pos, scan_source, object_type = row
 			hit = {
 				"object_id" : object_id,
@@ -102,7 +166,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 				"pos" : pos,
 				"scan_source" : scan_source,
 				"object_type" : object_type,
-				"search_word" : search_word,
+				"search_word" : search_word["raw_word"],
 				"keyword" : word,
 				"weight" : word_weight,
 				"extra_reasons" : { "valid_types" : [], "associated_to" : [] }
@@ -111,9 +175,6 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 				raw_results[object_id].append( hit )
 			else:
 				raw_results[object_id] = [ hit ]
-	search_word_hits = {} # hiermit zählen wir Treffer pro Suchwort im gefilterten Endergebnis
-	for search_word in search_words:
-		search_word_hits[search_word] = 0
 	
 	# 3.) Wir machen eine Zugriffsprüfung, filtern die Trefferliste entsprechend und 
 	#     erweitern die Trefferliste ggf. um Eltern- und Kindobjekte mit passendem Typ, sodass z.b.

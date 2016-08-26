@@ -43,11 +43,7 @@ EntryTag.prototype.init = function() {
 		$(my.label).text( label_text );
 		my.get_tag_search_query = function( label, modifier ) {
 			modifier = modifier ? modifier : "";
-			var parts = my.obj.title.match( /(\S+)/g );
-			var tag_search_query = "";
-			for( var i=0; i<parts.length; i++ ) {
-				tag_search_query += (i>0 ? " " : "")+modifier+"tag:"+parts[i];
-			}
+			var tag_search_query = modifier+'tag:"'+my.obj.title+'"';
 			return tag_search_query;
 		}
 		$(my.button_search).on("click", function(ev) {

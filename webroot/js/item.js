@@ -433,10 +433,10 @@ function filter_user_content( button, mode ) {
 	var user_nick = $(user_element.parentNode).data().obj.nick;
 	var search_phrase = global_search.entry.text();
 	if( mode=='for' ) {
-		search_phrase = 'user:'+user_nick;
+		search_phrase = 'user:"'+user_nick+'"';
 	} else {
 		if( !search_phrase.length ) search_phrase += 'type:entry';
-		search_phrase += ' --user:'+user_nick;
+		search_phrase += ' --user:"'+user_nick+'"';
 	}
 	global_search.entry.text( search_phrase );
 	global_search.search();

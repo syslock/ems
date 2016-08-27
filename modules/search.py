@@ -146,8 +146,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 						inner join keywords k%(i)d 
 							on k0.object_id=k%(i)d.object_id 
 							and k0.scan_source=k%(i)d.scan_source 
-							and k%(i)d.pos-k%(prev_i)d.pos>0
-							and K%(i)d.pos-k%(prev_i)d.pos<=%(max_phrase_word_dist)d""" % locals() )
+							and abs(k%(i)d.pos-k%(prev_i)d.pos)<=%(max_phrase_word_dist)d""" % locals() )
 					phrase_queries.append( "and k%(i)d.word like ?" % locals() )
 				else:
 					phrase_queries.append( "k%(i)d.word like ?" % locals() )

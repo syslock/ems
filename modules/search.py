@@ -83,20 +83,25 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 	for part in phrase_parts:
 		match = re.fullmatch( "([+-]*)((?:[\w]+:)*)(.+)", part, re.DOTALL )
 		_word = match.group(3)
-		if len(_word)>1 and _word[0]==_word[-1] and _word[0] in ['"',"'"]:
-			_phrase = _word[1:-1]
+		phrase_match = re.fullmatch( '"([^"]*)"?(?:\[([0-9]+)\])?', _word )
+		if not phrase_match:
+			phrase_match = re.fullmatch( "'([^']*)'?(?:\[([0-9]+)\])?", _word )
+		if phrase_match:
 			_word = None
-		elif len(_word)>0 and _word[0] in ['"',"'"]:
-			# unterminierte phrasen erlauben
-			_phrase = _word[1:]
-			_word = None
+			_phrase = phrase_match.group(1)
+			try:
+				_phrase_max_word_dist = int(phrase_match.group(2))
+			except TypeError:
+				_phrase_max_word_dist = max_phrase_word_dist
 		else:
 			_phrase = None
+			_phrase_max_word_dist = max_phrase_word_dist
 		word = {
 			"weight" : match.group(1),
 			"type" : match.group(2),
 			"word" : _word,
 			"phrase" : _phrase,
+			"phrase_max_word_dist" : _phrase_max_word_dist,
 			"raw_word" : part
 		}
 		search_words.append( word )
@@ -136,6 +141,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 							where word like ? %(type_query)s order by object_id, pos""" % locals(), [word]+type_names )
 		elif search_word["phrase"]:
 			phrase = search_word["phrase"]
+			phrase_max_word_dist = search_word["phrase_max_word_dist"]
 			phrase_words = phrase.split()
 			phrase_joins = []
 			phrase_queries = []
@@ -146,7 +152,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 						inner join keywords k%(i)d 
 							on k0.object_id=k%(i)d.object_id 
 							and k0.scan_source=k%(i)d.scan_source 
-							and abs(k%(i)d.pos-k%(prev_i)d.pos)<=%(max_phrase_word_dist)d""" % locals() )
+							and abs(k%(i)d.pos-k%(prev_i)d.pos)<=%(phrase_max_word_dist)d""" % locals() )
 					phrase_queries.append( "and k%(i)d.word like ?" % locals() )
 				else:
 					phrase_queries.append( "k%(i)d.word like ?" % locals() )

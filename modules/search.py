@@ -123,7 +123,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 				type_query += "o.type like ?"
 				type_names.append( search_type_alias[word_type] )
 			else:
-				type_query += "scan_source=?"
+				type_query += "k0.scan_source=?"
 				type_names.append( word_type )
 		if type_query:
 			type_query = "and (" + type_query + ")"
@@ -131,7 +131,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 		search_word_hits[ search_word["raw_word"] ] = 0
 		if search_word["word"]:
 			word = search_word["word"]
-			c.execute( """select object_id, word, pos, scan_source, o.type from keywords 
+			c.execute( """select object_id, word, pos, scan_source, o.type from keywords k0
 							inner join objects o on o.id=object_id
 							where word like ? %(type_query)s order by object_id, pos""" % locals(), [word]+type_names )
 		elif search_word["phrase"]:

@@ -194,7 +194,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					response.media_type = object_type
 				elif view=="all":
 					obj["data"] = data
-			if object_type == db_object.HTML.media_type:
+			elif object_type == db_object.HTML.media_type:
 				text_obj = db_object.HTML( app=app, object_id=object_id )
 				data = text_obj.get_data()
 				if view=="data":
@@ -202,7 +202,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					response.media_type = object_type
 				elif view=="all":
 					obj["data"] = data
-			if object_type == db_object.Minion.media_type:
+			elif object_type == db_object.Minion.media_type:
 				text_obj = db_object.Minion( app=app, object_id=object_id )
 				data = text_obj.get_data()
 				if view=="data":
@@ -210,7 +210,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					response.media_type = object_type
 				elif view=="all":
 					obj["data"] = data
-			if object_type == user.User.media_type:
+			elif object_type == user.User.media_type:
 				if view=="all":
 					c.execute( """select u.nick, u.avatar_id from users u 
 									where u.object_id=?""", 
@@ -220,7 +220,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 						raise errors.ObjectError( "Missing object data" )
 					obj["nick"] = result[0]
 					obj["avatar_id"] = result[1]
-			if object_type == db_object.Group.media_type:
+			elif object_type == db_object.Group.media_type:
 				if view=="all":
 					c.execute( """select name from groups where object_id=?""", 
 						[object_id] )
@@ -228,7 +228,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					if not result:
 						raise errors.ObjectError( "Missing object data" )
 					obj["name"] = result[0]
-			if object_type == publication.Publication.media_type:
+			elif object_type == publication.Publication.media_type:
 				pub_obj = publication.Publication( app=app, object_id=object_id )
 				data = str(pub_obj.get_data())
 				if view=="data":
@@ -236,7 +236,7 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					response.media_type = object_type
 				elif view=="all":
 					obj["data"] = data
-			if files.File.supports( app, object_type ):
+			elif files.File.supports( app, object_type ):
 				file_obj = files.File( app, object_id=object_id )
 				if view=="data":
 					# FIXME: Rückgabe mehrerer File-Objekte in Downstream-Analogon zu multipart/form-data möglich?
@@ -244,6 +244,9 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 												type_override=("type" in query.parms and query.parms["type"] or None) )
 				if view=="all":
 					obj["size"] = file_obj.get_size()
+					if files.Image.supports( app, object_type ):
+						img_obj = files.Image( app, object_id=object_id )
+						obj["rotation"] = img_obj.get_rotation()
 		if view in ["meta", "all"]:
 			objects.append( obj )
 	if view in ["meta", "all"]:

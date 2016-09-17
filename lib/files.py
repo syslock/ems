@@ -112,3 +112,30 @@ class File( db_object.DBObject ):
 					full_size = self.get_size()
 					self.app.response.content_range = "bytes %d-%d/%d" % (full_size-stop,full_size-1,full_size)
 		return result
+
+class Image( File ):
+	def __init__( self, app, **keyargs ):
+		super().__init__( app, **keyargs )
+	@classmethod
+	def supports( cls, app, file_type ):
+		return file_type.startswith( "image/" )
+	def update( self, **keyargs ):
+		super().update( **keyargs )
+		if "rotation" in keyargs and keyargs["rotation"]!=None:
+			c = self.app.db.cursor()
+			c.execute( """select object_id from image_info where object_id=?""", [self.id] )
+			update_id = c.fetchone()
+			if update_id != None:
+				c.execute( """update image_info set rotation=? where object_id=?""", [int(keyargs["rotation"]), self.id] )
+				self.app.db.commit()
+			else:
+				c.execute( """insert into image_info (object_id,rotation) values (?,?)""", [self.id, int(keyargs["rotation"])] )
+				self.app.db.commit()
+	def get_rotation( self ):
+		c = self.app.db.cursor()
+		c.execute( """select rotation from image_info where object_id=?""", [self.id] )
+		result = c.fetchone()
+		if result != None:
+			return int( result[0] )
+		else:
+			return 0

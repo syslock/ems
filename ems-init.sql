@@ -74,6 +74,11 @@ CREATE TABLE "chess_games" (
 	`from_field`	NUMERIC,
 	`to_field`	NUMERIC
 );
+CREATE TABLE "image_info" (
+	`object_id`	INTEGER NOT NULL UNIQUE,
+	`rotation`	INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX `i_image_info_id` ON `image_info` (`object_id` ASC);
 
 INSERT INTO objects (id,type) VALUES(1,'application/x-obj.group');
 INSERT INTO groups (object_id,name,description) VALUES(1,'root','Root object for everything else');

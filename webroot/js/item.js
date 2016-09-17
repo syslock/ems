@@ -23,7 +23,7 @@ BaseItem = function( parms ) {
 BaseItem.prototype.get_short_type = function( type ) {
 	var my = this;
 	var _type = type ? type : my.obj.type;
-	return _type.match(/.*\.([^.]*)/)[1];
+	return _type.match(/.*\/(.*\.)?([^.]*)/)[2];
 }
 
 BaseItem.prototype.init = function() {
@@ -260,9 +260,7 @@ function show_object( parms ){
 		}
 	} else if( obj.type && obj.type.match(/^image\//) && obj.id ) {
 		if( dom_parent ) {
-			obj.dom_object = $('<img>').attr( {src: get_module_url("get", {id : obj.id, view : "data"}), class: 'entry-media'} )[0];
-			$(obj.dom_object).data( {obj: obj} );
-			$(dom_parent).append( obj.dom_object );
+			new Image( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent} );
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {

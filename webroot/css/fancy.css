@@ -372,9 +372,44 @@ button.entry-delete-button {
 	font-size: x-small;
 }
 
-.entry-content img {
-	image-orientation: from-image;
+.image-expander {
+	position: relative;
 }
+.image {
+	position: relative;
+}
+.image-rotate-grip {
+	position: absolute;
+	font-size: 64px;
+	left: 5px;
+	top: 40%;
+}
+.image-rotate-grip>div {
+	border-radius: 10px;
+	border: 1px solid black;
+}
+.image-rotate-symbol {
+	color: red;
+	background-color: white;
+	opacity: 0.4;
+	position: absolute;
+}
+.image-rotate-symbol:hover {
+	opacity: 1;
+	cursor: grab;
+}
+.image-rotate-left, .image-rotate-right {
+	color: red;
+	background-color: white;
+	position: absolute;
+}
+.image-rotate-left {
+	left: -1.5em;
+}
+.image-rotate-right {
+	left: 1.5em;
+}
+
 
 .text-marking {
 	background-color: yellow;
@@ -1073,7 +1108,7 @@ div.user-groups-selection {
 .upload-dialog {
 	display: inline-block;
 	text-align: center;
-	max-width: 90%;
+/* 	max-width: 90%; */
 	background-color: white;
 	border: 1px dashed orange;
 	padding: 10px;
@@ -1095,14 +1130,17 @@ div.user-groups-selection {
 	display: none;
 }
 .upload-preview {
-	position: relative;
+/* 	position: relative; */
+	 /* upload-content selbst soll wieder left-aligned sein 
+	    und nicht center von upload-dialog erben: */
+	text-align: left;
 	display: inline-block;
 	margin-bottom: 15px;
 	border: 2px dashed red;
 	min-width: 200px;
 	min-height: 200px;
 	padding: 10px;
-	max-width: 90%;
+/* 	max-width: 90%; */
 }
 .mini.upload-dialog .upload-preview {
 	margin: 0;

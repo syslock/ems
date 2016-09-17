@@ -379,10 +379,16 @@ button.entry-delete-button {
 	position: relative;
 }
 .image-rotate-grip {
+	opacity: 0;
+	transition: opacity 0.2s ease-in-out;
 	position: absolute;
 	font-size: 64px;
 	left: 5px;
 	top: 40%;
+}
+.image-expander:hover .image-rotate-grip {
+	opacity: 1;
+	transition: opacity 0.2s ease-in-out;
 }
 .image-rotate-grip>div {
 	border-radius: 10px;
@@ -391,7 +397,7 @@ button.entry-delete-button {
 .image-rotate-symbol {
 	color: red;
 	background-color: white;
-	opacity: 0.4;
+	opacity: 0.5;
 	position: absolute;
 }
 .image-rotate-symbol:hover {

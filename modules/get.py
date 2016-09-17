@@ -7,6 +7,8 @@ from lib import db_object
 db_object = imp.reload( db_object )
 from lib import publication
 publication = imp.reload( publication )
+from lib import files
+files = imp.reload( files )
 
 def process( app ):
 	query = app.query
@@ -234,8 +236,8 @@ def get( app, object_ids=[], child_ids=[], parent_ids=[], offset=0, limit=None, 
 					response.media_type = object_type
 				elif view=="all":
 					obj["data"] = data
-			if db_object.File.supports( app, object_type ):
-				file_obj = db_object.File( app, object_id=object_id )
+			if files.File.supports( app, object_type ):
+				file_obj = files.File( app, object_id=object_id )
 				if view=="data":
 					# FIXME: Rückgabe mehrerer File-Objekte in Downstream-Analogon zu multipart/form-data möglich?
 					return file_obj.get_data( obj, attachment=("attachment" in query.parms and True or False),

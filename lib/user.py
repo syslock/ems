@@ -5,6 +5,8 @@ from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
+from lib import files
+files = imp.reload( files )
 
 class User( db_object.DBObject ):
 	media_type = "application/x-obj.user"
@@ -65,8 +67,8 @@ class User( db_object.DBObject ):
 			avatar_id = int( keyargs["avatar_id"] )
 			if self.app.user.can_read( avatar_id ):
 				obj = db_object.DBObject( self.app, object_id=avatar_id )
-				if db_object.File.supports(self.app, obj.media_type) and obj.media_type.startswith("image/"):
-					file_obj = db_object.File( self.app, object_id=obj.id )
+				if files.File.supports(self.app, obj.media_type) and obj.media_type.startswith("image/"):
+					file_obj = files.File( self.app, object_id=obj.id )
 					size_limit = 100*2**10
 					if file_obj.get_size() <= size_limit:
 						c.execute( """update users set avatar_id=? where object_id=?""", [avatar_id, self.id] )

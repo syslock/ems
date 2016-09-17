@@ -5,6 +5,8 @@ from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
+from lib import files
+files = imp.reload( files )
 # FIXME: Löschenfunktion nach DBObject ausmodularisieren:
 from modules import delete as delete_module
 delete_module = imp.reload( delete_module )
@@ -19,12 +21,12 @@ def process( app ):
 	target_id = int( query.parms["id"] )
 	mode = query.parms["mode"] if "mode" in query.parms else "convert"
 	if app.user.can_read( target_id ):
-		target_obj = db_object.File( app, object_id=target_id )
+		target_obj = files.File( app, object_id=target_id )
 		if re.match( r"^video/.*", target_obj.media_type ):
 			new_poster_offset = float(query.parms["poster_offset"]) if "poster_offset" in query.parms else None
 			new_poster_id = int(query.parms["poster_id"]) if "poster_id" in query.parms else None
 			if new_poster_id and app.user.can_write( target_id ) and app.user.can_read( new_poster_id ):
-				new_poster_obj = db_object.File( app, object_id=new_poster_id )
+				new_poster_obj = files.File( app, object_id=new_poster_id )
 			else:
 				new_poster_obj = None
 			# Wir brauchen min. webm (Firefox, Chrome) und mp4 (Safari, IE, Chrome) für eine halbwegs gute
@@ -77,7 +79,7 @@ def process( app ):
 					existing_object_id = None
 					if conversion_type=="poster" and new_poster_obj:
 						existing_object_id = new_poster_obj.id
-					new_obj = db_object.File( app, object_id=existing_object_id, parent_id=target_obj.id, media_type=new_media_type )
+					new_obj = files.File( app, object_id=existing_object_id, parent_id=target_obj.id, media_type=new_media_type )
 					if not existing_object_id:
 						new_obj.conversion = conversion;
 						new_objects.append( new_obj )
@@ -109,7 +111,7 @@ def process( app ):
 					stdout, stderr = p.communicate()
 					if p.returncode!=0:
 						try:
-							# FIXME: Löschenfunktion nach DBObject ausmodularisieren und Dateibereinigung nach db_object.File:
+							# FIXME: Löschenfunktion nach DBObject ausmodularisieren und Dateibereinigung nach files.File:
 							# Privilege-Escalation damit nicht nur der Eigentümer des Target-Objekts diesen Code ausführen kann:
 							app_old_user = app.user
 							app.user = user.get_admin_user(app)

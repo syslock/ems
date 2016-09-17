@@ -3,6 +3,8 @@ from lib import db_object
 db_object = imp.reload( db_object )
 from lib import errors
 errors = imp.reload( errors )
+from lib import files
+files = imp.reload( files )
 from modules import get
 get = imp.reload( get )
 
@@ -193,7 +195,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 			search_word = hit["search_word"]
 			if app.user.can_read( object_id ):
 				direct_hit = False
-				if object_type in result_types or "file" in result_types and db_object.File.supports(app, object_type) or not result_types:
+				if object_type in result_types or "file" in result_types and files.File.supports(app, object_type) or not result_types:
 					c = app.db.cursor()
 					# Hier müssen wir zunächst prüfen ob das gefundene Objekt ein Substitute-Objekt ist, denn 
 					# Substitute-Objekte sollten nicht als Treffer zurück geliefert werden.

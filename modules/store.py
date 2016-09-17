@@ -7,6 +7,8 @@ from lib import db_object
 db_object = imp.reload( db_object )
 from lib import publication
 publication = imp.reload( publication )
+from lib import files
+files = imp.reload( files )
 
 def process( app ):
 	"""Speichert neue Datenobjekte (Texte bzw. Textbestandteile, später evtl. 
@@ -105,7 +107,7 @@ def store_object( app, file_item=None ):
 			if file_item!=None:
 				# Es ist denkbar von File abgeleiteten Klassen mit festem media_type, zusätzlichen Attributen oder 
 				# besonderen Speicheranforderungen den Vorrang vor diesem generischen Fallback zu geben:
-				obj = db_object.File( app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
+				obj = files.File( app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
 				# Chunk-Position parsen, falls vorhanden:
 				try:
 					chunk_name, chunk_start, chunk_end_exclusive, file_expected_size = file_item.name.split(":")

@@ -5,6 +5,8 @@ from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
+from lib import files
+files = imp.reload( files )
 # FIXME: Löschenfunktion nach DBObject ausmodularisieren:
 from modules import delete as delete_module
 delete_module = imp.reload( delete_module )
@@ -36,7 +38,7 @@ def process( app ):
 	metainfo_list = []
 	for target_id in target_ids:
 		if app.user.can_read( target_id ):
-			target_obj = db_object.File( app, object_id=target_id )
+			target_obj = files.File( app, object_id=target_id )
 			if re.match( r"^video/.*", target_obj.media_type ) or re.match( r"^audio/.*", target_obj.media_type ):
 				mplayer_id = {}
 				p = subprocess.Popen( ["mplayer", "-identify", "-frames" , "0", "-ao", "null", "-vo", "null", 

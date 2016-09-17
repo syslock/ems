@@ -126,10 +126,10 @@ class Image( File ):
 			c.execute( """select object_id from image_info where object_id=?""", [self.id] )
 			update_id = c.fetchone()
 			if update_id != None:
-				c.execute( """update image_info set rotation=? where object_id=?""", [int(keyargs["rotation"]), self.id] )
+				c.execute( """update image_info set rotation=? where object_id=?""", [round(float(keyargs["rotation"])), self.id] )
 				self.app.db.commit()
 			else:
-				c.execute( """insert into image_info (object_id,rotation) values (?,?)""", [self.id, int(keyargs["rotation"])] )
+				c.execute( """insert into image_info (object_id,rotation) values (?,?)""", [self.id, round(float(keyargs["rotation"]))] )
 				self.app.db.commit()
 	def get_rotation( self ):
 		c = self.app.db.cursor()

@@ -88,20 +88,17 @@ Image.prototype.init = function() {
 			$(my.grip_rotate).hide();
 		}
 		
-		my.image.css( {'visibility': 'hidden'} );
+		if( my.obj.rotation ) {
+			my.image.css( {'visibility': 'hidden'} );
+		}
 		my.image.attr( {src: get_module_url("get", {id : my.obj.id, view : "data"}), class: 'entry-media'} );
 		my.image.on( "load", function(){ 
 			my.compute_dimensions(); 
 			my.set_rotate_grip_position(); 
-			get_module("get", {
-				args: {id : my.obj.id, view : "all"}, 
-				done : function( result ) {
-					var image_info = parse_result( result )[0];
-					if( image_info.rotation ) {
-						my.rotate( Number(image_info.rotation) );
-					}
-					my.image.css( {'visibility': 'visible'} );
-			}});
+			if( my.obj.rotation ) {
+				my.rotate( Number(my.obj.rotation) );
+				my.image.css( {'visibility': ''} );
+			}
 		});
 	}
 };

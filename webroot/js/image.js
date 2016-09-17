@@ -62,8 +62,8 @@ Image.prototype.init = function() {
 		my.expander.on( "dragover", function(ev) {
 			var x_diff = ev.originalEvent.clientX - my.dragstart_x;
 			var angle_diff = my.angle - my.dragstart_angle;
-			var angle_change = x_diff/2 - angle_diff;
-			if( angle_change ) {
+			var angle_change = x_diff - angle_diff;
+			if( angle_change && (my.angle%90!=0 || Math.abs(angle_change)>10) ) {
 				my.rotate( angle_change );
 			}
 		});

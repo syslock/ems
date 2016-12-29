@@ -474,6 +474,14 @@ button.entry-delete-button {
 .text-smaller {
 	font-size: smaller;
 }
+.block-quote {
+	padding: 2mm;
+	padding-left: 5mm;
+	padding-right: 5mm;
+	background-color: #f8f5f1;
+	border: 1px dashed black;
+	border-radius: 2mm;
+}
 
 .link-tool {
 	display: inline-block;

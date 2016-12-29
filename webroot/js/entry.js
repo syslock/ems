@@ -118,6 +118,8 @@ Entry.prototype.init = function() {
 		$(my.button_tab_right).on( "click", function(){ my.on_keydown( {shiftKey:false, keyCode:9, preventDefault:function(){}} ); } );
 		my.button_tab_left = $( ".keysym-tab-left", my.dom_object )[0];
 		$(my.button_tab_left).on( "click", function(){ my.on_keydown( {shiftKey:true, keyCode:9, preventDefault:function(){}} ); } );
+		my.button_toolbar_quote = $( ".keysym-quote", my.dom_object )[0];
+		$(my.button_toolbar_quote).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'e', preventDefault:function(){}} ); } );
 	}
 }
 
@@ -207,7 +209,8 @@ Entry.prototype.on_keydown = function( event ) {
 		'+' : 'text-larger',
 		'-' : 'text-smaller',
 		'l' : 'link',
-		'd' : 'upload'
+		'd' : 'upload',
+		'e' : 'block-quote'
 	}
 	if( event.keyCode==9 ) {
 		var range = get_element_cursor_range();
@@ -296,6 +299,12 @@ Entry.prototype.on_keydown = function( event ) {
 			event.preventDefault();
 		} else if( format=='upload' ) {
 			new UploadDialog( {dom_parent: my.content, wrap: true} );
+			event.preventDefault();
+		} else if( format=="block-quote" ) {
+			// markierten Content in neuen Zitierungsblock verschieben:
+			var contents = range.extractContents();
+			var new_block = $('<div></div>').addClass("block-quote").append(contents)[0];
+			range.insertNode( new_block );
 			event.preventDefault();
 		} else if( !range.collapsed ) {
 			var contents = range.extractContents();

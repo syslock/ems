@@ -260,7 +260,7 @@ function show_object( parms ){
 		}
 	} else if( obj.type && obj.type.match(/^image\//) && obj.id ) {
 		if( dom_parent ) {
-			new Image( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent} );
+			new ImageItem( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent} );
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {

@@ -1,16 +1,16 @@
 // FIXME: module encapsulation:
-var Image = null;
+var ImageItem = null;
 
 define(["jquery","item"], function($,BaseItem) {
-Image = function( parms ) {
+ImageItem = function( parms ) {
 	var my = this;
 	parms = parms ? parms : {};
 	BaseItem.call( this, parms );
 };
-Image.prototype = Object.create( BaseItem.prototype );
-Image.prototype.constructor = Image;
+ImageItem.prototype = Object.create( BaseItem.prototype );
+ImageItem.prototype.constructor = ImageItem;
 
-Image.prototype.init = function() {
+ImageItem.prototype.init = function() {
 	var my = this;
 	if( my.template==undefined ) {
 		// FIXME: We should try to do only one request for the template,
@@ -20,7 +20,7 @@ Image.prototype.init = function() {
 			module : "render",
 			args : {tpl : "elements/image.html"},
 			done : function(result) {
-				Image.prototype.template = result;
+				ImageItem.prototype.template = result;
 				my.init();
 			}, 
 			fail : function(result) {
@@ -103,12 +103,12 @@ Image.prototype.init = function() {
 	}
 };
 
-Image.prototype.set_rotate_grip_position = function() {
+ImageItem.prototype.set_rotate_grip_position = function() {
 	var my = this;
 	my.grip_rotate.css( {position:"absolute", left: my.current_width/2-my.rotate_symbol.outerWidth()/2, top: my.current_height/2-my.rotate_symbol.outerHeight()/2} );
 };
 
-Image.prototype.compute_dimensions = function() {
+ImageItem.prototype.compute_dimensions = function() {
 	var my = this;
 	// store original image dimensions
 	my.orig_width = my.image.outerWidth();
@@ -123,7 +123,7 @@ Image.prototype.compute_dimensions = function() {
 	my.alpha = Math.asin( my.orig_width / my.z );
 };
 
-Image.prototype.rotate = function( rotation_change ) {
+ImageItem.prototype.rotate = function( rotation_change ) {
 	var my = this;
 	function rad(x) {
 		return x/180*Math.PI;
@@ -171,5 +171,5 @@ Image.prototype.rotate = function( rotation_change ) {
 	my.current_height = new_height;
 };
 
-return Image;
+return ImageItem;
 }); //define()

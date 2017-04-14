@@ -69,7 +69,10 @@ def process( app ):
 			# Neuauslösung der Email-Bestätigung an eine ggf. geänderte 
 			# Adresse erlauben:
 			usr = login.check_login( app )
+			app_old_user = app.user
+			app.user = user.get_admin_user(app)
 			usr.update( email=email )
+			app.user = app_old_user
 			send_confirmation_request( app=app, user_id=usr.id )
 			response.output = json.dumps( {"succeeded" : True} )
 			return

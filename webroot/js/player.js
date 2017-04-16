@@ -191,7 +191,7 @@ var PlayerNet = function() {
 	
 	my.connect = function() {
 		if( my.ws!=null ) my.ws.close();
-		my.ws = new WebSocket( get_ws_url("/player_state") );
+		my.ws = new WebSocket( get_ws_url("?do=walk") );
 		my.ws.onmessage = my.get_player_state;
 	};
 	

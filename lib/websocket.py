@@ -1,18 +1,98 @@
-import base64, hashlib, imp, struct, time, signal, threading, traceback
+import socket, os, sys, base64, hashlib, imp, struct, time, signal, threading, traceback
 from lib import errors
 errors = imp.reload( errors )
+from lib import application
+application = imp.reload( application )
 
-# WARNING: This is basically an ugly hack tied to Apache/mod_wsgi, fooling 
-# them into thinking the WebSocket connection would be some kind of standard 
-# HTTP long polling request, by faking absurdly huge Content-Length headers.
-# Server to client messages sent by this implementation seem to work with most 
-# browsers, that seem to ignore the Content-Length header, that normally should 
-# not be present in WebSocket handshake responses.
-# An additional Apache config hack faking a Content-Length header in the clients 
-# WebSocket handshake initiation package is needed to get client messages handed
-# up through Apache/mod_wsgi to the application layer:
-#	SetEnvIf Upgrade websocket HAVE_UpgradeWebSocket
-#	RequestHeader set Content-Length 4294967295 env=HAVE_UpgradeWebSocket
+class WSListener():
+	def __init__( self, address="0.0.0.0", port=8888 ):
+		self.address = address
+		self.port = port
+	def listen( self ):
+		s = socket.socket()
+		s.bind( (self.address, self.port) )
+		s.listen( 0 )
+		try:
+			while True:
+				con, addr = s.accept()
+				try:
+					ws_server = WSServer( con, addr )
+					ws_server.start()
+				except Exception as e:
+					sys.stderr.write( "\n".join(traceback.format_exception(Exception, e, e.__traceback__)) )
+					continue
+		except:
+			s.close()
+			raise
+
+class WSServer( threading.Thread ):
+	def __init__( self, con, addr ):
+		self.con = con
+		self.addr = addr
+		self.quitting = False
+		environ = {}
+		environ["REMOTE_ADDR"] = self.addr[0]
+		print( "Connection from %s" % (environ["REMOTE_ADDR"]) )
+		b = self.con.recv(1)
+		headlines = []
+		ch = b""
+		while b:
+			ch += b
+			if( ch[-2:]==b"\r\n" ):
+				if( len(ch)>2 ):
+					headlines.append( ch[:-2].decode("utf-8") )
+					ch = b""
+				else:
+					break
+			b = con.recv(1)
+		self.method, self.uri, self.protocol = headlines[0].split()
+		print( "%s %s %s" % (self.method, self.uri, self.protocol) )
+		try:
+			environ["QUERY_STRING"] = self.uri[self.uri.index("?")+1:]
+		except ValueError:
+			environ["QUERY_STRING"] = ""
+		for hl in headlines[1:]:
+			print( hl )
+			key, val = hl.split(": ")
+			environ["HTTP_"+key.upper().replace("-","_")] = val
+		self.app = application.Application( environ, lambda x,y: None, name="ems", path=os.path.dirname(sys.argv[0]) )
+		print( self.app.query.parms )
+		if "do" in self.app.query.parms:
+			mod_name = self.app.query.parms["do"]
+			if "." in mod_name:
+				raise Exception( "Illegaler Modulname: %(mod_name)s" % locals() )
+			self.module = __import__( "modules."+mod_name, fromlist=[mod_name] )
+			self.module = imp.reload( self.module ) # FIXME: Reload nur für Entwicklung
+		else:
+			raise errors.ParameterError()
+		self.ws = WebSocket( self.app, self.con, self )
+		self.ws.send_handshake()
+		super().__init__()
+	def onmessage( self, msg ):
+		try:
+			self.module.process_message( self, msg )
+		except:
+			return
+	def stop( self ):
+		self.con.close()
+		self.quitting = True
+	def run( self ):
+		def read_thread():
+			while not self.quitting:
+				data = self.ws.read(1000)
+				if data:
+					self.con.send( data )
+				else:
+					print( "%s disconnected." % (str(self.addr)) )
+					break
+		t = threading.Thread( target=read_thread )
+		t.start()
+		self.app.open_db() # App-DB für diesen Thread neu öffnen...
+		self.module.initialize( self )
+		while not self.quitting:
+			self.module.run( self )
+			self.module.sleep( self )
+
 class WebSocket:
 	def __init__( self, app, socket, endpoint=None ):
 		if not self.can_handle( app.query ):

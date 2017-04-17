@@ -1074,6 +1074,9 @@ div.user-groups-selection {
 }
 .statusbar-content {
 	padding: 5px;
+	/* https://stackoverflow.com/questions/10154250/scroll-part-of-content-in-fixed-position-container */
+	height: 100%;
+	overflow-y: scroll;
 }
 .statusbar-content .message {
 }

@@ -59,8 +59,15 @@ StatusBar.prototype.add_message = function( parms ) {
 	message_source.text( source );
 	var message_text = $( ".message-text", message );
 	message_text.text( text );
-	my.statusbar_content.prepend( message );
+	my.statusbar_content.append( message );
 	message.show();
+	my.scroll_to_bottom();
+};
+
+// https://stackoverflow.com/questions/18614301/keep-overflow-div-scrolled-to-bottom-unless-user-scrolls-up
+StatusBar.prototype.scroll_to_bottom = function() {
+	var my = this;
+	my.statusbar_content[0].scrollTop = my.statusbar_content[0].scrollHeight;
 };
 
 StatusBar.prototype.toggle_min = function() {

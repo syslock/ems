@@ -37,6 +37,7 @@ StatusBar.prototype.init = function( parms ) {
 		my.statusbar_button.on( "click", function() { my.toggle(); } );
 		my.statusbar_content = $( ".statusbar-content", my.statusbar );
 		my.message_template = $( ".message-template", my.statusbar );
+		my.hide();
 	}
 };
 

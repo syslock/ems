@@ -22,9 +22,12 @@ button:hover {
 	background-color: #dfdfdf;
 	border-bottom: 1px solid #bfbfbf;
 	padding-top: 5px;
-	padding-left: 5px;
 	padding-bottom: 3px;
 	z-index: 50;
+}
+.page-menu>* {
+	/* workaround: left padding in page-menu leads to width of >100% and creates horizontal scroll bar */
+	margin-left: 5px;
 }
 .ems-menu {
 	display: block;

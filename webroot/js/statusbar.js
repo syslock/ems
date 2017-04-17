@@ -33,8 +33,10 @@ StatusBar.prototype.init = function( parms ) {
 		$(my.dom_parent).append( my.dom_object );
 		my.statusbar = $( ".statusbar", my.dom_object );
 		my.statusbar.unwrap();
-		my.statusbar_button = $( ".statusbar-button", my.statusbar );
-		my.statusbar_button.on( "click", function() { my.toggle(); } );
+		my.statusbar_button_min = $( ".statusbar-button-min", my.statusbar );
+		my.statusbar_button_min.on( "click", function() { my.toggle_min(); } );
+		my.statusbar_button_max = $( ".statusbar-button-max", my.statusbar );
+		my.statusbar_button_max.on( "click", function() { my.toggle_max(); } );
 		my.statusbar_content = $( ".statusbar-content", my.statusbar );
 		my.message_template = $( ".message-template", my.statusbar );
 		my.hide();
@@ -61,24 +63,39 @@ StatusBar.prototype.add_message = function( parms ) {
 	message.show();
 };
 
-StatusBar.prototype.toggle = function() {
+StatusBar.prototype.toggle_min = function() {
 	var my = this;
-	if( my.statusbar.hasClass( "hidden" ) ) {
-		my.show();
+	if( my.statusbar.hasClass( "minimized" ) ) {
+		my.statusbar.removeClass( "minimized" );
 	} else {
 		my.hide();
 	}
 };
 
+StatusBar.prototype.toggle_max = function() {
+	var my = this;
+	if( my.statusbar.hasClass( "maximized" ) ) {
+		my.statusbar.removeClass( "maximized" );
+	} else {
+		my.maximize();
+	}
+};
+
 StatusBar.prototype.show = function() {
 	var my = this;
-	my.statusbar.removeClass( "hidden" );
+	my.statusbar.removeClass( "minimized" );
+};
+
+StatusBar.prototype.maximize = function() {
+	var my = this;
+	my.statusbar.removeClass( "minimized" ).addClass( "maximized" );
 };
 
 StatusBar.prototype.hide = function() {
 	var my = this;
-	my.statusbar.addClass( "hidden" );
+	my.statusbar.removeClass("maximized").addClass( "minimized" );
 };
 
 return StatusBar;
 }); //define()
+

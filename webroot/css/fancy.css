@@ -1051,28 +1051,34 @@ div.user-groups-selection {
 	left: 0;
 	bottom: 0;
 	width: 100%;
-	height: 8em;
+	height: 25%;
 	background-color: #dfdfdf;
 	border-top: 1px solid #bfbfbf;
 	z-index: 50;
 }
-.statusbar.hidden {
+.statusbar.minimized {
 	height: 0;
 }
-.statusbar-button {
+.statusbar.maximized {
+	height: 100%;
+}
+.statusbar-buttons {
 	position: absolute;
 	right: 0px;
 	top: 0px;
-	width: 1em;
-	height: 1em;
 }
-.hidden .statusbar-button {
-	top: -1em;
+.statusbar-buttons>button {
+}
+.minimized .statusbar-buttons {
+	top: -2em;
 }
 .statusbar-content {
 	padding: 5px;
 }
 .statusbar-content .message {
+}
+.statusbar-content .message>div {
+	vertical-align: top;
 }
 .statusbar-content .error {
 	color: darkred;

@@ -19,7 +19,6 @@ function change_password( button, old_password, new_password ) {
 	var old_password = $('.user-old-password-input',user_element)[0].value;
 	var new_password = $('.user-new-password-input',user_element)[0].value;
 	var new_password_2 = $('.user-new-password-input-2',user_element)[0].value;
-	hide_status();
 	unlight( $('.user-old-password-input',user_element)[0] );
 	unlight( $('.user-new-password-input',user_element)[0] );
 	unlight( $('.user-new-password-input-2',user_element)[0] );

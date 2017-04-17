@@ -81,7 +81,6 @@ function parse_result( result ) {
 			}
 		}
 	}
-	hide_status();
 	if( result && result.error ) {
 		if( result.error.message ) {
 			show_message( result.error.message );
@@ -114,17 +113,6 @@ function show_error( text )
 function show_status()
 {
 	if( global_statusbar ) { global_statusbar.show(); }
-}
-
-function hide_status()
-{
-	$(".ems-status").removeClass("ems-status-active");
-	$(".ems-message").removeClass("ems-message-active");
-	$(".ems-error").removeClass("ems-error-active");
-	$(".ems-message-content").text("");
-	$(".ems-error-content").text("");
-	$(".login-nick").focus();
-
 }
 
 function change_style( style )

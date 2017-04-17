@@ -9,7 +9,6 @@
 			var global_status = undefined;
 			var global_user = undefined;
 			var global_search = undefined;
-			var global_statusbar = undefined;
 			function init()
 			{
 				// gehört noch zum alten Filter-Bar-Code:
@@ -87,9 +86,6 @@
 						
 						// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
 						var minions = new Minions( {dom_parent : $('.page-events'), limit : 15} );
-						
-						// Statusleiste:
-						global_statusbar = new StatusBar();
 					}
 				});
 			}

@@ -96,23 +96,23 @@ function parse_result( result ) {
 
 function show_message( text )
 {
-	if( global_statusbar ) { 
-		global_statusbar.add_message( {text: text} );
-		global_statusbar.show();
+	if( GlobalStatusBar ) { 
+		GlobalStatusBar.add_message( {text: text} );
+		GlobalStatusBar.show();
 	}
 }
 
 function show_error( text )
 {
-	if( global_statusbar ) { 
-		global_statusbar.add_message( {text: text, class: "error"} );
-		global_statusbar.show();
+	if( GlobalStatusBar ) { 
+		GlobalStatusBar.add_message( {text: text, class: "error"} );
+		GlobalStatusBar.show();
 	}
 }
 
 function show_status()
 {
-	if( global_statusbar ) { global_statusbar.show(); }
+	if( GlobalStatusBar ) { GlobalStatusBar.show(); }
 }
 
 function change_style( style )

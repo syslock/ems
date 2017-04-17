@@ -9,6 +9,7 @@
 			var global_status = undefined;
 			var global_user = undefined;
 			var global_search = undefined;
+			var global_statusbar = undefined;
 			function init()
 			{
 				// gehört noch zum alten Filter-Bar-Code:
@@ -87,20 +88,8 @@
 						// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
 						var minions = new Minions( {dom_parent : $('.page-events'), limit : 15} );
 						
-						// alter WebSocket-Code zur experimentellen Echtzeitanzeige von Ereignissen:
-						/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
-						ws.onmessage = function( msg ) {
-							var result = parse_result( msg.data );
-							if( result.succeeded ) {
-								$('.page-events').empty();
-								for( var i in result.objects ) {
-									var obj = result.objects[i];
-									var img = $('<img>').attr( {'class': 'status-icon', 'src': get_status_icon(obj.type),
-										'title': obj.title+' ('+obj.type+')'} );
-									$('.page-events').append( img );
-								}
-							}
-						};*/
+						// Statusleiste:
+						global_statusbar = new StatusBar();
 					}
 				});
 			}
@@ -144,7 +133,6 @@
 			</div>
 		</div>
 		<div class="ems-content"></div>
-		<%include file="/elements/status_box.html" />
 		<%include file="/elements/group_template.html" />
 		<%include file="/elements/user_template.html" />
 		<%include file="/elements/text_template.html" />

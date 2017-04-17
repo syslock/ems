@@ -1045,74 +1045,58 @@ div.user-groups-selection {
 /* ------------------------------------------------------------------------- */
 /* --------------------------------- Status -------------------------------- */
 /* ------------------------------------------------------------------------- */
-.ems-status {
-	display: none;
+.statusbar {
 	position: fixed;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	background-color:rgba(0,0,0,0.5);
-	z-index: 100;
-}
-.ems-status-active {
-	display: block;
-}
-.ems-status-box {
-	display: block;
-	position: relative;
-	text-align: center;
-	background-color: white;
-	border: 3px solid lightgrey;
-	border-radius: 20px;
-	margin-top: 10%;
-	margin-left: 10%;
-	margin-right: 10%;
-	padding: 10px;
-}
-.ems-message {
-	display: none;
-	text-align: left;
-	background-color: white;
-	border: 1px solid grey;
-	border-radius: 10px;
-	padding: 5px;
-	margin-bottom: 10px;
-}
-.ems-message-active {
-	display: block;
-}
-.ems-message-label {
-	float: left;
-	font-weight: bold;
-	margin-right: 20px;
-	margin-bottom: 10px;
-}
-.ems-message-content {
-	display: inline-block;
-}
-.ems-error {
-	display: none;
-	text-align: left;
-	background-color: white;
-	border: 1px dashed red;
-	border-radius: 10px;
-	padding: 5px;
-	margin-bottom: 10px;
-}
-.ems-error-active {
-	display: block;
-}
-.ems-error-label {
-	float: left;
-	font-weight: bold;
-	margin-right: 20px;
-	margin-bottom: 10px;
-}
-.ems-error-content {
-	display: inline-block;
 	font-family: monospace;
-	white-space: pre;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 8em;
+	background-color: #dfdfdf;
+	border-top: 1px solid #bfbfbf;
+	z-index: 50;
+}
+.statusbar.hidden {
+	height: 0;
+}
+.statusbar-button {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	width: 1em;
+	height: 1em;
+}
+.hidden .statusbar-button {
+	top: -1em;
+}
+.statusbar-content {
+	padding: 5px;
+}
+.statusbar-content .message {
+}
+.statusbar-content .error {
+	color: darkred;
+}
+.message-emblem {
+	display: inline-block;
+	height: 1em;
+	width: 1em;
+	border-radius: 3px;
+	background-color: yellow;
+}
+.error .message-emblem {
+	background-color: red;
+}
+.message-time {
+	display: inline-block;
+	width: 1.5cm;
+}
+.message-source {
+	display: inline-block;
+	width: 2cm;
+}
+.message-text {
+	display: inline-block;
 }
 
 

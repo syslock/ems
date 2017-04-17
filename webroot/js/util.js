@@ -97,22 +97,23 @@ function parse_result( result ) {
 
 function show_message( text )
 {
-	$(".ems-message-content").text(text)
-	$(".ems-message").addClass("ems-message-active");
-	show_status()
+	if( global_statusbar ) { 
+		global_statusbar.add_message( {text: text} );
+		global_statusbar.show();
+	}
 }
 
 function show_error( text )
 {
-	$(".ems-error-content").text(text)
-	$(".ems-error").addClass("ems-error-active");
-	show_status()
+	if( global_statusbar ) { 
+		global_statusbar.add_message( {text: text, class: "error"} );
+		global_statusbar.show();
+	}
 }
 
 function show_status()
 {
-	$(".ems-status").addClass("ems-status-active");
-	$(".ems-status-hide-button").focus();
+	if( global_statusbar ) { global_statusbar.show(); }
 }
 
 function hide_status()

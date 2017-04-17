@@ -39,8 +39,47 @@ StatusBar.prototype.init = function( parms ) {
 		my.statusbar_button_max.on( "click", function() { my.toggle_max(); } );
 		my.statusbar_content = $( ".statusbar-content", my.statusbar );
 		my.message_template = $( ".message-template", my.statusbar );
+		my.statusbar_entry = $( ".statusbar-entry", my.statusbar );
+		my.statusbar_entry.attr( { contenteditable: "true" } );
+		my.statusbar_entry.on( "keydown", function(evt) { my.handle_keydown_event(evt); } )
+		my.statusbar_entry.on( "keyup", function(evt) { my.handle_keyup_event(evt); } )
 		my.hide();
 	}
+};
+
+StatusBar.prototype.handle_keydown_event = function( evt ) {
+	var my = this;
+	var propagate = true;
+	switch( evt.which )
+	{
+		case 13: // Enter
+			propagate = false; // prevent line breaks in contentEditable div
+			break;
+	}
+	return propagate;
+};
+
+StatusBar.prototype.handle_keyup_event = function( evt ) {
+	var my = this;
+	var propagate = true;
+	switch( evt.which )
+	{
+		case 13: // Enter
+			propagate = false; // prevent line breaks in contentEditable div
+			my.add_message( {
+				"emblem_css" : {"background-color": "blue"}, 
+				"source" : global_user ? global_user.nick : "anonymous", 
+				"text" : my.statusbar_entry.text()
+			} );
+			my.statusbar_entry.text("");
+			break;
+		case 27: // Escape
+			propagate = false;
+			my.hide();
+			break;
+			
+	}
+	return propagate;
 };
 
 StatusBar.prototype.add_message = function( parms ) {
@@ -74,6 +113,7 @@ StatusBar.prototype.toggle_min = function() {
 	var my = this;
 	if( my.statusbar.hasClass( "minimized" ) ) {
 		my.statusbar.removeClass( "minimized" );
+		my.statusbar_entry.focus();
 	} else {
 		my.hide();
 	}
@@ -91,11 +131,13 @@ StatusBar.prototype.toggle_max = function() {
 StatusBar.prototype.show = function() {
 	var my = this;
 	my.statusbar.removeClass( "minimized" );
+	my.statusbar_entry.focus();
 };
 
 StatusBar.prototype.maximize = function() {
 	var my = this;
 	my.statusbar.removeClass( "minimized" ).addClass( "maximized" );
+	my.statusbar_entry.focus();
 };
 
 StatusBar.prototype.hide = function() {

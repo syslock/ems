@@ -1078,8 +1078,22 @@ div.user-groups-selection {
 .statusbar-content {
 	padding: 5px;
 	/* https://stackoverflow.com/questions/10154250/scroll-part-of-content-in-fixed-position-container */
-	height: 95%;
+	height: 85%;
 	overflow-y: scroll;
+}
+.statusbar-entry-box {
+	padding: 0.4em;
+	background-color: white;
+	border: 1px solid black;
+}
+.statusbar-entry-prompt {
+	display: inline-block;
+}
+.statusbar-entry {
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	position: absolute;
 }
 .statusbar-content .message {
 }

@@ -75,7 +75,7 @@ function parse_result( result ) {
 				var None = undefined;
 				result = eval( "("+result+")" );
 			} catch( e ) {
-				show_message( "Error parsing response: " )
+				show_error( "Error parsing response: " )
 				show_error( e+"\nwithin:\n\n("+result+")" );
 				throw e;
 			}
@@ -83,7 +83,7 @@ function parse_result( result ) {
 	}
 	if( result && result.error ) {
 		if( result.error.message ) {
-			show_message( result.error.message );
+			show_error( result.error.message );
 			console.log( result.error.message );
 		}
 		if( result.error.trace ) {

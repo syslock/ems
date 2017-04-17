@@ -117,10 +117,10 @@ class WebSocket:
 		#self.input = app.query.environ["wsgi.input"]
 		self.socket = socket
 		self.client_messages = []
-		self.client_data_semaphore = threading.Semaphore()
+		self.client_messages_semaphore = threading.Semaphore()
+		self.client_message_event = threading.Event()
 		self.server_data = b""
 		self.server_data_semaphore = threading.Semaphore()
-		self.server_data_sent_offset = 0
 		self.quitting = False
 		self.client_reader = threading.Thread( target=self.read_frames_from_client )
 		self.client_reader.start()
@@ -233,9 +233,10 @@ class WebSocket:
 			if frame.close:
 				self.app.trace( "WebSocket CLOSE reason from client %s: %d (%s)" % (self.app.query.remote_addr, frame.reason, frame.payload) )
 				self.quitting = True
-			self.client_data_semaphore.acquire()
+			self.client_messages_semaphore.acquire()
 			self.client_messages.append( frame.payload )
-			self.client_data_semaphore.release()
+			self.client_messages_semaphore.release()
+			self.client_message_event.set()
 		self.app.trace( "WebSocket-Shutdown (read_frames_from_client %s)" % (self.app.query.remote_addr) )
 	
 	def send( self, message ):
@@ -252,12 +253,13 @@ class WebSocket:
 			client up to the onmessage handler of the server-side application endpoint."""
 		# 1.) Check for decoded frames from the client and forward them
 		# to the server-side endpoint for consumtion:
-		self.client_data_semaphore.acquire()
+		self.client_messages_semaphore.acquire()
 		client_message_count = 0
 		while self.client_messages:
 			self.onmessage( self.client_messages.pop() )
 			client_message_count += 1
-		self.client_data_semaphore.release()
+		self.client_messages_semaphore.release()
+		self.client_message_event.clear()
 		# 2.) Check if we have frame data from send calls of the server-side endpoint,
 		# that we can forward to the WebSocket server:
 		self.server_data_semaphore.acquire()

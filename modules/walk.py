@@ -42,4 +42,4 @@ def run( ws_server ):
 		ws_server.ws.send( str(result) )
 
 def sleep( ws_server ):
-	time.sleep( 0.2 )
+	ws_server.ws.client_message_event.wait( timeout=0.2 )

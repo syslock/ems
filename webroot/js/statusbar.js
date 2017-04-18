@@ -33,6 +33,7 @@ StatusBar.prototype.init = function( parms ) {
 		$(my.dom_parent).append( my.dom_object );
 		my.statusbar = $( ".statusbar", my.dom_object );
 		my.statusbar.unwrap();
+		my.statusbar.on( "click", function() { my.statusbar_entry.focus(); } );
 		my.statusbar_button_min = $( ".statusbar-button-min", my.statusbar );
 		my.statusbar_button_min.on( "click", function() { my.toggle_min(); } );
 		my.statusbar_button_max = $( ".statusbar-button-max", my.statusbar );
@@ -54,6 +55,9 @@ StatusBar.prototype.handle_keydown_event = function( evt ) {
 	{
 		case 13: // Enter
 			propagate = false; // prevent line breaks in contentEditable div
+			break;
+		default:
+			my.show();
 			break;
 	}
 	return propagate;
@@ -77,7 +81,6 @@ StatusBar.prototype.handle_keyup_event = function( evt ) {
 			propagate = false;
 			my.hide();
 			break;
-			
 	}
 	return propagate;
 };
@@ -113,7 +116,6 @@ StatusBar.prototype.toggle_min = function() {
 	var my = this;
 	if( my.statusbar.hasClass( "minimized" ) ) {
 		my.statusbar.removeClass( "minimized" );
-		my.statusbar_entry.focus();
 	} else {
 		my.hide();
 	}
@@ -131,13 +133,11 @@ StatusBar.prototype.toggle_max = function() {
 StatusBar.prototype.show = function() {
 	var my = this;
 	my.statusbar.removeClass( "minimized" );
-	my.statusbar_entry.focus();
 };
 
 StatusBar.prototype.maximize = function() {
 	var my = this;
 	my.statusbar.removeClass( "minimized" ).addClass( "maximized" );
-	my.statusbar_entry.focus();
 };
 
 StatusBar.prototype.hide = function() {

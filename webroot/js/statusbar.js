@@ -70,11 +70,15 @@ StatusBar.prototype.handle_keyup_event = function( evt ) {
 	{
 		case 13: // Enter
 			propagate = false; // prevent line breaks in contentEditable div
-			my.add_message( {
-				"emblem_css" : {"background-color": "blue"}, 
-				"source" : global_user ? global_user.nick : "anonymous", 
-				"text" : my.statusbar_entry.text()
-			} );
+			if( GlobalChat ) {
+				GlobalChat.send( {msg: my.statusbar_entry.text()} );
+			} else {
+				my.add_message( {
+					"emblem_css" : {"background-color": "blue"}, 
+					"source" : global_user ? global_user.nick : "anonymous", 
+					"text" : my.statusbar_entry.text()
+				} );
+			}
 			my.statusbar_entry.text("");
 			break;
 		case 27: // Escape

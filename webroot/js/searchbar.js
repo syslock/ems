@@ -35,7 +35,11 @@ var SearchBar = function ( parms ) {
 				my.search();
 				break;
 			case 27: // Escape
-				my.hide_apropos_hints();
+				if( my.apropos_hints_enabled ) {
+					my.hide_apropos_hints();
+				} else {
+					my.clear();
+				}
 				if( my.auto_search_timeout_obj ) window.clearTimeout( my.auto_search_timeout_obj );
 				break;
 			case 40: // Down

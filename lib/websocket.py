@@ -256,7 +256,7 @@ class WebSocket:
 				self.send( frame.payload, opcode=10 )
 			elif frame.is_pong:
 				print( "WebSocket PONG from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
-				self.roundtrip_times = self.roundtrip_times[-9:].append( int(1000*(time.time()-float(frame.payload.decode("utf-8")))) )
+				self.roundtrip_times = self.roundtrip_times[-9:]+[ int(1000*(time.time()-float(frame.payload.decode("utf-8")))) ]
 				print( "WebSocket recent round trip times (ms): %s" % (str(self.roundtrip_times)) )
 		print( "WebSocket-Shutdown (read_frames_from_client %s)" % (self.app.query.remote_addr) )
 	

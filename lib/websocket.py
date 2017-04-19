@@ -148,11 +148,13 @@ class WebSocket:
 	def can_handle( cls, query ):
 		return "HTTP_SEC_WEBSOCKET_KEY" in query.environ
 	
-	def make_frame( self, payload ):
+	def make_frame( self, payload, opcode=1 ):
 		#                FrrrOOOOMLLLLLLL
-		frame_header = 0b1000000100000000 # finished, unmasked (server-to-client), text (opcode=1) frame with zero payload length
+		frame_header = 0b1000000000000000 # finished, unmasked (server-to-client), continuation (opcode=0) frame with zero payload length
+		frame_header |= opcode << 8 # store opcode in frame header
 		frame = bytes()
-		payload = payload.encode( "utf-8" )
+		if type(payload)==str:
+			payload = payload.encode( "utf-8" )
 		length = len(payload)
 		if length<126:
 			frame_header |= length
@@ -219,8 +221,15 @@ class WebSocket:
 					self.reason = struct.unpack( ">H", payload[0:2] )[0]
 				payload = payload[2:]
 			self.op = op
-			self.close = self.op==8
-			self.payload = payload.decode("utf-8")
+			self.is_text = self.op==1
+			self.is_binary = self.op==2
+			self.is_close = self.op==8
+			self.is_ping = self.op==9
+			self.is_poing = self.op==10
+			self.payload = payload
+			self.text = None
+			if self.is_text:
+				self.text = payload.decode("utf-8")
 			
 	def read_frames_from_client( self ):
 		while not self.quitting:
@@ -230,21 +239,28 @@ class WebSocket:
 				self.app.trace( "WebSocket client %s hung up? Initiating server-side shutdown." % (self.app.query.remote_addr) )
 				self.quitting = True
 				return
-			if frame.close:
+			if frame.is_text:
+				self.client_messages_semaphore.acquire()
+				self.client_messages.append( frame.text )
+				self.client_messages_semaphore.release()
+				self.client_message_event.set()
+			elif frame.is_close:
 				self.app.trace( "WebSocket CLOSE reason from client %s: %d (%s)" % (self.app.query.remote_addr, frame.reason, frame.payload) )
 				self.quitting = True
-			self.client_messages_semaphore.acquire()
-			self.client_messages.append( frame.payload )
-			self.client_messages_semaphore.release()
-			self.client_message_event.set()
+			elif frame.is_ping:
+				self.app.trace( "WebSocket PING from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
+				self.send( frame.payload, opcode=10 )
+			elif frame.is_pong:
+				self.app.trace( "WebSocket PONG from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
+				pass
 		self.app.trace( "WebSocket-Shutdown (read_frames_from_client %s)" % (self.app.query.remote_addr) )
 	
-	def send( self, message ):
+	def send( self, message, opcode=1 ):
 		"""Highlevel thread-safe interface for sending messages to the client 
 			from the server-side application endpoint. Actual sending is been
-			done from the WebSockets read method."""
+			done from elsewhere."""
 		self.server_data_semaphore.acquire()
-		self.server_data += self.make_frame( message )
+		self.server_data += self.make_frame( message, opcode=opcode )
 		self.server_data_semaphore.release()
 	
 	def communicate( self ):

@@ -85,7 +85,7 @@ class WSServer( threading.Thread ):
 				else:
 					self.module.sleep( self )
 				if self.ws.quitting:
-					self.app.trace( "WebSocket-Shutdown (%s)" % (self.app.query.remote_addr) )
+					print( "WebSocket-Shutdown (%s)" % (self.app.query.remote_addr) )
 					print( "WebSocket-Shutdown (%s)" % (self.app.query.remote_addr) )
 					self.stop()
 		t = threading.Thread( target=read_thread )
@@ -104,7 +104,7 @@ class WebSocket:
 		if endpoint and not isinstance( endpoint, threading.Thread ):
 			raise errors.InternalProgramError( "WebSocket endpoint needs to be an instance of Thread" )
 		if endpoint and not hasattr( endpoint, "stop" ):
-			self.app.trace( "Warning: WebSocket endpoint %s should implement stop()" % str(endpoint) )
+			print( "Warning: WebSocket endpoint %s should implement stop()" % str(endpoint) )
 		self.app = app
 		if endpoint:
 			endpoint.websocket = self
@@ -187,10 +187,10 @@ class WebSocket:
 				raise NotImplementedError( "FIXME: Only text messages supported" )
 			if op==9:
 				pass #FIXME
-				#self.app.trace( "WebSocket PING received from client %s" % (self.app.query.remote_addr) )
+				#print( "WebSocket PING received from client %s" % (self.app.query.remote_addr) )
 			if op==10:
 				pass #FIXME
-				#self.app.trace( "WebSocket PONG received from client %s" % (self.app.query.remote_addr) )
+				#print( "WebSocket PONG received from client %s" % (self.app.query.remote_addr) )
 			payload_offset = 2
 			if length == 126:
 				frame += s.recv(2)
@@ -236,7 +236,7 @@ class WebSocket:
 			try:
 				frame = self.Frame( self.socket )
 			except OSError as e:
-				self.app.trace( "WebSocket client %s hung up? Initiating server-side shutdown." % (self.app.query.remote_addr) )
+				print( "WebSocket client %s hung up? Initiating server-side shutdown." % (self.app.query.remote_addr) )
 				self.quitting = True
 				return
 			if frame.is_text:
@@ -245,15 +245,14 @@ class WebSocket:
 				self.client_messages_semaphore.release()
 				self.client_message_event.set()
 			elif frame.is_close:
-				self.app.trace( "WebSocket CLOSE reason from client %s: %d (%s)" % (self.app.query.remote_addr, frame.reason, frame.payload) )
+				print( "WebSocket CLOSE reason from client %s: %d (%s)" % (self.app.query.remote_addr, frame.reason, frame.payload) )
 				self.quitting = True
 			elif frame.is_ping:
-				self.app.trace( "WebSocket PING from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
+				print( "WebSocket PING from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
 				self.send( frame.payload, opcode=10 )
 			elif frame.is_pong:
-				self.app.trace( "WebSocket PONG from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
-				pass
-		self.app.trace( "WebSocket-Shutdown (read_frames_from_client %s)" % (self.app.query.remote_addr) )
+				print( "WebSocket PONG from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
+		print( "WebSocket-Shutdown (read_frames_from_client %s)" % (self.app.query.remote_addr) )
 	
 	def send( self, message, opcode=1 ):
 		"""Highlevel thread-safe interface for sending messages to the client 
@@ -286,7 +285,7 @@ class WebSocket:
 		return server_chunk
 	
 	def close( self ):
-		self.app.trace( "WebSocket-Shutdown (closing %s)..." % (self.app.query.remote_addr) )
+		print( "WebSocket-Shutdown (closing %s)..." % (self.app.query.remote_addr) )
 		# request Termination on the server-side application endpoint:
 		self.endpoint.stop()
 		self.endpoint.join() # wait on the endpoint thread

@@ -113,6 +113,9 @@ class WebSocket:
 			self.onmessage = endpoint.onmessage
 		else:
 			self.onmessage = lambda x: None
+		self.last_msg_received = 0 # seconds (float)
+		self.keep_alive_timeout = 5*60 # seconds
+		self.roundtrip_times = [] # ms (list of ints)
 		self.prepare_handshake()
 		#self.input = app.query.environ["wsgi.input"]
 		self.socket = socket
@@ -235,6 +238,7 @@ class WebSocket:
 		while not self.quitting:
 			try:
 				frame = self.Frame( self.socket )
+				self.last_msg_received = time.time()
 			except OSError as e:
 				print( "WebSocket client %s hung up? Initiating server-side shutdown." % (self.app.query.remote_addr) )
 				self.quitting = True
@@ -252,6 +256,8 @@ class WebSocket:
 				self.send( frame.payload, opcode=10 )
 			elif frame.is_pong:
 				print( "WebSocket PONG from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
+				self.roundtrip_times = self.roundtrip_times[-9:].append( int(1000*(time.time()-float(frame.payload.decode("utf-8")))) )
+				print( "WebSocket recent round trip times (ms): %s" % (str(self.roundtrip_times)) )
 		print( "WebSocket-Shutdown (read_frames_from_client %s)" % (self.app.query.remote_addr) )
 	
 	def send( self, message, opcode=1 ):
@@ -275,6 +281,9 @@ class WebSocket:
 			client_message_count += 1
 		self.client_messages_semaphore.release()
 		self.client_message_event.clear()
+		if time.time() > self.last_msg_received+self.keep_alive_timeout:
+			self.send( str(time.time()), opcode=9 ) # send PING as a keep alive message
+			self.last_msg_received = time.time()
 		# 2.) Check if we have frame data from send calls of the server-side endpoint,
 		# that we can forward to the WebSocket server:
 		self.server_data_semaphore.acquire()

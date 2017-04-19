@@ -225,7 +225,7 @@ class WebSocket:
 			self.is_binary = self.op==2
 			self.is_close = self.op==8
 			self.is_ping = self.op==9
-			self.is_poing = self.op==10
+			self.is_pong = self.op==10
 			self.payload = payload
 			self.text = None
 			if self.is_text:

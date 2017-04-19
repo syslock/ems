@@ -192,11 +192,11 @@ class WebSocket:
 			payload_offset = 2
 			if length == 126:
 				frame += s.recv(2)
-				length = struct.unpack( ">H", frame[2:2+2] )
+				length = struct.unpack( ">H", frame[2:2+2] )[0]
 				payload_offset += 2
 			elif length == 127:
 				frame += s.recv(8)
-				length = struct.unpack( ">Q", frame[2:2+8] )
+				length = struct.unpack( ">Q", frame[2:2+8] )[0]
 				payload_offset += 8
 			if masked:
 				frame += s.recv(4)

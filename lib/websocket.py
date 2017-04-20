@@ -1,20 +1,44 @@
-import socket, os, sys, base64, hashlib, imp, struct, time, signal, threading, traceback
+import socket, os, sys, base64, hashlib, imp, struct, time, signal, threading, traceback, ssl
 from lib import errors
 errors = imp.reload( errors )
 from lib import application
 application = imp.reload( application )
+import config
+config = imp.reload( config )
 
 class WSListener():
-	def __init__( self, address="0.0.0.0", port=8888 ):
-		self.address = address
-		self.port = port
+	def __init__( self, _config=None ):
+		wsc = {}
+		if hasattr( config, "websocket" ):
+			wsc.update( config.websocket )
+		if _config!=None:
+			wsc.update( _config )
+		if "protocol" in wsc:
+			self.protocol = wsc["protocol"]
+		elif "ssl" in wsc:
+			self.protocol = "wss"
+		else:
+			self.protocol = "ws"
+		if "bind_host" in wsc:
+			self.bind_host = wsc["bind_host"]
+		else:
+			self.bind_host = "0.0.0.0"
+		if "port" in wsc:
+			self.port = wsc["port"]
+		else:
+			self.port = 443 if self.protocol=="wss" else 80
+		self.config = wsc
 	def listen( self ):
 		s = socket.socket()
-		s.bind( (self.address, self.port) )
+		s.bind( (self.bind_host, self.port) )
 		s.listen( 0 )
 		try:
 			while True:
 				con, addr = s.accept()
+				if "ssl" in self.config:
+					context = ssl.create_default_context( ssl.Purpose.CLIENT_AUTH )
+					context.load_cert_chain( certfile=self.config["ssl"]["cert"], keyfile=self.config["ssl"]["key"] )
+					con = context.wrap_socket( con, server_side=True )
 				try:
 					ws_server = WSServer( con, addr )
 				except Exception as e:
@@ -22,6 +46,7 @@ class WSListener():
 					continue
 				ws_server.start()
 		except:
+			s.shutdown( socket.SHUT_RDWR )
 			s.close()
 			raise
 
@@ -74,6 +99,7 @@ class WSServer( threading.Thread ):
 		except:
 			return
 	def stop( self ):
+		self.con.shutdown( socket.SHUT_RDWR )
 		self.con.close()
 		self.quitting = True
 	def run( self ):

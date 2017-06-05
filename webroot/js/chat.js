@@ -1,4 +1,3 @@
-
 var Chat = function() {
 	var my = this;
 	my.players = {};
@@ -21,6 +20,4 @@ var Chat = function() {
 			GlobalStatusBar.show();
 		}
 	};
-} // PlayerNet
-
-var player_net = new PlayerNet();
+} // Chat

@@ -53,7 +53,8 @@ function post_module( module, parms ) {
 function get_ws_url( path ) {
 	var l = document.location;
 	var port = 8888;
-	return "ws://"+l.hostname+":"+String(port)+( path ? path : "" );
+	var protocol = l.protocol=="https:" ? "wss:" : "ws:"
+	return protocol+"//"+l.hostname+":"+String(port)+( path ? path : "" );
 }
 
 function reload_page() {

@@ -1067,13 +1067,25 @@ div.user-groups-selection {
 }
 .statusbar-buttons {
 	position: absolute;
-	right: 0px;
-	top: 0px;
-}
-.statusbar-buttons>button {
+	right: 4mm;
+	top: 0mm;
 }
 .minimized .statusbar-buttons {
 	top: -2em;
+}
+.statusbar-button-min {
+	width: 5mm;
+	height: 5mm;
+	background:url("../images/statusbar_icon_min.svg") no-repeat 0 0;
+	background-size: cover;
+	
+}
+.statusbar-button-max {
+	width: 5mm;
+	height: 5mm;
+	background:url("../images/statusbar_icon_max.svg") no-repeat 0 0;
+	background-size: cover;
+	
 }
 .statusbar-content {
 	padding: 5px;

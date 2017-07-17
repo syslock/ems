@@ -90,7 +90,8 @@ var UploadDialog = function( parms ) {
 						if( meta.size ) $('.upload-size', my.upload_dialog).text( prettyprint_size(meta.size) );
 						my.preview_area.empty(); // FIXME: Don't remove elements being accessed by other code!
 						show_object( {obj: meta, dom_parent: my.preview_area[0]} );
-						if( meta.dom_object ) { 
+						if( meta.dom_object ) {
+							$("video",meta.dom_object)[0].contentEditable = true; // FIXME: Firefox Workaround: https://bugzilla.mozilla.org/show_bug.cgi?id=1381620
 							my.preview_object = meta.dom_object;
 							$(meta.dom_object).addClass('upload-object');
 							$(meta.dom_object).addClass('upload-preview-content');

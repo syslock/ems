@@ -276,7 +276,8 @@ button.entry-delete-button {
 	position: relative;
 }
 .video {
-	width: 480px;
+	max-width: 100%;
+	min-width: 480px;
 	min-height: 270px;
 	background-color: black;
 }

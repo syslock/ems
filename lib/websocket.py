@@ -76,6 +76,10 @@ class WSServer( threading.Thread ):
 			environ["QUERY_STRING"] = self.uri[self.uri.index("?")+1:]
 		except ValueError:
 			environ["QUERY_STRING"] = ""
+		try:
+			environ["SCRIPT_NAME"] = self.uri.split("?")[0]
+		except ValueError:
+			environ["SCRIPT_NAME"] = ""
 		for hl in headlines[1:]:
 			print( hl )
 			key, val = hl.split(": ")

@@ -12,6 +12,7 @@ class Request:
 	"""Implementiert Parameterübergabe an die Webanwendung"""
 	def __init__( self, environ ):
 		self.environ = environ
+		self.path = os.path.dirname( self.environ["SCRIPT_NAME"] ) or "/"
 		self.remote_addr = self.environ["REMOTE_ADDR"]
 		self.cookies = {}
 		self.parms = {}
@@ -92,13 +93,14 @@ class Cookie:
 		"""Erzeugt einen Set-Cookie-Header im von WSGI erwarteten Tupel-Format"""
 		key = self.key
 		value = self.value
-		path= self.path
+		path = self.path
 		expires = self.expires.strftime( "%a, %d-%m-%y %H:%M:%S GMT" )
-		return ( "Set-Cookie", "%(key)s=%(value)s; path=%(path)s; expires=%(expires)s;" % locals() )
+		return ( "Set-Cookie", "%(key)s=%(value)s; Path=%(path)s; Expires=%(expires)s;" % locals() )
 
 class Response:
 	"""Implementiert Header-Erzeugung und Ausgabekodierung"""
-	def __init__( self, start_response ):
+	def __init__( self, start_response, path="/" ):
+		self.path = path
 		self.status = '200 OK'
 		self.output = ""
 		self.media_type = "text/plain"
@@ -131,7 +133,7 @@ class Response:
 			self.content_length = len(encoded_output)
 		if self.content_length != None:
 			self.response_headers.append( ('Content-Length',  str(self.content_length)) )
-		cookie_objects = map( lambda key: Cookie(key, self.cookies[key]), self.cookies.keys() )
+		cookie_objects = map( lambda key: Cookie(key, self.cookies[key], path=self.path), self.cookies.keys() )
 		for cookie in cookie_objects:
 			self.response_headers.append( cookie.get_header() )
 		if not self.caching:
@@ -183,19 +185,23 @@ class Session:
 						[self.sid,key,self.parms[key],time.time()] )
 		self.app.db.commit()
 	def get_cookies( self ):
-		return { "sid" : self.sid }
+		return { self.app.name+".sid" : self.sid }
 
 class Application:
 	"""Container für Anfrage- und Antwortobjekte und Pfad- und Datenbankparameter""" 
 	def __init__( self, environ, start_response, name="app", path=None ):
 		self.query = Request( environ )
-		self.response = Response( start_response )
+		self.response = Response( start_response, path=self.query.path )
 		self.path = path
 		self.name = name
 		self.db_path = os.path.join( self.path, self.name+".db" )
 		self.open_db()
-		self.session = Session( self, sid=("sid" in self.query.parms \
-										  and self.query.parms["sid"] or None) )
+		sid = None
+		if self.name+".sid" in self.query.parms:
+			sid = self.query.parms[self.name+".sid"]
+		elif "sid" in self.query.parms:
+			sid = self.query.parms["sid"]
+		self.session = Session( self, sid=sid )
 		self.config = config
 		self.logfile = None
 		if hasattr(config,"logfile"):

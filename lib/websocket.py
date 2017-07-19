@@ -266,11 +266,16 @@ class WebSocket:
 		while not self.quitting:
 			try:
 				frame = self.Frame( self.socket )
-				self.last_msg_received = time.time()
 			except OSError as e:
 				print( "WebSocket client %s hung up? Initiating server-side shutdown." % (self.app.query.remote_addr) )
 				self.quitting = True
 				return
+			except Exception as e:
+				print( "WebSocket could not parse frame from client %s! Initiating server-side shutdown." % (self.app.query.remote_addr) )
+				sys.stderr.write( "\n".join(traceback.format_exception(Exception, e, e.__traceback__)) )
+				self.quitting = True
+				return
+			self.last_msg_received = time.time()
 			if frame.is_text:
 				self.client_messages_semaphore.acquire()
 				self.client_messages.append( frame.text )

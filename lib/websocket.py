@@ -35,11 +35,11 @@ class WSListener():
 		try:
 			while True:
 				con, addr = s.accept()
-				if "ssl" in self.config:
-					context = ssl.create_default_context( ssl.Purpose.CLIENT_AUTH )
-					context.load_cert_chain( certfile=self.config["ssl"]["cert"], keyfile=self.config["ssl"]["key"] )
-					con = context.wrap_socket( con, server_side=True )
 				try:
+					if "ssl" in self.config:
+						context = ssl.create_default_context( ssl.Purpose.CLIENT_AUTH )
+						context.load_cert_chain( certfile=self.config["ssl"]["cert"], keyfile=self.config["ssl"]["key"] )
+						con = context.wrap_socket( con, server_side=True )
 					ws_server = WSServer( con, addr )
 				except Exception as e:
 					sys.stderr.write( "\n".join(traceback.format_exception(Exception, e, e.__traceback__)) )

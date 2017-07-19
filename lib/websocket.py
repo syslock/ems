@@ -99,9 +99,12 @@ class WSServer( threading.Thread ):
 		except:
 			return
 	def stop( self ):
-		self.con.shutdown( socket.SHUT_RDWR )
-		self.con.close()
 		self.quitting = True
+		try:
+			self.con.shutdown( socket.SHUT_RDWR )
+			self.con.close()
+		except Exception as e:
+			sys.stderr.write( "\n".join(traceback.format_exception(Exception, e, e.__traceback__)) )
 	def run( self ):
 		def read_thread():
 			while not self.quitting:
@@ -111,7 +114,6 @@ class WSServer( threading.Thread ):
 				else:
 					self.module.sleep( self )
 				if self.ws.quitting:
-					print( "WebSocket-Shutdown (%s)" % (self.app.query.remote_addr) )
 					print( "WebSocket-Shutdown (%s)" % (self.app.query.remote_addr) )
 					self.stop()
 		t = threading.Thread( target=read_thread )

@@ -13,7 +13,7 @@ scan_sources = [
 
 environ = { "REMOTE_ADDR" : "localhost" }
 
-app = application.Application( environ, lambda x,y: None, name="ems", path=os.path.dirname(sys.argv[0]) )
+app = application.Application( environ, lambda x,y: None, path=os.path.dirname(sys.argv[0]) )
 c = app.db.cursor()
 for scan_source_definition in scan_sources:
 	scan_source, scan_table, id_column, data_column, rank = scan_source_definition

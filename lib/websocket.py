@@ -80,7 +80,7 @@ class WSServer( threading.Thread ):
 			print( hl )
 			key, val = hl.split(": ")
 			environ["HTTP_"+key.upper().replace("-","_")] = val
-		self.app = application.Application( environ, lambda x,y: None, name="ems", path=os.path.dirname(sys.argv[0]) )
+		self.app = application.Application( environ, lambda x,y: None, path=os.path.dirname(sys.argv[0]) )
 		print( self.app.query.parms )
 		if "do" in self.app.query.parms:
 			mod_name = self.app.query.parms["do"]

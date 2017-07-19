@@ -198,11 +198,14 @@ class Session:
 
 class Application:
 	"""Container für Anfrage- und Antwortobjekte und Pfad- und Datenbankparameter""" 
-	def __init__( self, environ, start_response, name="app", path=None ):
+	def __init__( self, environ, start_response, path=None ):
+		self.config = config
 		self.query = Request( environ )
 		self.response = Response( start_response, path=self.query.path )
 		self.path = path
-		self.name = name
+		self.name = "ems"
+		if hasattr(config,"app_name"):
+			self.name = config.app_name
 		self.db_path = os.path.join( self.path, self.name+".db" )
 		self.open_db()
 		sid = None
@@ -211,7 +214,6 @@ class Application:
 		elif "sid" in self.query.parms:
 			sid = self.query.parms["sid"]
 		self.session = Session( self, sid=sid )
-		self.config = config
 		self.logfile = None
 		if hasattr(config,"logfile"):
 			self.logfile = open( os.path.join(self.path, config.logfile), "a" )

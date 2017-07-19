@@ -162,19 +162,28 @@ class Response:
 class Session:
 	"""Persistente Speicherung von Session-Parametern"""
 	def __init__( self, app, sid=None ):
+		client_sid = sid
 		self.app = app
-		if not sid:
-			sid = "".join(random.sample(string.ascii_uppercase \
-											+ string.ascii_lowercase \
-											+ string.digits, 32))
-		self.sid = sid
 		self.parms = {}
-		c = self.app.db.cursor()
-		c.execute( """select key, value from session_parms
-			where sid=? order by mtime""", [self.sid] )
-		for row in c:
-			key, value = row
-			self.parms[key] = value
+		self.sid = None
+		while not self.sid:
+			if not client_sid:
+				self.sid = client_sid = "".join(random.sample(	string.ascii_uppercase \
+														+ string.ascii_lowercase \
+														+ string.digits, 32))
+			else:
+				c = self.app.db.cursor()
+				c.execute( """select key, value from session_parms
+					where sid=? order by mtime""", [client_sid] )
+				for row in c:
+					key, value = row
+					self.parms[key] = value
+				if len(self.parms):
+					# preserve client sid with known server state
+					self.sid = client_sid
+				else:
+					client_sid = None # discard client sid without known server state
+		self.sid = client_sid
 	def store( self ):
 		c = self.app.db.cursor()
 		c.execute( """delete from session_parms where sid=?""",

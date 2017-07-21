@@ -1069,23 +1069,28 @@ div.user-groups-selection {
 .statusbar-buttons {
 	position: absolute;
 	right: 4mm;
-	top: 0mm;
+	top: -1cm;
+	width: 2cm;
+	height: 2cm;
+	padding: 0;
+	background-color: #dfdfdf;
 }
-.minimized .statusbar-buttons {
-	top: -2em;
-}
-.statusbar-button-min {
-	width: 5mm;
-	height: 5mm;
-	background:url("../images/statusbar_icon_min.svg") no-repeat 0 0;
-	background-size: cover;
+.statusbar-button-larger {
+	width: 2cm;
+	height: 1cm;
+	margin: 0;
+	border-bottom: none;
+	background:url("../images/chat_button_larger.svg") no-repeat -1px -5px;
+	background-size: 2cm;
 	
 }
-.statusbar-button-max {
-	width: 5mm;
-	height: 5mm;
-	background:url("../images/statusbar_icon_max.svg") no-repeat 0 0;
-	background-size: cover;
+.statusbar-button-smaller {
+	width: 2cm;
+	height: 1cm;
+	margin: 0;
+	border-top: none;
+	background:url("../images/chat_button_smaller.svg") no-repeat -1px calc(-1cm - 4px);
+	background-size: 2cm;
 	
 }
 .statusbar-content {

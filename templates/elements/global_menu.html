@@ -2,14 +2,31 @@
 		<div class="ems-menu">
 			<div class="menu-title">${title}</div>
 			<div class="menu-widgets">
-				<div class="menu-language-widget">
-					<%include file="/elements/language_select.html" />
-				</div>
-				<div class="menu-style-widget">
-					<%include file="/elements/style_select.html" />
+				<div class="menu-setting-widgets">
+					<div class="menu-language-widget">
+						<%include file="/elements/language_select.html" />
+					</div>
+					<div class="menu-style-widget">
+						<%include file="/elements/style_select.html" />
+					</div>
 				</div>
 				<div class="menu-login-widget">
 					<%include file="/elements/login_widget.html" />
+				</div>
+				<div class="menu-user-list-header" style="display:none">
+					<div class="menu-user-list-count">0</div>
+					<div class="menu-user-list-label"> Nutzer online:</div>
+					<button class="menu-user-list-show" onclick="$('.menu-user-list-footer').add('.menu-user-list-content').show(); $('.menu-user-list-header').hide();">&nbsp;</button>
+				</div>
+				<div class="menu-user-list">
+					<div class="menu-user-list-content"></div>
+					<div class="menu-user-list-buttons">
+					</div>
+				</div>
+				<div class="menu-user-list-footer">
+					<button class="menu-user-list-hide" onclick="$('.menu-user-list-footer').add('.menu-user-list-content').hide(); $('.menu-user-list-header').show();">&nbsp;</button>
+					<div class="menu-user-list-count">0</div>
+					<div class="menu-user-list-label"> Nutzer online.</div>
 				</div>
 			</div>
 		</div>

@@ -9,6 +9,7 @@
 			var global_status = undefined;
 			var global_user = undefined;
 			var global_search = undefined;
+			var user_search = undefined;
 			function init()
 			{
 				// gehört noch zum alten Filter-Bar-Code:
@@ -86,8 +87,77 @@
 						
 						// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
 						var minions = new Minions( {dom_parent : $('.page-events'), limit : 15} );
+
+						// Test der Liste angemeldeter Nutzer:
+						var user_range_scroll_loader = null;
+						user_search = new SearchBar( {
+							result_handler : function( result ) {
+								result.dom_parent = $(".menu-user-list-content")[0];
+								show_search_result( result );
+								user_range_scroll_loader.range_start = result.hitlist.length;
+								user_range_scroll_loader.scroll_handler_parms = { search_count : user_search.search_count };
+								user_range_scroll_loader.start();
+							},
+							result_types : 'application/x-obj.user',
+// 							empty_search : {phrase : 'type:user', min_weight : "0"},
+							order_by : 'ctime',
+							order_reverse : 'true',
+							range_limit : 100,
+							new_search_handler : function( parms ) {
+// 								$(".menu-user-list-content").empty();
+								if( user_range_scroll_loader ) user_range_scroll_loader.stop();
+								user_range_scroll_loader = new RangeScrollLoader( {
+									scroll_container : $(".menu-user-list-content")[0],
+									scroll_handler : user_search.search
+								} );
+							},
+							on_ready : function() {
+// 								window.setTimeout( function(){ user_search.search() }, 1000 );
+								// Keep number of online users displayed in sync with actual user list:
+								// https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+								new MutationObserver( function(){
+									$(".menu-user-list-count").text( $(".menu-user-list-content .ems-item").length );
+								}).observe( $(".menu-user-list-content")[0], {childList:true} );
+							}
+						} );
 					}
 				});
+			}
+			var update_user_list_timeout = null;
+			function update_user_list( nick_list ) {
+				if( update_user_list_timeout ) {
+					window.clearTimeout( update_user_list_timeout );
+					update_user_list_timeout = null;
+				}
+				update_user_list_timeout = window.setTimeout( _update_user_list, 100, nick_list );
+			}
+			function _update_user_list( nick_list ) {
+				var old_users = {};
+				var new_users = {};
+				for( i in nick_list ) {
+					var nick = nick_list[i];
+					new_users[nick] = nick;
+					$(".menu-user-list-content>.ems-item").each( function(j,item) {
+						var item_nick = $(item).data().obj.nick;
+						if( i==0 ) {
+							old_users[ item_nick ] = item;
+						}
+						if( nick == $(item).data().obj.nick ) {
+							delete new_users[nick];
+							delete old_users[nick];
+						}
+					});
+				}
+				for( nick in old_users ) {
+					$(old_users[nick]).remove();
+				}
+				var phrase = null;
+				for( nick in new_users ) {
+					phrase = (phrase ? phrase+" " : "") + "nick:"+nick;
+				}
+				if( user_search && phrase ) {
+					user_search.search( {phrase:phrase} );
+				}
 			}
 			
 			function get_status_icon( type ) {

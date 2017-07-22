@@ -54,7 +54,7 @@ function get_ws_url( path ) {
 	var l = document.location;
 	var port = 8888;
 	var protocol = l.protocol=="https:" ? "wss:" : "ws:"
-	return protocol+"//"+l.hostname+":"+String(port)+( path ? path : "" );
+	return protocol+"//"+l.hostname+":"+String(port)+l.pathname+( path ? path : "" );
 }
 
 function reload_page() {

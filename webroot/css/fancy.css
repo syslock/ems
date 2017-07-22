@@ -4,13 +4,23 @@ body {
 	font-size: 10.5pt;
 }
 
-button {
+button, select {
 	border: 1px solid grey;
 	border-radius: 3px;
 	background-color: #dfdfdf;
+	padding: 1mm;
 }
-button:hover {
+button:hover, select:hover {
 	background-color: #f0f0f0;
+}
+
+select {
+	appearance: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	padding-right: 5mm;
+	background: url("../images/arrow_down.svg") no-repeat center right 1mm;
+	background-size: 4mm;
 }
 
 .page-menu {

@@ -91,7 +91,8 @@ class WSServer( threading.Thread ):
 			if "." in mod_name:
 				raise Exception( "Illegaler Modulname: %(mod_name)s" % locals() )
 			self.module = __import__( "modules."+mod_name, fromlist=[mod_name] )
-			self.module = imp.reload( self.module ) # FIXME: Reload nur für Entwicklung
+			# disabled reload, as some modules have internal state and ws server is restarted everytime anyways
+			#self.module = imp.reload( self.module ) 
 		else:
 			raise errors.ParameterError()
 		self.ws = WebSocket( self.app, self.con, self )
@@ -120,14 +121,15 @@ class WSServer( threading.Thread ):
 				if self.ws.quitting:
 					print( "WebSocket-Shutdown (%s)" % (self.app.query.remote_addr) )
 					self.stop()
-		t = threading.Thread( target=read_thread )
-		t.start()
 		self.app.open_db() # App-DB für diesen Thread neu öffnen...
 		self.module.initialize( self )
+		t = threading.Thread( target=read_thread )
+		t.start()
 		while not self.quitting:
 			self.module.run( self )
 			self.module.sleep( self )
 		t.join()
+		self.module.cleanup( self )
 
 class WebSocket:
 	def __init__( self, app, socket, endpoint=None ):

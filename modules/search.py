@@ -1,4 +1,4 @@
-import imp, re, json
+import imp, re, json, datetime
 from lib import db_object
 db_object = imp.reload( db_object )
 from lib import errors
@@ -54,6 +54,8 @@ search_type_alias = {
 	"mp4" : "video/mp4",
 	"webm" : "video/webm",
 }
+
+time_types = { "ctime", "mtime" }
 
 def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, order_reverse=True, range_offset=0, range_limit=None, recursive=(False,False), max_phrase_word_dist=3 ):
 	q = app.query
@@ -123,20 +125,73 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 		word_types = search_word["type"].split(":")[:-1]
 		type_query = ""
 		type_names = []
+		time_col = None
 		for j, word_type in enumerate(word_types):
-			if j:
-				type_query += " or "
 			if word_type in search_type_alias:
+				if len(type_names):
+					type_query += " or "
 				type_query += "o.type like ?"
 				type_names.append( search_type_alias[word_type] )
+			elif word_type in time_types:
+				time_col = word_type
 			else:
+				if len(type_names):
+					type_query += " or "
 				type_query += "k0.scan_source=?"
 				type_names.append( word_type )
 		if type_query:
 			type_query = "and (" + type_query + ")"
 		search_word_rows[ search_word["raw_word"] ] = 0
 		search_word_hits[ search_word["raw_word"] ] = 0
-		if search_word["word"]:
+		if time_col:
+			# time queries have the form ctime:201707 ("created some time in july 2017") or mtime:<2017 ("last modified before 2017")
+			time_query_string = search_word["word"] if search_word["word"] else search_word["phrase"]
+			# lib.application replaces some xml control characters with entities, we have to fix that now:
+			time_query_string = time_query_string.replace("&amp;","&").replace("&gt;",">").replace("&lt;","<")
+			time_query_string = re.sub( "[-:. ]","", time_query_string ) # eg: 2017-07-23 15:38 -> 201707231538
+			match = re.fullmatch( r"(<|>|<=|>=|=)?([0-9]+)", time_query_string )
+			if not match:
+				raise errors.ParameterError( "Illegal time query, try something like ctime:2017-01" )
+			time_op = match.group(1) or "="
+			time_string = match.group(2)
+			attr_list = ["year"]
+			if len(time_string)>=6:
+				attr_list.append( "month" )
+			if len(time_string)>=8:
+				attr_list.append( "day" )
+			if len(time_string)>=10:
+				attr_list.append( "hour" )
+			if len(time_string)>=12:
+				attr_list.append( "minute" )
+			if len(time_string)>=14:
+				attr_list.append( "second" )
+			time_pattern_dict = { "year":"%Y", "month":"%m", "day":"%d", "hour":"%H", "minute":"%M", "second":"%S" }
+			# generate time parse pattern, eg.: %Y%m%d
+			time_pattern = "".join( [time_pattern_dict[x] for x in attr_list] )
+			time_range_begin = datetime.datetime.strptime( time_string, time_pattern )
+			time_range_after = None
+			if time_op == "=":
+				# for time range equality comparisons we need to determine the end of the range:
+				while not time_range_after:
+					try:
+						# try to generate the first date not matching the time string (but 20171232 or 201713 would be illegal...)
+						last_attr = attr_list.pop()
+						ref_time = datetime.datetime.strptime( time_string, time_pattern )
+						time_range_after = ref_time.replace( **{last_attr:getattr(time_range_begin,last_attr)+1} )
+					except ValueError:
+						# for illegal cases try again one level higher, eg: 20171232 -> 201713 -> 2018
+						time_string = time_string[:-2]
+						time_pattern = time_pattern[:-2]
+				c.execute( """select object_id, o.%(time_col)s, pos, scan_source, o.type from keywords k0
+								inner join objects o on o.id=object_id
+								where %(time_col)s>=? and %(time_col)s<? %(type_query)s order by object_id, pos""" % locals(), 
+							[time_range_begin.timestamp(), time_range_after.timestamp()] + type_names )
+			else:
+				c.execute( """select object_id, o.%(time_col)s, pos, scan_source, o.type from keywords k0
+								inner join objects o on o.id=object_id
+								where %(time_col)s %(time_op)s ? %(type_query)s order by object_id, pos""" % locals(), 
+							[time_range_begin.timestamp()] + type_names )
+		elif search_word["word"]:
 			word = search_word["word"]
 			c.execute( """select object_id, word, pos, scan_source, o.type from keywords k0
 							inner join objects o on o.id=object_id

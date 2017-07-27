@@ -161,7 +161,7 @@ function create_download( obj ) {
 	var link = $('<a></a>').attr({
 		href: get_module_url( "get", {view : "data", id : obj.id, attachment : true} ),
 		target: '_blank', title: prettyprint_title(obj)+' herunterladen...', 
-		class: 'download-link', download: prettyprint_title(obj)
+		class: 'ems-item download-link', download: prettyprint_title(obj)
 	}).append( $('<img />').attr({ 
 		src: 'tango-scalable/actions/document-save.svg', 
 		class: 'download-icon' 
@@ -264,7 +264,7 @@ function show_object( parms ){
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {
-			var video_box = $('<div>').attr( {class: 'entry-media'} );
+			var video_box = $('<div>').attr( {class: 'ems-item entry-media'} );
 			obj.dom_object = video_box;
 			$(obj.dom_object).data( {obj: obj} );
 			var status = $('<div>').attr( {class: 'video-status'} )[0];

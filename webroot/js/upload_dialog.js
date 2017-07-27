@@ -328,7 +328,7 @@ var UploadDialog = function( parms ) {
 				}
 			} );
 			my.recent_uploads.on( "click", function(event) {
-				var obj = $(event.target).closest(".entry-media").data("obj");
+				var obj = $(event.target).closest(".ems-item").data("obj");
 				if( obj && obj.id ) {
 					my.upload_dialog.removeClass("recent-uploads-visible");
 					my.replace_upload_preview( obj.id );

@@ -536,7 +536,6 @@ Entry.prototype.new_response = function() {
 	$(new_entry.title).text( reference_title );
 	// Themen des Referenzbeitrages kopieren:
 	$(new_entry.tags_content).empty().append( $(my.tags_content).contents().clone(true,true) );
-	var entry_author = $( ".entry-author", new_entry )[0];
 	new_entry.edit();
 };
 

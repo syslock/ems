@@ -12,7 +12,7 @@ Entry = function( parms ) {
 Entry.prototype = Object.create( BaseItem.prototype );
 Entry.prototype.constructor = Entry;
 
-Entry.prototype.init = function() {
+Entry.prototype.init = function( parms ) {
 	var my = this;
 	if( my.template==undefined ) {
 		// FIXME: We should try to do only one request for the template,
@@ -23,7 +23,7 @@ Entry.prototype.init = function() {
 			args : {tpl : "elements/entry.html"},
 			done : function(result) {
 				Entry.prototype.template = result;
-				my.init();
+				my.init( parms );
 			}, 
 			fail : function(result) {
 				show_error( result )
@@ -46,9 +46,11 @@ Entry.prototype.init = function() {
 		my.tags_search_result_scroll_container_hack = $(".entry-tags-search-result-scroll-container-hack", my.entry)[0];
 		my.tags_content = $(".entry-tags-content", my.entry)[0];
 		
-		$(my.content).empty();
-		$(my.author).empty();
-		$(my.tags_content).empty();
+		if( !parms.preserve_content ) {
+			$(my.content).empty();
+			$(my.author).empty();
+			$(my.tags_content).empty();
+		}
 		
 		if( my.dom_parent ) {
 			for( var i in my.obj.children ) {

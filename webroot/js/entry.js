@@ -75,53 +75,53 @@ Entry.prototype.init = function( parms ) {
 		}
 		
 		my.button_show_tag_selection = $( ".entry-tags-show-selection-button", my.dom_object )[0];
-		$(my.button_show_tag_selection).on( "click", function(){ my.show_tag_selection(); } );
+		$(my.button_show_tag_selection).off("click").on( "click", function(){ my.show_tag_selection(); } );
 		my.button_hide_tag_selection = $( ".entry-tags-close-selection-button", my.dom_object )[0];
-		$(my.button_hide_tag_selection).on( "click", function(){ my.hide_tag_selection(); } );
+		$(my.button_hide_tag_selection).off("click").on( "click", function(){ my.hide_tag_selection(); } );
 		my.button_respond = $( ".entry-response-button", my.dom_object )[0];
-		$(my.button_respond).on( "click", function(){ my.new_response(); } );
+		$(my.button_respond).off("click").on( "click", function(){ my.new_response(); } );
 		my.button_link_external = $( ".entry-link-button", my.dom_object )[0];
-		$(my.button_link_external).on( "click", function(){ my.link_external(); } );
+		$(my.button_link_external).off("click").on( "click", function(){ my.link_external(); } );
 		my.button_edit = $( ".entry-edit-button", my.dom_object )[0];
-		$(my.button_edit).on( "click", function(){ my.edit(); } );
+		$(my.button_edit).off("click").on( "click", function(){ my.edit(); } );
 		my.button_delete = $( ".entry-delete-button", my.dom_object )[0];
-		$(my.button_delete).on( "click", function(){ my.delete_entry(); } );
+		$(my.button_delete).off("click").on( "click", function(){ my.delete_entry(); } );
 		my.button_file = $( ".entry-edit-file-button", my.dom_object )[0];
-		$(my.button_file).on( "click", function() { new UploadDialog( {dom_parent: my.content, wrap: true} ); } );
+		$(my.button_file).off("click").on( "click", function() { new UploadDialog( {dom_parent: my.content, wrap: true} ); } );
 		my.button_save = $( ".entry-edit-send-button", my.dom_object )[0];
-		$(my.button_save).on( "click", function() { my.store(); } );
+		$(my.button_save).off("click").on( "click", function() { my.store(); } );
 		my.button_discard = $( ".entry-edit-discard-button", my.dom_object )[0];
-		$(my.button_discard).on( "click", function() { my.discard_response(); } );
+		$(my.button_discard).off("click").on( "click", function() { my.discard_response(); } );
 		my.edit_toolbar = $( ".entry-edit-toolbar", my.dom_object )[0];
 		my.button_toggle_toolbar = $(".entry-edit-toggle-toolbar", my.dom_object )[0];
-		$(my.button_toggle_toolbar).on( "click", function() { $(my.edit_toolbar).toggle(); } );
+		$(my.button_toggle_toolbar).off("click").on( "click", function() { $(my.edit_toolbar).toggle(); } );
 		
 		my.button_hyperlink = $( ".keysym-hyperlink", my.dom_object )[0];
-		$(my.button_hyperlink).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'l', preventDefault:function(){}} ); } );
+		$(my.button_hyperlink).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'l', preventDefault:function(){}} ); } );
 		my.button_highlight = $( ".keysym-highlight", my.dom_object )[0];
-		$(my.button_highlight).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'h', preventDefault:function(){}} ); } );
+		$(my.button_highlight).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'h', preventDefault:function(){}} ); } );
 		my.button_bold = $( ".keysym-bold", my.dom_object )[0];
-		$(my.button_bold).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'b', preventDefault:function(){}} ); } );
+		$(my.button_bold).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'b', preventDefault:function(){}} ); } );
 		my.button_italic = $( ".keysym-italic", my.dom_object )[0];
-		$(my.button_italic).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'i', preventDefault:function(){}} ); } );
+		$(my.button_italic).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'i', preventDefault:function(){}} ); } );
 		my.button_fixed = $( ".keysym-fixed", my.dom_object )[0];
-		$(my.button_fixed).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'f', preventDefault:function(){}} ); } );
+		$(my.button_fixed).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'f', preventDefault:function(){}} ); } );
 		my.button_underline = $( ".keysym-underline", my.dom_object )[0];
-		$(my.button_underline).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'u', preventDefault:function(){}} ); } );
+		$(my.button_underline).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'u', preventDefault:function(){}} ); } );
 		my.button_strikethrough = $( ".keysym-strikethrough", my.dom_object )[0];
-		$(my.button_strikethrough).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'s', preventDefault:function(){}} ); } );
+		$(my.button_strikethrough).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'s', preventDefault:function(){}} ); } );
 		my.button_large = $( ".keysym-large", my.dom_object )[0];
-		$(my.button_large).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'+', preventDefault:function(){}} ); } );
+		$(my.button_large).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'+', preventDefault:function(){}} ); } );
 		my.button_small = $( ".keysym-small", my.dom_object )[0];
-		$(my.button_small).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'-', preventDefault:function(){}} ); } );
+		$(my.button_small).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'-', preventDefault:function(){}} ); } );
 		my.button_toolbar_file = $( ".keysym-upload", my.dom_object )[0];
-		$(my.button_toolbar_file).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'d', preventDefault:function(){}} ); } );
+		$(my.button_toolbar_file).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'d', preventDefault:function(){}} ); } );
 		my.button_tab_right = $( ".keysym-tab-right", my.dom_object )[0];
-		$(my.button_tab_right).on( "click", function(){ my.on_keydown( {shiftKey:false, keyCode:9, preventDefault:function(){}} ); } );
+		$(my.button_tab_right).off("click").on( "click", function(){ my.on_keydown( {shiftKey:false, keyCode:9, preventDefault:function(){}} ); } );
 		my.button_tab_left = $( ".keysym-tab-left", my.dom_object )[0];
-		$(my.button_tab_left).on( "click", function(){ my.on_keydown( {shiftKey:true, keyCode:9, preventDefault:function(){}} ); } );
+		$(my.button_tab_left).off("click").on( "click", function(){ my.on_keydown( {shiftKey:true, keyCode:9, preventDefault:function(){}} ); } );
 		my.button_toolbar_quote = $( ".keysym-quote", my.dom_object )[0];
-		$(my.button_toolbar_quote).on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'e', preventDefault:function(){}} ); } );
+		$(my.button_toolbar_quote).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'e', preventDefault:function(){}} ); } );
 	}
 }
 
@@ -141,9 +141,8 @@ Entry.prototype.edit = function() {
 			new UploadDialog( {replace_content: $(element).children().first()} );
 		});
 		
-		$(my.content).off( "keypress keydown" );
-		$(my.content).on( "keypress", function(e) { my.on_keypress(e); } );
-		$(my.content).on( "keydown", function(e) { my.on_keydown(e); } );
+		$(my.content).off("keypress").on( "keypress", function(e) { my.on_keypress(e); } );
+		$(my.content).off("keydown").on( "keydown", function(e) { my.on_keydown(e); } );
 	}
 	
 	// Themen des Beitrages vom Standardwerkzeug in das Bearbeitungswerkzeug verschieben:

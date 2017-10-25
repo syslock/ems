@@ -196,7 +196,7 @@ class DBObject:
 				result += self.resolve_children( child_id, cache, child_type_set )
 		return result
 	
-	ACCESS_MASKS={ "none" : 0, "read" : 1, "write" : 2, "rw" : 3 }
+	ACCESS_MASKS={ "none" : 0, "read" : 1, "write" : 2, "all" : 3 }
 	def grant_read( self, object_id ):
 		self.grant_access( object_id, "read" )
 	def grant_write( self, object_id ):
@@ -209,12 +209,14 @@ class DBObject:
 				access_mask = int( access_type )
 			else:
 				raise NotImplementedError( "Unsupported access_type" )
+		if update_operator not in ("&", "|"):
+			raise errors.ParameterError( "Unsupported operator: %s" % (update_operator) )
 		c = self.app.db.cursor()
 		c.execute( """select access_mask from permissions where subject_id=? and object_id=?""", [self.id, object_id] )
 		result = c.fetchone()
 		if result!=None:
 			old_mask = result[0]
-			if update_operator=="&" and old_mask & access_mask==0 and cleanup_zero:
+			if update_operator=="&" and (old_mask & access_mask)==0 and cleanup_zero:
 				c.execute( """delete from permissions where subject_id=? and object_id=?""" % locals(), [self.id, object_id] )
 				self.app.db.commit()
 			else:

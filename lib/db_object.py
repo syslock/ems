@@ -196,21 +196,31 @@ class DBObject:
 				result += self.resolve_children( child_id, cache, child_type_set )
 		return result
 	
-	ACCESS_MASKS={ "read" : 1, "write" : 2 }
+	ACCESS_MASKS={ "none" : 0, "read" : 1, "write" : 2, "rw" : 3 }
 	def grant_read( self, object_id ):
 		self.grant_access( object_id, "read" )
 	def grant_write( self, object_id ):
 		self.grant_access( object_id, "write" )
-	def grant_access( self, object_id, access_type ):
-		if access_type not in ("read", "write"):
-			raise NotImplementedError( "Unsupported access_type" )
-		access_mask = self.ACCESS_MASKS[ access_type ]
+	def grant_access( self, object_id, access_type, update_operator="|", cleanup_zero=False ):
+		if access_type in self.ACCESS_MASKS:
+			access_mask = self.ACCESS_MASKS[ access_type ]
+		else:
+			if int(access_type) in self.ACCESS_MASKS.values():
+				access_mask = int( access_type )
+			else:
+				raise NotImplementedError( "Unsupported access_type" )
 		c = self.app.db.cursor()
-		c.execute( """select * from permissions where subject_id=? and object_id=?""", [self.id, object_id] )
-		if c.fetchone()!=None:
-			c.execute( """update permissions set access_mask=(access_mask|%(access_mask)d) where subject_id=? and object_id=?""" \
-							% locals(), [self.id, object_id] )
-			self.app.db.commit()
+		c.execute( """select access_mask from permissions where subject_id=? and object_id=?""", [self.id, object_id] )
+		result = c.fetchone()
+		if result!=None:
+			old_mask = result[0]
+			if update_operator=="&" and old_mask & access_mask==0 and cleanup_zero:
+				c.execute( """delete from permissions where subject_id=? and object_id=?""" % locals(), [self.id, object_id] )
+				self.app.db.commit()
+			else:
+				c.execute( """update permissions set access_mask=(access_mask%(update_operator)s%(access_mask)d) where subject_id=? and object_id=?""" \
+								% locals(), [self.id, object_id] )
+				self.app.db.commit()
 		else:
 			c.execute( """insert into permissions (subject_id, object_id, access_mask) values (?,?,%(access_mask)d)""" \
 							% locals(), [self.id, object_id] )

@@ -35,9 +35,9 @@ def process( app ):
 	session = app.session
 	if "msid" in query.parms:
 		confirmation_session = application.Session( app, query.parms["msid"] )
-		if "registration_sid" in confirmation_session.parms \
-		and confirmation_session.parms["registration_sid"] == session.sid \
-		and "registration_user_id" in confirmation_session.parms:
+		#if "registration_sid" in confirmation_session.parms \
+		#and confirmation_session.parms["registration_sid"] == session.sid \
+		if "registration_user_id" in confirmation_session.parms:
 			user_id = int( confirmation_session.parms["registration_user_id"] )
 			usr = user.User( app=app, user_id=user_id )
 			# Nutzer Lese-/Schreib-Zugriff auf sein eigenes Nutzerobjekt geben:

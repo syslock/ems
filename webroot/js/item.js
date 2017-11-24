@@ -17,7 +17,7 @@ BaseItem = function( parms ) {
 	my.virtual = parms.virtual ? parms.virtual : false;
 	my.custom_class = parms.custom_class;
 	
-	my.init();
+	my.init( parms );
 }
 
 BaseItem.prototype.get_short_type = function( type ) {
@@ -26,7 +26,7 @@ BaseItem.prototype.get_short_type = function( type ) {
 	return _type.match(/.*\/(.*\.)?([^.]*)/)[2];
 }
 
-BaseItem.prototype.init = function() {
+BaseItem.prototype.init = function( parms ) {
 	var my = this;
 	if( my.obj.id==undefined && !my.virtual ) {
 		my.store( { callback: function(){my.init();} } );

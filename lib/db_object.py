@@ -133,7 +133,8 @@ class DBObject:
 			is_first_tuple = False
 			insert_tuple_string += "(?,?,?,?,?,?)"
 			insert_list += value_tuple
-		do_insert()
+		if insert_list:
+			do_insert()
 	
 	def closest_parents( self, child_ids=None, parent_type=None ):
 		result = set()

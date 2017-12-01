@@ -47,17 +47,17 @@ ems/
 
 Installation
 ~~~~~~~~~~~~
-- install Python 3
-- install the Mako template library (http://www.makotemplates.org/) for Python 3
-- setup a webserver with a Python 3 WSGI component
-    - e.g. Apache/mod_wsgi, nginx/uwsgi_python32
+- Requirements:
+    - Python 3
+    - the Mako template library (http://www.makotemplates.org/) for Python 3
+    - a webserver with a Python 3 WSGI component
+        - e.g. Apache/mod_wsgi, nginx/uwsgi_python32
 - make webroot/ accessable by your webserver
-    - apache example:
+    - apache(version 2.4) example:
         <Directory "/path/to/ems/webroot">
             Options Indexes FollowSymLinks
             AllowOverride None
-            Order allow,deny
-            Allow from all
+            Require all granted
         </Directory>
         Alias "/ems" "/path/to/ems/webroot"
     - nginx example:
@@ -89,33 +89,9 @@ Installation
 - create ${EMS_PATH}/config.py (see config.py.example)
 
 
-Problems with Installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Error 403
-    - using apache (version 2.4): first check the error log (probably /var/log/httpd/error_log or something)
-        - if you see a line like the following that's probably because of some config issues:
-            client denied by server configuration: /path/to/ems/webroot
-        - open the httpd.conf (or whatever your config file is) where you added the directives from above
-        - the following changes are neccessary if you use apache 2.4 because the directives Order, Allow and Deny are no longer valid in this version
-            - for more information on that subject, take a look at the official documentation: http://httpd.apache.org/docs/2.4/upgrading.html
-        - comment or delete these lines:
-            Order allow,deny
-            Allow from all
-        - and add this one:
-            Require all granted
-        - after that it should look like this:
-            <Directory "/path/to/ems/webroot">
-                Options Indexes FollowSymLinks
-                AllowOverride None
-                #Order allow,deny
-                #Allow from all
-                Require all granted
-            </Directory>
-        - now save the file and restart your httpd
-        - if it's still not working check the permissions of the ems directory
-            - make shure that the user that is running the httpd process has sufficient privileges
-            - my solution was to move the whole ems diretory tree from inside my home directory
-                to a different location and recursively changing the ownership of the tree
-                    mv /home/my-user/ems /ems
-                    chown -R http:http /ems
-
+Notes:
+    - make sure that the user that runs the webserver has sufficient privileges on the ems directory
+          - after some trouble i moved the whole ems diretory tree from inside my home to a different location and recursively changed the ownership of the tree
+              mv /home/my-user/ems /ems
+              chown -R http:http /ems
+    - the default password for the admin user is "admin"

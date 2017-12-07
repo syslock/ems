@@ -5,22 +5,11 @@
 		<title>${app.config.sitename}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="" />
 		<script data-main="js/main.js" src="js/require.js"></script>
-		<script src="js/jquery.js"></script>
 		<script>
 			var global_status = undefined;
 			var global_user = undefined;
 			var global_search = undefined;
 			var user_search = undefined;
-			
-			$( function () {
-				setTimeout(hide_user_list, 10000);
-			});
-			
-			function hide_user_list()
-			{
-				$('.menu-user-list-footer').add('.menu-user-list-content').hide();
-				$('.menu-user-list-header').show();
-			}
 			
 			function init()
 			{
@@ -134,6 +123,8 @@
 						} );
 					}
 				});
+				//10 sec delay for hiding the user list
+				setTimeout(hide_user_list, 10000);
 			}
 			var update_user_list_timeout = null;
 			function update_user_list( nick_list ) {
@@ -188,6 +179,12 @@
 				};
 				
 				return mappings[type] ? mappings[type] : mappings[generic_type] ? mappings[generic_type] : fallback;
+			}
+						
+			function hide_user_list()
+			{
+				$('.menu-user-list-footer').add('.menu-user-list-content').hide();
+				$('.menu-user-list-header').show();
 			}
 		</script>
 	</head>

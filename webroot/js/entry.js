@@ -45,6 +45,7 @@ Entry.prototype.init = function( parms ) {
 		my.tags_search_result = $(".entry-tags-search-result", my.entry)[0];
 		my.tags_search_result_scroll_container_hack = $(".entry-tags-search-result-scroll-container-hack", my.entry)[0];
 		my.tags_content = $(".entry-tags-content", my.entry)[0];
+		my.button_title_search = $(".entry-title-tool-button-search", my.entry)[0];
 		
 		if( !parms.preserve_content ) {
 			$(my.content).empty();
@@ -122,6 +123,16 @@ Entry.prototype.init = function( parms ) {
 		$(my.button_tab_left).off("click").on( "click", function(){ my.on_keydown( {shiftKey:true, keyCode:9, preventDefault:function(){}} ); } );
 		my.button_toolbar_quote = $( ".keysym-quote", my.dom_object )[0];
 		$(my.button_toolbar_quote).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'e', preventDefault:function(){}} ); } );
+		
+		$(my.button_title_search).on("click", function() {
+			var search_text = $(my.title).text();
+			if ( search_text.startsWith("Re") )
+			{
+				search_text = search_text.replace(/^Re: /, "");
+			}
+			global_search.entry.text( "title:\""+search_text+"\"" );
+			global_search.search();
+		});
 	}
 }
 

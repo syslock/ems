@@ -5,6 +5,8 @@ from lib import errors
 errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
+from lib import files
+files = imp.reload( files )
 
 class User( db_object.DBObject ):
 	media_type = "application/x-obj.user"
@@ -21,9 +23,10 @@ class User( db_object.DBObject ):
 				c.execute( """insert into users (object_id,nick,password,email)
 								values (?,?,?,?)""",
 							[self.id, nick, encrypted_password, email] )
+				self.app.db.commit()
+				self.index( data=nick, source="nick", rank=2 )
 			except sqlite3.IntegrityError as e:
 				raise Exception( "Nick already in use" )
-			self.app.db.commit()
 	
 	def status( self ):
 		result = {}
@@ -50,9 +53,8 @@ class User( db_object.DBObject ):
 			new_password = keyargs["new_password"]
 			User.check_password( new_password )
 			encrypted_new_password = password.encrypt( new_password )
-			if not "user_id" in self.app.session.parms:
-				raise errors.AuthenticationNeeded()
 			if self.app.user.id==self.id:
+				# normal users have to authorize the change with their old password
 				if not "old_password" in keyargs:
 					raise errors.PrivilegeError( "You need to authorize the change request with your old password" )
 				old_password = keyargs["old_password"]
@@ -65,8 +67,8 @@ class User( db_object.DBObject ):
 			avatar_id = int( keyargs["avatar_id"] )
 			if self.app.user.can_read( avatar_id ):
 				obj = db_object.DBObject( self.app, object_id=avatar_id )
-				if db_object.File.supports(self.app, obj.media_type) and obj.media_type.startswith("image/"):
-					file_obj = db_object.File( self.app, object_id=obj.id )
+				if files.File.supports(self.app, obj.media_type) and obj.media_type.startswith("image/"):
+					file_obj = files.File( self.app, object_id=obj.id )
 					size_limit = 100*2**10
 					if file_obj.get_size() <= size_limit:
 						c.execute( """update users set avatar_id=? where object_id=?""", [avatar_id, self.id] )
@@ -144,7 +146,7 @@ class User( db_object.DBObject ):
 			# Wir erweitern die Suchzonen solange, bis wir eine Entscheidung, oder
 			# keine Kindobjekte für eine weitere Elternsuche mehr haben:
 			while len(next_subject_childs) or len(next_object_childs):
-				# Subjektklauses aus der aktuellen Subjektzone generieren:
+				# Subjektklausel aus der aktuellen Subjektzone generieren:
 				current_subject_zone = next_subject_zone
 				subject_constraint = "subject_id in %s" % str(tuple(current_subject_zone)).replace(",)",")")
 				# Objektklausel aus der aktuellen Objektzone generieren:
@@ -158,10 +160,17 @@ class User( db_object.DBObject ):
 								order by objects.mtime desc""" \
 							% locals() )
 				for row in c:
-					if (row[2] & access_mask):
-						# Wir haben eine Erlaubnis gefunden. Das reicht uns, bis wir eine Idee haben, 
-						# wie wir Konflikte zwischen Erlaubnissen und expliziten Verboten lösen...
-						# TODO: Zugriffs-Caches der betroffenen Kindobjekte aktualisieren!
+					if (row[2] & access_mask)==0:
+						# Explizite Verbote in der aktuellen Suchzone setzen sich
+						# gegen ältere, gleichrangige und nachrangige Erlaubnisse durch:
+						# TODO: Zugriffs-Caches der betroffenen Kindobjekte aktualisieren?
+						self.app.trace( "_can_access: %d--(%d)->%d [denied]" % (row[0], row[2], row[1]) )
+						return False
+					if (row[2] & access_mask)!=0:
+						# Explizite Erlaubnisse in der aktuellen Suchzone setzen sich
+						# gegen ältere, gleichrangige und nachrangige Verbote durch:
+						# TODO: Zugriffs-Caches der betroffenen Kindobjekte aktualisieren?
+						self.app.trace( "_can_access: %d--(%d)->%d [permitted]" % (row[0], row[2], row[1]) )
 						return True
 				# Eltern-Gruppen(!), der aktuellen Erweiterungsgruppe, bilden die nächste Erweiterungsgruppe
 				self.app.trace( "current_subject_childs: "+str(next_subject_childs) )

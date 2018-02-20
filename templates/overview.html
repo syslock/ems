@@ -4,63 +4,163 @@
 		<meta charset="utf-8" />
 		<title>${app.config.sitename}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="" />
-		<script data-main="js/main.js" src="js/require-jquery.js"></script>
+		<script data-main="js/main.js" src="js/require.js"></script>
 		<script>
 			var global_status = undefined;
 			var global_user = undefined;
+			var global_search = undefined;
+			var user_search = undefined;
+			
 			function init()
 			{
-				var query_parms = parse_result( "${str(app.query.parms).replace(r'\"',r'\\\"')}" );
-				$.get('ems.wsgi?do=status',
-				function(result)
-				{
-					result = parse_result( result )
-					global_status = result
-					if( !result.login || result.login.nick=='anonymous' ) {
-						$(".menu-login")[0].style.display="";
-						$(".menu-account-info")[0].style.display="none";
-						$(".menu-account-nick")[0].innerHTML="";
-						$(".menu-logout")[0].style.display="none";
-					}
-					if( result.login ) {
-						if( result.login.nick!='anonymous' ) {
-							$(".menu-login")[0].style.display="none";
-							$(".menu-account-info")[0].style.display="";
-							$(".menu-account-nick")[0].innerHTML=result.login.nick;
-							$(".menu-logout")[0].style.display="";
-						} 
-						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
-						function(result)
-						{
-							result = parse_result( result )
-							global_user = result[0]
-							player_net.connect();
-							player_net.init_my_player( global_user );
-						});
-					}
-					filters = { ids:{}, parent_ids:{}, child_ids:{} }
-					id_list = query_parms.id ? query_parms.id.split(",").map(Number) : [];
-					for( x in id_list ) { filters.ids[id_list[x]] = {}; }
-					parent_id_list = query_parms.parent_id ? query_parms.parent_id.split(",").map(Number) : [];
-					for( x in parent_id_list ) { filters.parent_ids[parent_id_list[x]] = {}; }
-					child_id_list = query_parms.child_id ? query_parms.child_id.split(",").map(Number) : [];
-					for( x in child_id_list ) { filters.child_ids[child_id_list[x]] = {}; }
-					apply_page_filter( filters );
-					Minions.show_latest( $('.page-events')[0], 15 );
-					/*var ws = WebSocket('ws://localhost/ems/ems.wsgi?do=event_monitor');
-					ws.onmessage = function( msg ) {
-						var result = parse_result( msg.data );
-						if( result.succeeded ) {
-							$('.page-events').empty();
-							for( var i in result.objects ) {
-								var obj = result.objects[i];
-								var img = $('<img>').attr( {'class': 'status-icon', 'src': get_status_icon(obj.type),
-									'title': obj.title+' ('+obj.type+')'} );
-								$('.page-events').append( img );
-							}
+				// gehört noch zum alten Filter-Bar-Code:
+				// var query_parms = parse_result( "${str(app.query.parms).replace(r'\"',r'\\\"')}" );
+				
+				get_module( "status", {
+					done : function( result ) {
+						result = parse_result( result );
+						global_status = result;
+						if( !result.login || result.login.nick=='anonymous' ) {
+							$(".menu-login")[0].style.display="";
+							$(".menu-account-info")[0].style.display="none";
+							$(".menu-account-nick")[0].innerHTML="";
+							$(".menu-logout")[0].style.display="none";
 						}
-					};*/
-				})
+						if( result.login ) {
+							if( result.login.nick!='anonymous' ) {
+								$(".menu-login")[0].style.display="none";
+								$(".menu-account-info")[0].style.display="";
+								$(".menu-account-nick")[0].innerHTML=result.login.nick;
+								$(".menu-logout")[0].style.display="";
+							}
+							get_module( "get", {
+								args : {view : "all", id : String(result.login.id)},
+								done : function(result) {
+									result = parse_result( result );
+									global_user = result[0];
+									if( global_user.permissions.indexOf("write")<0 ) {
+										$('.require-permissions-write-self').css( {visibility : 'hidden'} );
+									} else {
+										$('.require-permissions-write-self').css( {visibility : 'visible'} );
+									}
+									// experimenteller WebSocket-basierter, animierter Avatar, der von anderen Besuchern gesehen werden kann:
+									//player_net.connect();
+									//player_net.init_my_player( global_user );
+								}
+							});
+						}
+						
+						var range_scroll_loader = null;
+						// Searchbar initialisieren und mit aktuellem Filter suchen:
+						global_search = new SearchBar( {
+							entry_parent : $('.main-searchbar'), 
+							result_handler : function( result ) {
+								show_search_result( result );
+								range_scroll_loader.range_start = result.hitlist.length;
+								range_scroll_loader.scroll_handler_parms = { search_count : global_search.search_count };
+								range_scroll_loader.start();
+							},
+							outer_width : $('.new-entry-button').outerWidth(),
+							result_types : 'application/x-obj.entry',
+							empty_search : {phrase : 'type:entry', min_weight : "None"},
+							order_by : 'ctime',
+							order_reverse : 'true',
+							range_limit : 10,
+							recursive : {parents : true, children : true},
+							new_search_handler : function( parms ) {
+								$(".ems-content").empty();
+								if( range_scroll_loader ) range_scroll_loader.stop();
+								range_scroll_loader = new RangeScrollLoader( {
+									scroll_container : window,
+									scroll_handler : global_search.search
+								} );
+							},
+							on_ready : function() {
+								$(".page-widgets-left-stack").outerWidth( global_search.interface.outerWidth()+global_search.buttons.outerWidth() );
+								global_search.entry.focus();
+								var url_query = '${app.query.parms["q"].replace("'","") if "q" in app.query.parms else ""}';
+								if( url_query!='' ) {
+									global_search.entry.text( url_query );
+								}
+								global_search.search();
+							}
+						} );
+						
+						// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
+						var minions = new Minions( {dom_parent : $('.page-events'), limit : 15} );
+
+						// Test der Liste angemeldeter Nutzer:
+						var user_range_scroll_loader = null;
+						user_search = new SearchBar( {
+							result_handler : function( result ) {
+								result.dom_parent = $(".menu-user-list-content")[0];
+								show_search_result( result );
+								user_range_scroll_loader.range_start = result.hitlist.length;
+								user_range_scroll_loader.scroll_handler_parms = { search_count : user_search.search_count };
+								user_range_scroll_loader.start();
+							},
+							result_types : 'application/x-obj.user',
+// 							empty_search : {phrase : 'type:user', min_weight : "0"},
+							order_by : 'ctime',
+							order_reverse : 'true',
+							range_limit : 100,
+							new_search_handler : function( parms ) {
+// 								$(".menu-user-list-content").empty();
+								if( user_range_scroll_loader ) user_range_scroll_loader.stop();
+								user_range_scroll_loader = new RangeScrollLoader( {
+									scroll_container : $(".menu-user-list-content")[0],
+									scroll_handler : user_search.search
+								} );
+							},
+							on_ready : function() {
+// 								window.setTimeout( function(){ user_search.search() }, 1000 );
+								// Keep number of online users displayed in sync with actual user list:
+								// https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+								new MutationObserver( function(){
+									$(".menu-user-list-count").text( $(".menu-user-list-content .ems-item").length );
+								}).observe( $(".menu-user-list-content")[0], {childList:true} );
+							}
+						} );
+					}
+				});
+				//10 sec delay for hiding the user list
+				setTimeout(hide_user_list, 10000);
+			}
+			var update_user_list_timeout = null;
+			function update_user_list( nick_list ) {
+				if( update_user_list_timeout ) {
+					window.clearTimeout( update_user_list_timeout );
+					update_user_list_timeout = null;
+				}
+				update_user_list_timeout = window.setTimeout( _update_user_list, 100, nick_list );
+			}
+			function _update_user_list( nick_list ) {
+				var old_users = {};
+				var new_users = {};
+				for( i in nick_list ) {
+					var nick = nick_list[i];
+					new_users[nick] = nick;
+					$(".menu-user-list-content>.ems-item").each( function(j,item) {
+						var item_nick = $(item).data().obj.nick;
+						if( i==0 ) {
+							old_users[ item_nick ] = item;
+						}
+						if( nick == $(item).data().obj.nick ) {
+							delete new_users[nick];
+							delete old_users[nick];
+						}
+					});
+				}
+				for( nick in old_users ) {
+					$(old_users[nick]).remove();
+				}
+				var phrase = null;
+				for( nick in new_users ) {
+					phrase = (phrase ? phrase+" " : "") + "nick:"+nick;
+				}
+				if( user_search && phrase ) {
+					user_search.search( {phrase:phrase} );
+				}
 			}
 			
 			function get_status_icon( type ) {
@@ -80,29 +180,37 @@
 				
 				return mappings[type] ? mappings[type] : mappings[generic_type] ? mappings[generic_type] : fallback;
 			}
+						
+			function hide_user_list()
+			{
+				$('.menu-user-list-footer').add('.menu-user-list-content').hide();
+				$('.menu-user-list-header').show();
+			}
 		</script>
 	</head>
 	<body>
 		<div class="page-menu">
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename" />
 			<div class="page-widgets">
-				<button class="new-entry-button" onclick="new_response(global_user)">
-					${_("Beitrag erstellen")}
-				</button>
-				<div class="page-filter">
-					<div class="page-filter-title">${_("Filter:")}</div>
-					<div class="page-filter-view"></div>
+				<div class="page-widgets-left-stack">
+					<button class="new-entry-button require-permissions-write-self" style="visibility:hidden" onclick="new Entry( {virtual:true, obj:{parents:[global_user],permissions:['read','write']}, duplicates:true, dom_parent:$('.ems-content')[0], prepend:true} ).edit();">
+						${_("Beitrag erstellen")}
+					</button>
+					<!--<div class="page-filter">
+						<div class="page-filter-title">${_("Filter:")}</div>
+						<div class="page-filter-view"></div>
+					</div>-->
+					<div class="main-searchbar"></div>
 				</div>
-				<div class="page-events"></div>
+				<div class="page-widgets-right-stack">
+					<div class="page-events"></div>
+				</div>
 			</div>
 		</div>
 		<div class="ems-content"></div>
-		<%include file="/elements/status_box.html" />
 		<%include file="/elements/group_template.html" />
 		<%include file="/elements/user_template.html" />
-		<%include file="/elements/entry_template.html" />
 		<%include file="/elements/text_template.html" />
-		<%include file="/elements/upload_dialog.html" />
 		<%include file="/elements/minion_template.html" />
 		<%include file="/elements/confirm_dialog.html" />
 	</body>

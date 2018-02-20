@@ -1,31 +1,56 @@
-				<div class="upload-dialog-template" style="display:none">
-					<div class="upload-tools">
-						<div class="upload-tools-decorator-left"></div>
-						<div class="upload-tools-decorator-top"></div>
-						<div class="upload-tools-content">
-						</div>
-						<div class="upload-tools-decorator-bottom"></div>
-						<div class="upload-tools-decorator-right"></div>
-					</div>
+				<div class="upload-dialog">
 					<div class="upload-manual">
 						${_("Ziehe eine Datei auf den markierten Bereich!")}
 					</div>
 					<div class="upload-preview">
-						<div class="upload-progress">
-						</div>
+						<div class="upload-progress"></div>
+						<div class="upload-status"></div>
 					</div>
+					<div class="recent-uploads">
+						<div class="recent-uploads-decorator-left"></div>
+						<div class="recent-uploads-decorator-top"></div>
+						<div class="recent-uploads-content">
+							<div class="recent-uploads-label">${_("Frühere Uploads:")}</div>
+							<div class="recent-uploads-selection">
+								<div class="recent-uploads-close-selection-button" title="${_('Auswahl ausblenden')}"></div>
+								<div class="recent-uploads-searchbar" ></div>
+								<div class="recent-uploads-search-result-scroll-container-hack">
+									<div class="recent-uploads-search-result" ></div>
+								</div>
+							</div>
+						</div>
+						<div class="recent-uploads-decorator-bottom"></div>
+						<div class="recent-uploads-decorator-right"></div>
+					</div>
+					<div class="upload-chooser"><input class="upload-file-input" type="file"></input></div>
 					<div class="upload-info">
 						<div class="upload-title"></div>
 						<div class="upload-type"></div>
 						<div class="upload-size"></div>
+						<div class="upload-poster">
+							<div class="upload-poster-caption">
+								<div class="upload-poster-manual">
+									${_("Vorschaubild:")}
+								</div>
+								<button class="upload-poster-from-offset">
+									${_("Aktuelle Videoposition")}
+								</button>
+							</div>
+						</div>
 					</div>
-					<button class="upload-save" onclick="confirm_upload(this);">
+					<button class="upload-save">
 						${_("Datei verwenden")}
 					</button>
-					<button class="upload-recent" onclick="show_recent_uploads(this);">
+					<button class="upload-recent">
 						${_("Frühere Uploads zeigen...")}
 					</button>
-					<button class="upload-cancel" onclick="close_upload_dialog(this);">
+					<button class="upload-cancel">
 						${_("Abbrechen")}
+					</button>
+					<button class="upload-pause">
+						${_("Pausieren")}
+					</button>
+					<button class="upload-resume">
+						${_("Fortsetzen")}
 					</button>
 				</div>

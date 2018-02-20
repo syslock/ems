@@ -1,36 +1,67 @@
 body {
 	background-color: #f0f0f0;
+	font-family: sans-serif;
+	font-size: 10.5pt;
 }
 
+button, select {
+	border: 1px solid grey;
+	border-radius: 3px;
+	background-color: #dfdfdf;
+	padding: 1mm;
+}
+button:hover, select:hover {
+	background-color: #f0f0f0;
+}
+
+select {
+	appearance: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	padding-right: 5mm;
+	background: url("../images/arrow_down.svg") no-repeat center right 1mm;
+	background-size: 4mm;
+}
 
 .page-menu {
 	position: absolute;
 	display: block;
-	left: 0px;
 	top: 0px;
+	left: 0px;
 	width: 100%;
 	background-color: #dfdfdf;
 	border-bottom: 1px solid #bfbfbf;
-	padding: 10px;
+	padding-top: 5px;
+	padding-bottom: 3px;
 	z-index: 50;
+}
+.page-menu>* {
+	/* workaround: left padding in page-menu leads to width of >100% and creates horizontal scroll bar */
+	margin-left: 5px;
 }
 .ems-menu {
 	display: block;
-	margin-bottom: 10px;
 }
 .menu-title {
 	display: inline-block;
 	font-weight: bold;
 }
 .menu-widgets {
+	position: absolute;
 	display: inline-block;
-	float: right;
-	margin-right: 20px;
+	top: 0;
+	right: 0;
 	font-size: small;
+	line-height: 3em;
+	text-align: right;
+	padding: 2mm;
 	background-color: rgba(223,223,223,0.9);
-	border-bottom: 1px solid rgba(223,223,223,1);
-	border-left: 1px solid rgba(223,223,223,1);
+	border-bottom: 1px solid #bfbfbf;
+	border-left: 1px solid #bfbfbf;
 	border-radius: 5px;
+	z-index: 1;
+}
+.menu-setting-widgets {
 }
 .menu-language-widget {
 	display: inline-block;
@@ -45,7 +76,6 @@ body {
 	display: inline-block;
 }
 .menu-login-widget {
-	display: inline-block;
 }
 .menu-account-info {
 	display: inline-block;
@@ -57,7 +87,61 @@ body {
 	display: inline-block;
 	font-weight: bold;
 }
+.menu-user-list {
+	text-align: center;
+	width: 6cm;
+}
+.menu-user-list-header {
+	text-align: right;
+}
+.menu-user-list-footer {
+	text-align: left;
+}
+.menu-user-list-count, .menu-user-list-label {
+	display: inline-block;
+}
+.menu-user-list-content {
+	line-height: normal;
+}
+.menu-user-list-content .ems-item {
+	display: inline-block;
+	text-align: center;
+	margin: 2px;
+}
+.menu-user-list-content .user-image, .menu-user-list-content .user-image-content {
+	width: 50px;
+	height: 50px;
+}
+.menu-user-list-buttons {
+	margin-top: 1mm;
+}
+.menu-user-list-show {
+	width: 1cm;
+	background: url("../images/arrow_down.svg") no-repeat center center;
+	background-size: 90%;
+}
+.menu-user-list-hide {
+	width: 1cm;
+	background: url("../images/arrow_up.svg") no-repeat center center;
+	background-size: 90%;
+}
 
+.page-widgets {
+	display: block;
+	white-space: nowrap;
+	margin-bottom: 2px;
+}
+.page-widgets .page-widgets-left-stack {
+	display: inline-block;
+	vertical-align: bottom; /* https://stackoverflow.com/questions/1518576/unwanted-padding-bottom-of-a-div */
+}
+.page-widgets .page-widgets-right-stack {
+	display: inline; /* wtf, somehow need this for child absolute positioning to work */
+}
+.page-widgets .new-entry-button {
+	display: block;
+	margin-top: 3px;
+}
 
 .ems-content {
 	margin-top: 8em;
@@ -76,7 +160,8 @@ body {
 }
 .entry-metadata {
 	width: 110px;
-	display: inline;
+	display: inline-block;
+	text-align: center;
 }
 .entry-author {
 	display: inline-block;
@@ -92,7 +177,7 @@ body {
 .entry-bubble {
 	display: inline-block;
 	vertical-align: top;
-	margin-left: 17px;
+	margin-left: 9px;
 	margin-bottom: 10px;
 	border-radius: 20px;
 	border: 2px solid lightblue;
@@ -131,16 +216,15 @@ body {
 }
 .entry-time {
 	display: inline-block;
-	position: absolute;
-	margin-top: 140px;
-	left: 10px;
+	margin-top: 2px;
+	margin-left: -14px;
 }
 .entry-mtime {
 	display: block;
 	padding-left: 20px;
-	padding-bottom: 5px;
+	padding-bottom: 4px;
 	background:url(../silk_icons/date_edit.png) no-repeat 0 0;
-	font-size: small;
+	font-size: 0.8em;
 	text-align: center;
 }
 .entry-mtime-label {
@@ -155,9 +239,9 @@ body {
 .entry-ctime {
 	display: block;
 	padding-left: 20px;
-	padding-bottom: 5px;
+	padding-bottom: 4px;
 	background:url(../silk_icons/date.png) no-repeat 0 0;
-	font-size: small;
+	font-size: 0.8em;
 	text-align: center;
 }
 .entry-ctime-label {
@@ -201,7 +285,7 @@ body {
 .entry-tools-content {
 	position: absolute;
 	min-height: 126px;
-	min-width: 140px;
+	min-width: 180px;
 	border-radius: 20px;
 	border: 1px solid orange;
 	border-left: 3px solid orange;
@@ -212,13 +296,28 @@ body {
 .entry-tools-content button {
 	position: relative;
 	width: 100%;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.entry-tools-button-symbol {
+    position: absolute;
+	height: 90%;
+	left: 0;
+}
+button.entry-response-button {
+	font-size: larger;
+}
+button.entry-delete-button {
+	width: 50%;
+	margin-left: 50%;
+	font-size: smaller;
 }
 .entry-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
 	position: absolute;
 	margin-left: -30px;
 	margin-top: -40px;
-	width: 200px;
+	width: 250px;
 	height: 230px;
 	background-color: transparent;
 }
@@ -229,11 +328,13 @@ body {
 	position: relative;
 }
 .video {
-	width: 480px;
+	max-width: 100%;
+	min-width: 480px;
 	min-height: 270px;
-	background-color: lightgrey;
+	background-color: black;
 }
 .video-status {
+	display: inline-block;
 	position: absolute;
 	left: 0px;
 	margin: 10px;
@@ -275,6 +376,7 @@ body {
 	text-align: center;
 	font-family: sans;
 	font-size: small;
+	z-index: 1; /* render above subsequent video elements */
 }
 .video-variant {
 	border-radius: 10px;
@@ -326,6 +428,166 @@ body {
 	font-size: x-small;
 }
 
+.image-expander {
+	position: relative;
+}
+.image {
+	position: relative;
+}
+.image-rotate-grip {
+	opacity: 0;
+	transition: opacity 0.2s ease-in-out;
+	position: absolute;
+	font-size: 64px;
+	left: 5px;
+	top: 40%;
+}
+.image-expander:hover .image-rotate-grip {
+	opacity: 1;
+	transition: opacity 0.2s ease-in-out;
+}
+.image-rotate-grip>div {
+	border-radius: 10px;
+	border: 1px solid black;
+}
+.image-rotate-symbol {
+	color: red;
+	background-color: white;
+	opacity: 0.5;
+	position: absolute;
+}
+.image-rotate-symbol:hover {
+	opacity: 1;
+	cursor: grab;
+}
+.image-rotate-left, .image-rotate-right {
+	color: red;
+	background-color: white;
+	position: absolute;
+}
+.image-rotate-left {
+	left: -1.5em;
+}
+.image-rotate-right {
+	left: 1.5em;
+}
+
+
+.text-marking {
+	background-color: yellow;
+}
+.text-marking-off {
+	background-color: white;
+}
+.text-bold {
+	font-weight: bold;
+}
+.text-bold-off {
+	font-weight: normal;
+}
+.text-italic {
+	font-style: italic;
+}
+.text-italic-off {
+	font-style: normal;
+}
+.text-fixed {
+	font-family: monospace;
+}
+.text-fixed-off {
+	font-family: sans-serif;
+}
+.text-underline {
+	text-decoration: underline;
+}
+.text-underline-off {
+	/* FIXME: Disabling text-decoration only works for block and inline-block elements,
+	 * so we set display:inline-block as a hack. Also this approach results in having
+	 * more than one way to disable any supported text-decoration style which might
+	 * be confusing to users... */
+	display: inline-block;
+	text-decoration: none;
+}
+.text-strikethrough {
+	text-decoration: line-through;
+}
+.text-strikethrough-off {
+	/* FIXME: See .text-underline-off */
+	display: inline-block;
+	text-decoration: none;
+}
+.text-overline {
+	text-decoration: overline;
+}
+.text-overline-off {
+	/* FIXME: See .text-underline-off */
+	display: inline-block;
+	text-decoration: none;
+}
+.text-larger {
+	font-size: larger;
+}
+.text-smaller {
+	font-size: smaller;
+}
+.block-quote {
+	padding: 2mm;
+	padding-left: 5mm;
+	padding-right: 5mm;
+	background-color: #f8f5f1;
+	border: 1px dashed black;
+	border-radius: 2mm;
+}
+
+.link-tool {
+	display: inline-block;
+	position: relative;
+	top: 1.2em;
+	left: -3em;
+}
+.link-tool-decorator-top {
+	position: absolute;
+	margin-top: -15px;
+	margin-left: 20px;
+	width: 0px;
+	height: 0px;
+	border-bottom: 15px solid darkviolet;
+	border-left: 30px solid transparent;
+	border-right: 30px solid transparent;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.link-tool-content {
+	position: absolute;
+	min-width: 400px;
+	border-radius: 20px;
+	border: 1px solid darkviolet;
+	border-top: 3px solid darkviolet;
+	padding: 10px;
+	background-color: white;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.link-tool-option {
+	display: flex;
+}
+.link-tool-option + .link-tool-option {
+	margin-top: 1em;
+}
+.link-tool-title {
+	display: inline-block;
+	min-width: 3em;
+	padding-top: 3px;
+}
+.link-tool-value {
+	width: 100%;
+	border: 1px solid darkviolet;
+	border-radius: 5px;
+	padding: 3px;
+}
+.link-tool-buttons {
+	text-align: right;
+	margin-top: 1em;
+}
+
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */
 /* ------------------------------------------------------------------------- */
@@ -342,7 +604,26 @@ body {
 .new-entry .entry-bubble {
 	border: 2px solid orange;
 }
-.ems-item:hover .new-entry .entry-tools {
+.entry-edit-toolbar {
+	display: none;
+}
+.entry-edit-range-tools {
+	display: inline-block;
+}
+.entry-edit-range-tools-symbols img {
+	height: 3em;
+}
+.entry-edit-range-tools-symbols .keysym-ctrl {
+	opacity: 0.5;
+}
+.entry-edit-list-tools {
+	display: inline-block;
+	margin-left: 1em;
+}
+.entry-edit-list-tools-symbols img {
+	height: 3em;
+}
+.new-entry .entry-tools {
 	display: none;
 }
 .entry-edit-tools {
@@ -350,7 +631,7 @@ body {
 	position: absolute;
 	margin-left: 10px;
 }
-.ems-item:hover .new-entry .entry-edit-tools {
+.new-entry .entry-edit-tools {
 	display: inline-block;
 }
 .entry-edit-tools-decorator-left {
@@ -366,7 +647,7 @@ body {
 .entry-edit-tools-content {
 	position: absolute;
 	min-height: 126px;
-	min-width: 140px;
+	min-width: 180px;
 	border-radius: 20px;
 	border: 1px solid green;
 	border-left: 3px solid green;
@@ -377,13 +658,23 @@ body {
 .entry-edit-tools-content button {
 	position: relative;
 	width: 100%;
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+button.entry-edit-send-button {
+	font-size: larger;
+}
+button.entry-edit-discard-button {
+	width: 50%;
+	margin-left: 50%;
+	font-size: smaller;
 }
 .entry-edit-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
 	position: absolute;
 	margin-left: -30px;
 	margin-top: -40px;
-	width: 200px;
+	width: 250px;
 	height: 230px;
 	background-color: transparent;
 }
@@ -405,11 +696,10 @@ body {
 }
 .entry-tags-label {
 	display: inline;
-	font-weight: bold;
+	font-size: small;
 }
 button.entry-tags-show-selection-button {
-	display: inline;
-	float: right;
+	display: inline-block;
 	font-size: small;
 }
 .entry-tags-content {
@@ -420,7 +710,7 @@ button.entry-tags-show-selection-button {
 	display: block;
 	position: relative;
 	vertical-align: bottom;
-	font-size: small;
+	font-weight: bold;
 	background-color: #efefef;
 	border: 1px solid #bfbfbf;
 	border-radius: 8px;
@@ -434,27 +724,68 @@ button.entry-tags-show-selection-button {
 }
 input.entry-tag {
 }
+.entry-tag-label {
+	display: inline-block;
+}
 .entry-tag>button {
 	display: inline-block;
 	position: absolute;
 	top: 0px;
-	right: 1px;
-	margin: 1px;
+	right: 2px;
+	font-size: small;
 }
 .entry-tag-add {
 }
 .entry-tag-remove {
 }
+.entry-tag-new .entry-tag {
+	background-color: #ffdfdf;
+}
 
 .entry-tags-selection {
 	display: block;
 	margin-top: 10px;
-	background-color: #7f7fff;
 	padding: 3px;
 	padding-top: 2px;
+	border: 1px solid red;
 	border-radius: 10px;
+	position: relative;
+}
+.entry-tags-close-selection-button {
+	width: 0.8em;
+	height: 0.8em;
+	border: 1px solid red;
+	border-radius: 0.4em;
+	background-color: white;
+	position: absolute;
+	top: -0.48em;
+	right: -0.48em;
+	z-index: 10;
+}
+.entry-tags-close-selection-button:hover {
+	width: 1.2em;
+	height: 1.2em;
+	border: 4px solid red;
+	border-radius: 0.8em;
+	background-color: white;
+	top: -0.9em;
+	right: -0.9em;
+}
+.entry-tags-searchbar {
+	display: inline-block;
+}
+.entry-tags-search-result {
+	padding-top: 1em;
+	padding-bottom: 3em;
+}
+.entry-tags-search-result-scroll-container-hack {
+}
+.entry-tags-add-new {
+	display: inline-block;
 }
 .entry-tags-selection-item {
+	font-weight: normal;
+	font-size: small;
 }
 .entry-tags-selection-item:hover {
 }
@@ -499,7 +830,6 @@ input.entry-tag {
 }
 .entry-tag-tool {
 	display: block;
-	padding-left: 32px;
 	padding-top: 5px;
 	padding-bottom: 5px;
 }
@@ -507,15 +837,13 @@ input.entry-tag {
 	width: 100%;
 	text-align: left;
 }
-.entry-tag-tool:hover {
+.entry-tag-tool-button {
+	padding-left: 1.5em;
 }
-.entry-tag-tool-filter-for {
-	background: url(../tango-scalable/actions/system-search.svg) no-repeat 0 0;
-	background-size: contain;
-}
-.entry-tag-tool-filter-exclude {
-	background: url(../tango-scalable/actions/list-remove.svg) no-repeat 0 0;
-	background-size: contain;
+.entry-tag-tool-button-symbol {
+	position: absolute;
+	left: 0px;
+	height: 90%;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -531,6 +859,7 @@ input.entry-tag {
 	background-color: white;
 	border: 1px solid green;
 	border-radius: 10%;
+	margin-bottom: 3px;
 }
 .user-image-content {
 	width: 100px;
@@ -540,10 +869,12 @@ input.entry-tag {
 .user-heading {
 	display: inline-block;
 	vertical-align: top;
-	text-align: center;
 }
 .user-nick-label {
 	display: none;
+}
+.user-nick {
+	font-weight: bold;
 }
 .user-content {
 	display: inline;
@@ -551,14 +882,13 @@ input.entry-tag {
 .user-tools {
 	display: none;
 	position: absolute;
-	margin-top: 135px;
-	margin-left: -105px;
+	margin-top: +12px;
 }
 .user-heading:hover+.user-tools {
-	display: inline-block;
+	display: block;
 }
 .user-tools:hover {
-	display: inline-block;
+	display: block;
 }
 .user-tools-decorator-top {
 	position: absolute;
@@ -771,74 +1101,104 @@ div.user-groups-selection {
 /* ------------------------------------------------------------------------- */
 /* --------------------------------- Status -------------------------------- */
 /* ------------------------------------------------------------------------- */
-.ems-status {
-	display: none;
+.statusbar {
 	position: fixed;
+	font-family: monospace;
 	left: 0;
-	top: 0;
+	bottom: 0;
+	width: 100%;
+	height: 5cm;
+	background-color: #dfdfdf;
+	border-top: 1px solid #bfbfbf;
+	z-index: 50;
+}
+.statusbar.minimized {
+	height: 0;
+}
+.statusbar.maximized {
+	height: 100%;
+}
+.statusbar-buttons {
+	position: absolute;
+	right: 4mm;
+	top: -1cm;
+	width: 2cm;
+	height: 2cm;
+	padding: 0;
+	background-color: #dfdfdf;
+}
+.statusbar-button-larger {
+	width: 2cm;
+	height: 1cm;
+	margin: 0;
+	border-bottom: none;
+	background:url("../images/chat_button_larger.svg") no-repeat -1px -5px;
+	background-size: 2cm;
+	
+}
+.statusbar-button-smaller {
+	width: 2cm;
+	height: 1cm;
+	margin: 0;
+	border-top: none;
+	background:url("../images/chat_button_smaller.svg") no-repeat -1px calc(-1cm - 4px);
+	background-size: 2cm;
+	
+}
+.statusbar-content {
+	padding: 5px;
+	/* https://stackoverflow.com/questions/10154250/scroll-part-of-content-in-fixed-position-container */
+	height: 4cm;
+	overflow-y: scroll;
+}
+.statusbar.maximized .statusbar-content {
+	height: 90%;
+	height: calc(100% - 1cm);
+}
+.statusbar-entry-box {
+	padding: 0.4em;
+	height: 1cm;
+	background-color: white;
+	border: 1px solid black;
+}
+.statusbar-entry-prompt {
+	display: inline-block;
+}
+.statusbar-entry {
+	display: inline-block;
 	width: 100%;
 	height: 100%;
-	background-color:rgba(0,0,0,0.5);
-	z-index: 100;
+	position: absolute;
 }
-.ems-status-active {
-	display: block;
+.statusbar-content .message {
 }
-.ems-status-box {
-	display: block;
-	position: relative;
-	text-align: center;
-	background-color: white;
-	border: 3px solid lightgrey;
-	border-radius: 20px;
-	margin-top: 10%;
-	margin-left: 10%;
-	margin-right: 10%;
-	padding: 10px;
+.statusbar-content .message>div {
+	vertical-align: top;
 }
-.ems-message {
-	display: none;
-	text-align: left;
-	background-color: white;
-	border: 1px solid grey;
-	border-radius: 10px;
-	padding: 5px;
-	margin-bottom: 10px;
+.statusbar-content .error {
+	color: darkred;
 }
-.ems-message-active {
-	display: block;
-}
-.ems-message-label {
-	float: left;
-	font-weight: bold;
-	margin-right: 20px;
-	margin-bottom: 10px;
-}
-.ems-message-content {
+.message-emblem {
 	display: inline-block;
+	height: 1em;
+	width: 1em;
+	border-radius: 3px;
+	background-color: yellow;
 }
-.ems-error {
-	display: none;
-	text-align: left;
-	background-color: white;
-	border: 1px dashed red;
-	border-radius: 10px;
-	padding: 5px;
-	margin-bottom: 10px;
+.error .message-emblem {
+	background-color: red;
 }
-.ems-error-active {
-	display: block;
-}
-.ems-error-label {
-	float: left;
-	font-weight: bold;
-	margin-right: 20px;
-	margin-bottom: 10px;
-}
-.ems-error-content {
+.message-time {
 	display: inline-block;
-	font-family: monospace;
-	white-space: pre;
+	width: 1.5cm;
+}
+.message-source {
+	display: inline-block;
+	width: 2cm;
+}
+.message-text {
+	display: inline-block;
+	white-space: pre-wrap;
 }
 
 
@@ -848,7 +1208,7 @@ div.user-groups-selection {
 .upload-dialog {
 	display: inline-block;
 	text-align: center;
-	max-width: 90%;
+/* 	max-width: 90%; */
 	background-color: white;
 	border: 1px dashed orange;
 	padding: 10px;
@@ -870,12 +1230,17 @@ div.user-groups-selection {
 	display: none;
 }
 .upload-preview {
-	display: block;
+/* 	position: relative; */
+	 /* upload-content selbst soll wieder left-aligned sein 
+	    und nicht center von upload-dialog erben: */
+	text-align: left;
+	display: inline-block;
 	margin-bottom: 15px;
 	border: 2px dashed red;
 	min-width: 200px;
 	min-height: 200px;
 	padding: 10px;
+/* 	max-width: 90%; */
 }
 .mini.upload-dialog .upload-preview {
 	margin: 0;
@@ -909,6 +1274,13 @@ div.user-groups-selection {
 .upload-preview>.download-link {
 	margin-top: 73px;
 }
+.upload-chooser {
+	display: block;
+	margin-bottom: 1em;
+}
+.mini.upload-dialog .upload-chooser {
+	display: none;
+}
 .upload-info {
 	display: block;
 	margin-bottom: 15px;
@@ -916,6 +1288,48 @@ div.user-groups-selection {
 }
 .mini.upload-dialog .upload-info {
 	display: none;
+}
+.upload-status {
+	position: absolute;
+	right: 5px;
+	top: 5px;
+}
+.upload-status div {
+	background-size: contain;
+	width: 2em;
+	height: 2em;
+}
+.upload-status .uploading {
+	display: block;
+	background-image: url(../tango-scalable/actions/go-up.svg);
+	animation:upload-uploading-translation 2s linear infinite;
+	-webkit-animation:upload-uploading-translation 2s linear infinite;
+}
+@keyframes upload-uploading-translation { 100% { transform:translateY(-10px); } }
+@-webkit-keyframes upload-uploading-translation { 100% { -webkit-transform:translateY(-10px); } }
+.upload-status .recovering {
+	display: block;
+	background-image: url(../tango-scalable/actions/view-refresh.svg);
+	animation:upload-recovering-rotation 2s linear infinite;
+	-webkit-animation:upload-recovering-rotation 2s linear infinite;
+}
+@keyframes upload-recovering-rotation { 100% { transform:rotate(360deg); } }
+@-webkit-keyframes upload-recovering-rotation { 100% { -webkit-transform:rotate(360deg); } }
+.upload-status .failed {
+	display: block;
+	background-image: url(../tango-scalable/status/dialog-warning.svg);
+}
+.upload-status .complete {
+	display: block;
+	background-image: url(../tango-scalable/actions/go-top.svg);
+}
+.upload-status .aborted {
+	display: block;
+	background-image: url(../tango-scalable/actions/process-stop.svg);
+}
+.upload-status .paused {
+	display: block;
+	background-image: url(../tango-scalable/actions/media-playback-pause.svg);
 }
 .upload-title {
 	display: inline;
@@ -928,34 +1342,58 @@ div.user-groups-selection {
 .upload-size {
 	display: inline;
 }
+.upload-poster {
+	display: none;
+}
+.upload-poster-caption {
+	display: block;
+}
+.upload-poster-manual {
+	display: inline-block;
+	font-size: 13pt;
+	margin-top: 1em;
+	margin-right: 1em;
+}
+.upload-poster-from-offset {
+	display: inline-block;
+	margin-left: 1em;
+}
 .upload-dialog>button {
 	float: right;
 }
 .mini.upload-dialog>button {
 	display: none;
 }
-
-.upload-tools {
+.upload-pause {
 	display: none;
-	float: right;
-	z-index: 1;
 }
-.recent-uploads-visible:hover .upload-tools {
+.upload-resume {
+	display: none;
+}
+
+.recent-uploads {
+	display: none;
+	position: absolute;
+	margin-left: 10px;
+	z-index: 2;
+	text-align: left;
+}
+.recent-uploads-visible:hover .recent-uploads {
 	display: inline-block;
 }
-.upload-tools-decorator-left {
+.recent-uploads-decorator-left {
 	position: absolute;
 	margin-top: 13px;
-	margin-left: -29px;
+	margin-left: -28px;
 	width: 0px;
 	height: 0px;
 	border-right: 30px solid red;
 	border-top: 60px solid transparent;
 	border-bottom: 60px solid transparent;
 }
-.upload-tools-content {
+.recent-uploads-content {
 	position: absolute;
-	min-height: 126px;
+	min-height: 200px;
 	min-width: 140px;
 	max-width: 500px;
 	border-radius: 20px;
@@ -965,24 +1403,60 @@ div.user-groups-selection {
 	padding: 10px;
 	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
-.upload-tools-content button {
-	position: relative;
-	width: 100%;
-}
-.upload-tools-decorator-right {
+.recent-uploads-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
 	position: absolute;
 	margin-left: -30px;
 	margin-top: -40px;
-	width: 200px;
-	height: 230px;
+	width: 600px;
+	height: 550px;
 	background-color: transparent;
+}
+.recent-uploads-selection {
+	display: block;
+	margin-top: 10px;
+	padding: 3px;
+	padding-top: 2px;
+	border: 1px solid red;
+	border-radius: 10px;
+	position: relative;
+}
+.recent-uploads-close-selection-button {
+	width: 0.8em;
+	height: 0.8em;
+	border: 1px solid red;
+	border-radius: 0.4em;
+	background-color: white;
+	position: absolute;
+	top: -0.48em;
+	right: -0.48em;
+	z-index: 10;
+}
+.recent-uploads-close-selection-button:hover {
+	width: 1.2em;
+	height: 1.2em;
+	border: 4px solid red;
+	border-radius: 0.8em;
+	background-color: white;
+	top: -0.9em;
+	right: -0.9em;
+}
+.recent-uploads-searchbar {
+	display: inline-block;
+}
+.recent-uploads-search-result {
+	padding-top: 1em;
+	padding-bottom: 3em;
+}
+.recent-uploads-search-result-scroll-container-hack {
 }
 
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- Downloads   ----------------------------- */
 /* ------------------------------------------------------------------------- */
 .download-icon {
+	position: relative;
+	bottom: -5px;
 	width: 50px;
 	height: 50px;
 }
@@ -995,10 +1469,12 @@ div.user-groups-selection {
 	text-decoration: none;
 }
 .download-title {
+	display: inline-block;
 	font-weight: bold;
 	padding-left: 10px;
 }
 .download-size {
+	display: inline-block;
 	font-size: small;
 	padding-left: 10px;
 }
@@ -1077,6 +1553,19 @@ div.user-groups-selection {
 /* ------------------------------------------------------------------------- */
 /* ----------------------- Minions! ---------------------------------------- */
 /* ------------------------------------------------------------------------- */
+.ems-minion {
+	border: 2px solid transparent;
+	border-top: none;
+	border-bottom: none;
+	border-radius: 5px;
+	padding-top: 2px;
+}
+.ems-minion:hover {
+	border: 2px solid darkblue;
+	border-top: none;
+	border-bottom: none;
+	background-color: #efefef;
+}
 .ems-minion .entry-media {
 	margin: 0;
 	border: none;
@@ -1088,10 +1577,9 @@ div.user-groups-selection {
 }
 .page-events {
 	display: inline-block;
+	white-space: nowrap;
 	position: absolute;
 	bottom: 0px;
-	z-index: -1;
-	white-space: nowrap;
 }
 .page-events .ems-item {
 	display: inline-block;
@@ -1102,6 +1590,87 @@ div.user-groups-selection {
 	min-height: 0px;
 	max-width: 200px;
 	max-height: 60px;
+}
+.minion-content {
+	position: relative;
+	min-width: 60px;
+	text-align: center;
+}
+.minion-tools {
+	display: none;
+	position: absolute;
+	margin-top: +12px;
+}
+.minion-content:hover+.minion-tools {
+	display: block;
+}
+.minion-tools:hover {
+	display: block;
+}
+.minion-tools-decorator-top {
+	position: absolute;
+	margin-top: -15px;
+	margin-left: 20px;
+	width: 0px;
+	height: 0px;
+	border-bottom: 15px solid darkblue;
+	border-left: 15px solid transparent;
+	border-right: 15px solid transparent;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.minion-tools-decorator-left {
+	position: absolute;
+	background-color: transparent;
+	/* sollte einen konfortablen Fokus-Schutz-Bereich um die Toolbox herum abdecken, damit sie nicht ungewollte verschwindet */
+	min-width: 80px;
+	min-height: 60px;
+	border-radius: 50%;
+	margin-top: -50px;
+	z-index: 1; /* sollte über anderen standardmäßig sichtbaren Elementen, außer der Toolbox liegen */
+}
+.minion-tools-content {
+	position: absolute;
+	min-width: 160px;
+	border-radius: 20px;
+	border: 1px solid darkblue;
+	border-top: 3px solid darkblue;
+	padding: 10px;
+	background-color: white;
+	text-align: center;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.minion-title {
+	font-weight: bold;
+	margin-bottom: 5px;
+}
+.minion-tools-content>button {
+	display: block;
+	position: relative;
+	width: 100%;
+}
+button.minion-filter-include {
+	font-size: larger;
+}
+.minion-details-dialog {
+	display: inline-block;
+	position: absolute;
+/* 	margin-left: -200%; */
+	margin-top: 150%;
+	background-color: white;
+	border: 3px solid darkblue;
+	border-radius: 20px;
+	padding: 10px;
+	z-index: 3; /* sollte über anderen standardmäßig sichtbaren Elementen erscheinen */
+	text-align: right;
+}
+.minion-setting {
+	margin-bottom: 1em;
+}
+.minion-details-label {
+	display: inline-block;
+}
+.minion-delete {
+	font-size: small;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1128,12 +1697,33 @@ div.user-groups-selection {
 }
 
 .ems-login-content {
+	text-align: center;
+}
+.login-hint {
+	margin-bottom: 1em;
+}
+.login-hint-heading {
+	font-weight: bold;
+}
+.login-forms, register-form {
 	display: inline-block;
 }
-.login-form, .login-form>div, .register-form, .register-form>div {
+.login-form-entries, .register-form, .register-form>div {
 	text-align: right;
 }
-.login-form>button, .register-form>button {
+.login-form-entries>div {
+	margin-bottom: 0.5em;
+}
+.login-form-buttons {
+	margin-top: 1em;
+	text-align: right;
+}
+.login-form-primary-buttons {
+}
+.login-form-secondary-buttons {
+	margin-top: 2em;
+}
+.register-form>button {
 	margin-top: 1em;
 }
 .login-nick-label {
@@ -1148,6 +1738,29 @@ div.user-groups-selection {
 .register-email-label {
 	display: inline-block;
 }
+.password-recovery-request-entries, .password-recovery-entries {
+	text-align: right;
+}
+.password-recovery-request-entries>div, .password-recovery-entries>div {
+	margin-bottom: 0.5em;
+}
+.password-recovery-email-label {
+	display: inline-block;
+}
+.password-recovery-request-buttons {
+	margin-top: 1em;
+	text-align: right;
+}
+.password-recovery-password-label {
+	display: inline-block;
+}
+.password-recovery-msid-label {
+	display: inline-block;
+}
+.password-recovery-buttons {
+	margin-top: 1em;
+	text-align: right;
+}
 
 /* -------------------------------------------------------------------------- */
 /* ---------------------------------- Player -------------------------------- */
@@ -1155,4 +1768,135 @@ div.user-groups-selection {
 .player-canvas {
 	position: absolute;
 	z-index: 20;
+}
+
+/* -------------------------------------------------------------------------- */
+/* ---------------------------------- Chess --------------------------------- */
+/* -------------------------------------------------------------------------- */
+.chess_frame {
+	display: inline-block;
+	background-color: #ffa040;
+	padding: 0.4em;
+}
+.chess_border {
+	display: inline-block;
+	background-color: #ffff80;
+	padding: 0.4em;
+}
+.chess_inner_border {
+	display: inline-block;
+	background-color: #ffa040;
+	padding: 0.2em;
+}
+.chess_field {
+	border: none;
+	border-spacing: 0;
+}
+.chess_white {
+	width: 3em;
+	height: 3em;
+	padding: 0;
+	background-color: #ffff80;
+}
+.chess_black {
+	width: 3em;
+	height: 3em;
+	padding: 0;
+	background-color: #ffa040;
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------- Searchbar ------------------------------- */
+/* -------------------------------------------------------------------------- */
+div.main-searchbar {
+	display: block;
+	margin-top: 3px;
+}
+div.searchbar {
+	display: inline-block;
+}
+div.searchbar-extender {
+	min-height: 1.3em;
+	padding-bottom: 0.5em;
+}
+div.searchbar-interface {
+	position: absolute;
+	z-index: 1; /* raise entry above minions in title bar */
+	background-color: rgba(223,223,223,0.9);
+	border: 1px solid rgba(223,223,223,1);
+	border-radius: 4px;
+	padding: 2px;
+	border-right: 0;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+	padding-left: 0;
+	border-left: 0;
+}
+div.searchbar-entry {
+	min-height: 1.3em;
+	display: inline-block;
+	border: 1px solid gray;
+	border-radius: 4px;
+	background-color: white;
+	color: black;
+	padding: 2px;
+	padding-left: 8px;
+	padding-right: 8px;
+	font-size: 10pt;
+	font-family: sans-serif;
+	outline: 0px solid transparent;
+}
+div.searchbar-buttons {
+	display: inline-block;
+	position: absolute;
+	background-color: rgba(223,223,223,0.9);
+	border: 1px solid rgba(223,223,223,1);
+	border-radius: 4px;
+	padding: 2px;
+	border-left: 0;
+	margin-left: 2px;
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	margin-top: -2px;
+}
+button.searchbar-button {
+	padding-left: 2mm;
+	padding-top: 1mm;
+	height: 1.5em;
+}
+img.searchbar-button-symbol {
+	height: 1em;
+}
+/* Font and left offsets of apropos-spacer needs to be similar to input.searchbar, to
+ * achieve current words hint to be displayed under the current word! */
+.apropos-spacer {
+	display: inline-block;
+	visibility: hidden;
+	font-size: 10pt;
+	font-family: sans-serif;
+	white-space: pre; 
+	border: 0px;
+	padding-left: 2px;
+}
+.apropos {
+	display: block;
+	position: absolute;
+}
+.apropos-hints {
+	display: inline-block;
+	background-color: white;
+	margin-top: 1px;
+	border: 1px solid grey;
+	border-top: 0px;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+	padding: 3px;
+	padding-top: 0px;
+	position: relative; /* allow hints to be rendered above entry border */
+	z-index: 1; /* raise entry above minions in title bar */
+}
+.apropos-hint {
+	display: block;
+	font-size: 10pt;
+	font-family: sans-serif;
 }

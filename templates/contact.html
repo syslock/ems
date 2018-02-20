@@ -4,41 +4,39 @@
 		<meta charset="utf-8" />
 		<title>${app.config.sitename+_(" - Kontaktdaten")}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="" />
-		<script data-main="js/main.js" src="js/require-jquery.js"></script>
+		<script data-main="js/main.js" src="js/require.js"></script>
 		<script>
 			var global_status = undefined;
 			var global_user = undefined;
 			function init()
 			{
-				$.get('ems.wsgi?do=status',
-				function(result)
-				{
-					result = parse_result( result )
-					global_status = result
-					if( result.login && result.login.nick!='anonymous' )
-					{
-						$(".menu-login")[0].style.display="none";
-						$(".menu-account-info")[0].style.display="";
-						$(".menu-account-nick")[0].innerHTML=result.login.nick;
-						$(".menu-logout")[0].style.display="";
-						$.get('ems.wsgi?do=get&view=all&id='+String(result.login.id),
-						function(result)
-						{
-							result = parse_result( result )
-							global_user = result[0]
-							update_contact()
-							$(".contact-input").each(
-							function( i, field ) {
-								field.onchange = field.onkeyup = field.onblur = function() { rs(this); };
-							})
-						})
+				get_module( "status", {
+					done : function(result) {
+						result = parse_result( result );
+						global_status = result;
+						if( result.login && result.login.nick!='anonymous' ) {
+							$(".menu-login")[0].style.display="none";
+							$(".menu-account-info")[0].style.display="";
+							$(".menu-account-nick")[0].innerHTML=result.login.nick;
+							$(".menu-logout")[0].style.display="";
+							get_module( "get", {
+								args : {view : "all", id : result.login.id},
+								done : function(result) {
+									result = parse_result( result );
+									global_user = result[0];
+									update_contact();
+									$(".contact-input").each(
+									function( i, field ) {
+										field.onchange = field.onkeyup = field.onblur = function() { rs(this); };
+									})
+								}
+							});
+						} else {
+							$(".ems-content")[0].style.display="none";
+							open_tpl('login.html');
+						}
 					}
-					else
-					{
-						$(".ems-content")[0].style.display="none";
-						open_tpl('login.html')
-					}
-				})
+				});
 			}
 			
 			function get_field_name( field )
@@ -54,53 +52,54 @@
 			
 			function store_contact( field )
 			{
-				field_name = get_field_name( field )
-				$.get( 'ems.wsgi?do=store&type=application/x-obj.iswi.contact&'+field_name+'='+field.value, 
-				function(result)
-				{
-					result = parse_result( result )
-					if( !result.succeeded )
-					{
-						show_message( "Failed to store '"+field_name+"'" )
-						hilight( field )
+				var field_name = get_field_name( field );
+				var get_args = { type : "application/x-obj.iswi.contact" };
+				get_args[ field_name ] = field.value;
+				get_module( "store", {
+					args : get_args,
+					done : function( result ) {
+						result = parse_result( result );
+						if( result.succeeded ) hilight( field, "green", 2 );
+					},
+					fail : function( result ) {
+						result = parse_result( result );
+						//show_message( "Failed to store '"+field_name+"'" );
+						hilight( field );
 					}
-					else hilight( field, "green", 2 )
-				})
+				});
 			}
 			
 			function update_contact()
 			{
 				if( !global_user.contact_id )
 				{
-					$.ajax({ url : 'ems.wsgi?do=store&type=application/x-obj.iswi.contact',
-							 async : false,
-							 success :
-					function( result )
-					{
-						result = parse_result( result )
-						if( result.succeeded )
-						{
-							global_user.contact_id = result.object_id;
+					get_module( "store", {
+						args : {type : "application/x-obj.iswi.contact"},
+						async : false,
+						done : function( result ) {
+							result = parse_result( result );
+							if( result.succeeded ) global_user.contact_id = result.object_id;
 						}
-					}})
+					});
 				}
-				$.get( 'ems.wsgi?do=get&view=all&id='+global_user.contact_id,
-				function(result)
-				{
-					result = parse_result( result )
-					result = result[0]
-					$('.contact-input').each(
-					function( i, field )
-					{
-						field_name = get_field_name( field )
-						if( result && result[field_name] )
+				get_module( "get", {
+					args : {view : "all", id : global_user.contact_id},
+					done : function(result) {
+						result = parse_result( result );
+						result = result[0];
+						$('.contact-input').each(
+						function( i, field )
 						{
-							field.value = result[field_name]
-						}
-						else hilight( field, "orange", 2 )
-					})
-					$(".ems-content")[0].style.display="";
-				})
+							field_name = get_field_name( field );
+							if( result && result[field_name] )
+							{
+								field.value = result[field_name];
+							}
+							else hilight( field, "orange", 2 )
+						})
+						$(".ems-content")[0].style.display="";
+					}
+				});
 			}
 		</script>
 	</head>
@@ -190,7 +189,6 @@
 				</div>
 			</div>
 		</div>
-		<%include file="/elements/status_box.html" />
 	</body>
 </html>
 

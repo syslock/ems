@@ -1,34 +1,46 @@
-import time, imp
+import time, imp, json
 from lib import user
 user = imp.reload( user )
 from lib import errors
 errors = imp.reload( errors )
 
-def delete_in( app, object_id_list, parent_id=None ):
+def delete_in_unsafe( app, object_id_list ):
 	in_list = ",".join( [str(x) for x in object_id_list] )
 	c = app.db.cursor()
+	c.execute( """delete from objects where id in (%(in_list)s)""" % locals() )
+	app.db.commit()
+	# FIXME: Alles folgende ist eigentlich nur nötig, wenn das Backend die 
+	# Foreign-Key-Constraints nicht unterstützt. Wie stellen wir das fest?
+	c.execute( """delete from membership where child_id in (%(in_list)s) or parent_id in (%(in_list)s)""" % locals() )
+	c.execute( """delete from users where object_id in (%(in_list)s)""" % locals() )
+	c.execute( """delete from text where object_id in (%(in_list)s)""" % locals() )
+	c.execute( """delete from titles where object_id in (%(in_list)s)""" % locals() )
+	c.execute( """delete from permissions where object_id in (%(in_list)s) or subject_id in (%(in_list)s)""" % locals() )
+	app.db.commit()
+
+def delete_in( app, object_id_list, parent_id=None ):
 	if not parent_id:
 		for object_id in object_id_list:
 			if not app.user.can_delete( object_id ):
 				raise errors.PrivilegeError( "%d cannot delete %d" % (app.user.id, object_id) )
-		c.execute( """delete from objects where id in (%(in_list)s)""" % locals() )
-		app.db.commit()
-		# FIXME: Alles folgende ist eigentlich nur nötig, wenn das Backend die 
-		# Foreign-Key-Constraints nicht unterstützt. Wie stellen wir das fest?
-		c.execute( """delete from membership where child_id in (%(in_list)s) or parent_id in (%(in_list)s)""" % locals() )
-		c.execute( """delete from users where object_id in (%(in_list)s)""" % locals() )
-		c.execute( """delete from text where object_id in (%(in_list)s)""" % locals() )
-		c.execute( """delete from titles where object_id in (%(in_list)s)""" % locals() )
-		c.execute( """delete from permissions where object_id in (%(in_list)s) or subject_id in (%(in_list)s)""" % locals() )
-		app.db.commit()
+		delete_in_unsafe( app, object_id_list )
 	else:
 		for object_id in object_id_list:
 			if not app.user.can_write( object_id ):
 				raise errors.PrivilegeError( "%d cannot write %d" % (app.user.id, object_id) )
 		if not app.user.can_write( parent_id ):
 			raise errors.PrivilegeError( "%d cannot write %d" % (app.user.id, parent_id) )
+		# angegebene Mitgliedschaften löschen
+		in_list = ",".join( [str(x) for x in object_id_list] )
+		c = app.db.cursor()
 		c.execute( """delete from membership where child_id in (%(in_list)s) and parent_id=?""" % locals(), [parent_id] )
 		app.db.commit()
+		# neu erzeugte Zombie-Objekte finden und komplett löschen (Rechte haben wir oben bereits geprüft)
+		c.execute( """select id from objects o left join membership m on o.id=m.child_id where o.id in (%(in_list)s) and m.child_id is null""" % locals() )
+		delete_list = []
+		for row in c:
+			delete_list.append( row[0] )
+		delete_in_unsafe( app, delete_list )
 
 def process( app ):
 	query = app.query
@@ -40,7 +52,7 @@ def process( app ):
 		object_id_list = [int(x) for x in query.parms["id"].split(",") if x!=""]
 		parent_id = "parent_id" in query.parms and int(query.parms["parent_id"]) or None
 		delete_in( app, object_id_list, parent_id=parent_id )
-		response.output = str( {"succeeded" : True, 
+		response.output = json.dumps( {"succeeded" : True, 
 								"delete_id_list" : object_id_list} )
 	elif "parent_id" in query.parms:
 		parent_id = int( query.parms["parent_id"] )
@@ -55,8 +67,8 @@ def process( app ):
 		delete_id_list = []
 		for row in c:
 			delete_id_list.append( row[0] )
-		delete_in( app, delete_id_list )
-		response.output = str( {"succeeded" : True, 
+		delete_in( app, delete_id_list, parent_id=parent_id )
+		response.output = json.dumps( {"succeeded" : True, 
 								"delete_id_list" : delete_id_list} )
 	else:
 		raise errors.ParameterError()

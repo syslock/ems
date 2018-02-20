@@ -1,9 +1,12 @@
-import time, imp, os, shutil, io, re
+import time, imp
 from lib import errors
 errors = imp.reload( errors )
+from lib import lexer
+lexer = imp.reload( lexer )
+from lib import files
+#files = imp.reload( files )
 
 class DBObject:
-	
 	def __init__( self, app, object_id=None, parent_id=None, 
 					media_type=None, sequence=0 ):
 		self.app = app
@@ -45,6 +48,7 @@ class DBObject:
 						[self.media_type, self.ctime, self.mtime] )
 			self.app.db.commit()
 			self.id = c.lastrowid
+			self.index( data=self.media_type, source="type", rank=1 )
 			for pid in parent_id:
 				c.execute( """insert into membership (parent_id, child_id, sequence)
 								values(?,?,?)""",
@@ -55,6 +59,8 @@ class DBObject:
 			raise errors.ParameterError( "Cannot create anonymous object without parent" )
 	
 	def update( self, **keyargs ):
+		if not self.app.user.can_write( self.id ):
+			raise errors.PrivilegeError()
 		sequence = 0
 		if "sequence" in keyargs and keyargs["sequence"]!=None:
 			sequence = keyargs["sequence"]
@@ -99,6 +105,36 @@ class DBObject:
 				c.execute( """insert into titles (object_id, data) values(?,?)""",
 							[self.id, title] )
 			self.app.db.commit()
+			self.index( data=title, source="title", rank=3 )
+			
+	def index( self, data, source=None, rank=1 ):
+		c = self.app.db.cursor()
+		c.execute( """delete from keywords where object_id=? and scan_source=?""", [self.id, str(source)] )
+		self.app.db.commit()
+		scan_time = int( time.time() )
+		words = lexer.Lexer.scan( data )
+		insert_stmt_start = """insert into keywords (object_id, word, pos, rank, scan_source, scan_time) values"""
+		insert_tuple_string = ""
+		is_first_tuple = True
+		insert_list = []
+		def do_insert():
+			c.execute( insert_stmt_start+insert_tuple_string, insert_list )
+			self.app.db.commit()
+		for pos, word in words:
+			value_tuple = [self.id, word, pos, rank, str(source), scan_time]
+			if len(insert_list)>(999-len(value_tuple)):
+				do_insert()
+				insert_tuple_string = ""
+				is_first_tuple = True
+				insert_list = []
+			insert_tuple_string += "\n\t"
+			if not is_first_tuple:
+				insert_tuple_string += ","
+			is_first_tuple = False
+			insert_tuple_string += "(?,?,?,?,?,?)"
+			insert_list += value_tuple
+		if insert_list:
+			do_insert()
 	
 	def closest_parents( self, child_ids=None, parent_type=None ):
 		result = set()
@@ -116,46 +152,77 @@ class DBObject:
 			result.add( parent_id )
 		return result
 	
-	def resolve_parents( self, child_id=None, cache=None ):
+	def resolve_parents( self, child_id=None, cache=None, parent_type_set=None ):
+		# Komplexe Datentypen hier initialisieren, um global state singletons aus der Signatur zu vermeiden
 		if cache==None:
 			cache = {}
+		if parent_type_set==None:
+			parent_type_set = set()
 		result = []
 		child_id = child_id or self.id
 		c = self.app.db.cursor()
-		c.execute( """select parent_id from membership where child_id=? -- resolve_parents""", [child_id] )
+		c.execute( """select parent_id, p.type from membership 
+						inner join objects p on p.id=parent_id
+						where child_id=? -- resolve_parents""", [child_id] )
 		for row in c:
 			parent_id = row[0]
-			result += [parent_id]
+			curr_parent_type = row[1]
+			if not parent_type_set or curr_parent_type in parent_type_set or "file" in parent_type_set and files.File.supports(self.app, curr_parent_type):
+				result += [parent_id]
 			if parent_id not in cache:
 				cache[ parent_id ] = True
-				result += self.resolve_parents( parent_id, cache )
+				result += self.resolve_parents( parent_id, cache, parent_type_set )
 		return result
 	
-	def resolve_children( self, parent_id=None, cache=None ):
+	def resolve_children( self, parent_id=None, cache=None, child_type_set=None ):
+		# Komplexe Datentypen hier initialisieren, um global state singletons aus der Signatur zu vermeiden
+		if cache==None:
+			cache = {}
+		if child_type_set==None:
+			child_type_set = set()
 		result = []
 		parent_id = parent_id or self.id
 		c = self.app.db.cursor()
-		c.execute( """select child_id from membership where parent_id=?""", [parent_id] )
+		c.execute( """select child_id, c.type from membership 
+						inner join objects c on c.id=child_id
+						where parent_id=? -- resolve_children""", [parent_id] )
 		for row in c:
 			child_id = row[0]
-			result += [child_id] + self.resolve_children( child_id )
+			curr_child_type = row[1]
+			if not child_type_set or curr_child_type in child_type_set or "file" in child_type_set and files.File.supports(self.app, curr_child_type):
+				result += [child_id]
+			if child_id not in cache:
+				cache[ child_id ] = True
+				result += self.resolve_children( child_id, cache, child_type_set )
 		return result
 	
-	ACCESS_MASKS={ "read" : 1, "write" : 2 }
+	ACCESS_MASKS={ "none" : 0, "read" : 1, "write" : 2, "all" : 3 }
 	def grant_read( self, object_id ):
 		self.grant_access( object_id, "read" )
 	def grant_write( self, object_id ):
 		self.grant_access( object_id, "write" )
-	def grant_access( self, object_id, access_type ):
-		if access_type not in ("read", "write"):
-			raise NotImplementedError( "Unsupported access_type" )
-		access_mask = self.ACCESS_MASKS[ access_type ]
+	def grant_access( self, object_id, access_type, update_operator="|", cleanup_zero=False ):
+		if access_type in self.ACCESS_MASKS:
+			access_mask = self.ACCESS_MASKS[ access_type ]
+		else:
+			if int(access_type) in self.ACCESS_MASKS.values():
+				access_mask = int( access_type )
+			else:
+				raise NotImplementedError( "Unsupported access_type" )
+		if update_operator not in ("&", "|"):
+			raise errors.ParameterError( "Unsupported operator: %s" % (update_operator) )
 		c = self.app.db.cursor()
-		c.execute( """select * from permissions where subject_id=? and object_id=?""", [self.id, object_id] )
-		if c.fetchone()!=None:
-			c.execute( """update permissions set access_mask=(access_mask|%(access_mask)d) where subject_id=? and object_id=?""" \
-							% locals(), [self.id, object_id] )
-			self.app.db.commit()
+		c.execute( """select access_mask from permissions where subject_id=? and object_id=?""", [self.id, object_id] )
+		result = c.fetchone()
+		if result!=None:
+			old_mask = result[0]
+			if update_operator=="&" and (old_mask & access_mask)==0 and cleanup_zero:
+				c.execute( """delete from permissions where subject_id=? and object_id=?""" % locals(), [self.id, object_id] )
+				self.app.db.commit()
+			else:
+				c.execute( """update permissions set access_mask=(access_mask%(update_operator)s%(access_mask)d) where subject_id=? and object_id=?""" \
+								% locals(), [self.id, object_id] )
+				self.app.db.commit()
 		else:
 			c.execute( """insert into permissions (subject_id, object_id, access_mask) values (?,?,%(access_mask)d)""" \
 							% locals(), [self.id, object_id] )
@@ -196,6 +263,7 @@ class Group( DBObject ):
 								where object_id=?""",
 							[keyargs[field], self.id] )
 			self.app.db.commit()
+			self.index( data=keyargs[field], source="group."+field, rank=2 )
 
 
 class Text( DBObject ):
@@ -217,14 +285,15 @@ class Text( DBObject ):
 								where object_id=?""",
 							[keyargs["data"], self.id] )
 			self.app.db.commit()
+			self.index( data=keyargs["data"], source="text", rank=2 )
 	def get_data( self ):
 		c = self.app.db.cursor()
 		c.execute( """select data from text where object_id=?""", 
 			[self.id] )
 		result = c.fetchone()
-		if not result:
-			raise errors.ObjectError( "Missing object data" )
-		data = result[0]
+		data = None
+		if result:
+			data = result[0]
 		data = data or "" # Nicht None zurück geben, um andere Programmteile nicht zu verwirren...
 		return data
 
@@ -242,6 +311,16 @@ class HTML( Text ):
 		# HTML-Daten hier eine explizite Rücktransformation vornehmen:
 		for pair in reversed(self.app.query.XML_FIXES):
 			result = result.replace( pair[1], pair[0] )
+		return result
+
+
+class Minion( Text ):
+	media_type = "application/x-obj.minion"
+	def __init__( self, app, **keyargs ):
+		keyargs["media_type"] = self.media_type
+		super().__init__( app, **keyargs )
+	def get_data( self, **keyargs ):
+		result = super().get_data( **keyargs )
 		return result
 
 
@@ -282,6 +361,9 @@ class UserAttributes( DBObject ):
 			c = self.app.db.cursor()
 			c.execute( stmt, update_values )
 			self.app.db.commit()
+			# FIXME: security issue? UserAttributes are as public as the User itself is...
+			for i in range(len(update_fields)):
+				self.index( data=update_values[i], source="user."+update_fields[i], rank=2 )
 	def get( self, query, obj ):
 		requested_fields = []
 		valid_fields = ["user_id"] + list(self.valid_fields)
@@ -300,77 +382,3 @@ class UserAttributes( DBObject ):
 		for i in range(len(result)):
 			obj[ requested_fields[i] ] = result[i]
 		return obj
-
-class File( DBObject ):
-	base_type = "application/octet-stream" # https://www.rfc-editor.org/rfc/rfc2046.txt
-	def __init__( self, app, **keyargs ):
-		super().__init__( app, **keyargs )
-		upload_path = "upload"
-		if hasattr(self.app.config,"upload_path"):
-			upload_path = self.app.config.upload_path
-		self.storage_path = os.path.join( self.app.path, upload_path, "%d" % (self.id) )
-		if not File.supports( self.app, self.media_type ):
-			c = self.app.db.cursor()
-			c.execute( """insert into type_hierarchy (base_type, derived_type) values(?, ?)""", [self.base_type, self.media_type] )
-			self.app.db.commit()
-	@classmethod
-	def supports( cls, app, file_type ):
-		if file_type==cls.base_type:
-			return True
-		else:
-			c = app.db.cursor()
-			c.execute( """select base_type, derived_type from type_hierarchy where base_type=? and derived_type=?""", [cls.base_type, file_type] )
-			result = c.fetchone()
-			return result!=None
-	def update( self, **keyargs ):
-		super().update( **keyargs )
-		if "data" in keyargs and keyargs["data"]!=None:
-			f = open( self.storage_path, "wb" )
-			shutil.copyfileobj( keyargs["data"], f )
-			f.close
-	def get_size( self ):
-		try:
-			return os.stat( self.storage_path ).st_size
-		except FileNotFoundError as e:
-			return None
-	def get_data( self, meta_obj=None, attachment=False, type_override=None ):
-		# Caching für Dateien erlauben:
-		self.app.response.caching = True
-		self.app.response.last_modified = int(self.mtime)
-		if( self.app.query.if_modified_since==int(self.mtime) ):
-			self.app.response.status = "304 Not Modified"
-			return io.StringIO()
-		if type_override and type_override==self.base_type:
-			# Anfrage-Override des Content-Types auf den Klassen-Basistypen, z.b. octet-stream für erzwungende Download-Dialoge, erlauben:
-			self.app.response.media_type = self.base_type
-		else:
-			# sonst gespeicherten Objekt-Typ angeben
-			self.app.response.media_type = self.media_type
-		self.app.response.content_length = self.get_size()
-		self.app.response.encoding = None
-		if meta_obj and "title" in meta_obj:
-			disposition_type = attachment and "attachment" or "inline"
-			# http://www.w3.org/Protocols/rfc2616/rfc2616-sec19.html#sec19.5.1
-			self.app.response.content_disposition = '%s; filename="%s"' % ( disposition_type, meta_obj["title"].replace('"','\\"') )
-		result = open( self.storage_path, "rb" )
-		if( self.app.query.range ):
-			# http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35
-			range_set = re.findall( '^bytes=(.*)', self.app.query.range )[0]
-			ranges = range_set.split(",")
-			if len(ranges)==1:
-				start, stop = ranges[0].split("-")
-				if start:
-					start = int(start)
-					result.seek( start )
-					full_size = self.get_size()
-					stop = stop and int(stop) or full_size-1
-					self.app.response.content_length = stop-start+1
-					# http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.16
-					self.app.response.content_range = "bytes %d-%d/%d" % (start,stop,full_size)
-				else:
-					stop = int(stop)
-					result.seek( -stop, 2 )
-					self.app.response.content_length = stop
-					full_size = self.get_size()
-					self.app.response.content_range = "bytes %d-%d/%d" % (full_size-stop,full_size-1,full_size)
-		return result

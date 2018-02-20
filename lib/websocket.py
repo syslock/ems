@@ -1,18 +1,136 @@
-import base64, hashlib, imp, struct, time, signal, threading, traceback
+import socket, os, sys, base64, hashlib, imp, struct, time, signal, threading, traceback, ssl
 from lib import errors
 errors = imp.reload( errors )
+from lib import application
+application = imp.reload( application )
+import config
+config = imp.reload( config )
 
-# WARNING: This is basically an ugly hack tied to Apache/mod_wsgi, fooling 
-# them into thinking the WebSocket connection would be some kind of standard 
-# HTTP long polling request, by faking absurdly huge Content-Length headers.
-# Server to client messages sent by this implementation seem to work with most 
-# browsers, that seem to ignore the Content-Length header, that normally should 
-# not be present in WebSocket handshake responses.
-# An additional Apache config hack faking a Content-Length header in the clients 
-# WebSocket handshake initiation package is needed to get client messages handed
-# up through Apache/mod_wsgi to the application layer:
-#	SetEnvIf Upgrade websocket HAVE_UpgradeWebSocket
-#	RequestHeader set Content-Length 4294967295 env=HAVE_UpgradeWebSocket
+class WSListener():
+	def __init__( self, _config=None ):
+		wsc = {}
+		if hasattr( config, "websocket" ):
+			wsc.update( config.websocket )
+		if _config!=None:
+			wsc.update( _config )
+		if "protocol" in wsc:
+			self.protocol = wsc["protocol"]
+		elif "ssl" in wsc:
+			self.protocol = "wss"
+		else:
+			self.protocol = "ws"
+		if "bind_host" in wsc:
+			self.bind_host = wsc["bind_host"]
+		else:
+			self.bind_host = "0.0.0.0"
+		if "port" in wsc:
+			self.port = wsc["port"]
+		else:
+			self.port = 443 if self.protocol=="wss" else 80
+		self.config = wsc
+	def listen( self ):
+		s = socket.socket()
+		s.bind( (self.bind_host, self.port) )
+		s.listen( 0 )
+		try:
+			while True:
+				con, addr = s.accept()
+				try:
+					if "ssl" in self.config:
+						context = ssl.create_default_context( ssl.Purpose.CLIENT_AUTH )
+						context.load_cert_chain( certfile=self.config["ssl"]["cert"], keyfile=self.config["ssl"]["key"] )
+						con = context.wrap_socket( con, server_side=True )
+					ws_server = WSServer( con, addr )
+				except Exception as e:
+					sys.stderr.write( "\n".join(traceback.format_exception(Exception, e, e.__traceback__)) )
+					continue
+				ws_server.start()
+		except:
+			s.shutdown( socket.SHUT_RDWR )
+			s.close()
+			raise
+
+class WSServer( threading.Thread ):
+	def __init__( self, con, addr ):
+		self.con = con
+		self.addr = addr
+		self.quitting = False
+		environ = {}
+		environ["REMOTE_ADDR"] = self.addr[0]
+		print( "Connection from %s" % (environ["REMOTE_ADDR"]) )
+		b = self.con.recv(1)
+		headlines = []
+		ch = b""
+		while b:
+			ch += b
+			if( ch[-2:]==b"\r\n" ):
+				if( len(ch)>2 ):
+					headlines.append( ch[:-2].decode("utf-8") )
+					ch = b""
+				else:
+					break
+			b = con.recv(1)
+		self.method, self.uri, self.protocol = headlines[0].split()
+		print( "%s %s %s" % (self.method, self.uri, self.protocol) )
+		try:
+			environ["QUERY_STRING"] = self.uri[self.uri.index("?")+1:]
+		except ValueError:
+			environ["QUERY_STRING"] = ""
+		try:
+			environ["SCRIPT_NAME"] = self.uri.split("?")[0]
+		except ValueError:
+			environ["SCRIPT_NAME"] = ""
+		for hl in headlines[1:]:
+			print( hl )
+			key, val = hl.split(": ")
+			environ["HTTP_"+key.upper().replace("-","_")] = val
+		self.app = application.Application( environ, lambda x,y: None, path=os.path.dirname(sys.argv[0]) )
+		print( self.app.query.parms )
+		if "do" in self.app.query.parms:
+			mod_name = self.app.query.parms["do"]
+			if "." in mod_name:
+				raise Exception( "Illegaler Modulname: %(mod_name)s" % locals() )
+			self.module = __import__( "modules."+mod_name, fromlist=[mod_name] )
+			# disabled reload, as some modules have internal state and ws server is restarted everytime anyways
+			#self.module = imp.reload( self.module ) 
+		else:
+			raise errors.ParameterError()
+		self.ws = WebSocket( self.app, self.con, self )
+		self.ws.send_handshake()
+		super().__init__()
+	def onmessage( self, msg ):
+		try:
+			self.module.process_message( self, msg )
+		except:
+			return
+	def stop( self ):
+		self.quitting = True
+		try:
+			self.con.shutdown( socket.SHUT_RDWR )
+			self.con.close()
+		except Exception as e:
+			sys.stderr.write( "\n".join(traceback.format_exception(Exception, e, e.__traceback__)) )
+	def run( self ):
+		def read_thread():
+			while not self.quitting:
+				data = self.ws.communicate()
+				if data:
+					self.con.send( data )
+				else:
+					self.module.sleep( self )
+				if self.ws.quitting:
+					print( "WebSocket-Shutdown (%s)" % (self.app.query.remote_addr) )
+					self.stop()
+		self.app.open_db() # App-DB für diesen Thread neu öffnen...
+		self.module.initialize( self )
+		t = threading.Thread( target=read_thread )
+		t.start()
+		while not self.quitting:
+			self.module.run( self )
+			self.module.sleep( self )
+		t.join()
+		self.module.cleanup( self )
+
 class WebSocket:
 	def __init__( self, app, socket, endpoint=None ):
 		if not self.can_handle( app.query ):
@@ -20,7 +138,7 @@ class WebSocket:
 		if endpoint and not isinstance( endpoint, threading.Thread ):
 			raise errors.InternalProgramError( "WebSocket endpoint needs to be an instance of Thread" )
 		if endpoint and not hasattr( endpoint, "stop" ):
-			self.app.trace( "Warning: WebSocket endpoint %s should implement stop()" % str(endpoint) )
+			print( "Warning: WebSocket endpoint %s should implement stop()" % str(endpoint) )
 		self.app = app
 		if endpoint:
 			endpoint.websocket = self
@@ -29,16 +147,19 @@ class WebSocket:
 			self.onmessage = endpoint.onmessage
 		else:
 			self.onmessage = lambda x: None
+		self.last_msg_received = 0 # seconds (float)
+		self.keep_alive_timeout = 5*60 # seconds
+		self.roundtrip_times = [] # ms (list of ints)
 		self.prepare_handshake()
 		#self.input = app.query.environ["wsgi.input"]
 		self.socket = socket
-		self.client_data = b""
-		self.client_data_semaphore = threading.Semaphore()
+		self.client_messages = []
+		self.client_messages_semaphore = threading.Semaphore()
+		self.client_message_event = threading.Event()
 		self.server_data = b""
 		self.server_data_semaphore = threading.Semaphore()
-		self.server_data_sent_offset = 0
 		self.quitting = False
-		self.client_reader = threading.Thread( target=self.read_client_bytes )
+		self.client_reader = threading.Thread( target=self.read_frames_from_client )
 		self.client_reader.start()
 	
 	def prepare_handshake( self ):
@@ -64,11 +185,13 @@ class WebSocket:
 	def can_handle( cls, query ):
 		return "HTTP_SEC_WEBSOCKET_KEY" in query.environ
 	
-	def make_frame( self, payload ):
+	def make_frame( self, payload, opcode=1 ):
 		#                FrrrOOOOMLLLLLLL
-		frame_header = 0b1000000100000000 # finished, unmasked (server-to-client), text (opcode=1) frame with zero payload length
+		frame_header = 0b1000000000000000 # finished, unmasked (server-to-client), continuation (opcode=0) frame with zero payload length
+		frame_header |= opcode << 8 # store opcode in frame header
 		frame = bytes()
-		payload = payload.encode( "utf-8" )
+		if type(payload)==str:
+			payload = payload.encode( "utf-8" )
 		length = len(payload)
 		if length<126:
 			frame_header |= length
@@ -85,131 +208,135 @@ class WebSocket:
 			raise errors.StateError( "Encountered unsupported payload length of %d" % (length) )
 		frame += payload
 		return frame
-	
-	def decode_frame( self, frame ):
-		if len(frame)<2:
-			return 0, ""
-		op, length = struct.unpack( ">BB", frame[0:2] )
-		fin = (op & 2**7)!=0
-		op &= 2**4-1
-		masked = (length & 2**7)!=0
-		length &= 2**7-1
-		if not fin:
-			raise NotImplementedError( "FIXME: Unable to handle fragmented frames" )
-		if op not in (1,8,9,10):
-			raise NotImplementedError( "FIXME: Only text messages supported" )
-		if op==8:
-			self.app.trace( "WebSocket CLOSE received from client %s" % (self.app.query.remote_addr) )
-			self.quitting = True
-		if op==9:
-			self.app.trace( "WebSocket PING received from client %s" % (self.app.query.remote_addr) )
-		if op==10:
-			self.app.trace( "WebSocket PONG received from client %s" % (self.app.query.remote_addr) )
-		payload_offset = 2
-		if length == 126:
-			if len(frame)<payload_offset+2:
-				return 0, ""
-			length = struct.unpack( ">H", frame[2:2+2] )
-			payload_offset += 2
-		elif length == 127:
-			if len(frame)<payload_offset+8:
-				return 0, ""
-			length = struct.unpack( ">Q", frame[2:2+8] )
-			payload_offset += 8
-		if masked:
-			if len(frame)<payload_offset+4:
-				return 0, ""
-			mask = frame[ payload_offset : payload_offset+4 ]
-			payload_offset += 4
-		if len(frame)<payload_offset+length:
-			return 0, ""
-		payload = frame[ payload_offset : payload_offset+length ]
-		if masked:
-			decoded_payload = b""
-			for i in range(len(payload)):
-				decoded_payload += struct.pack( ">B", payload[i] ^ mask[i%4] )
-			payload = decoded_payload
-		if op==8 and len(payload)>=2:
-			# The Close frame MAY contain a body [...] If there is a body, the first 
-			# two bytes of the body MUST be a 2-byte unsigned integer (in network 
-			# byte order) representing a status code with value /code/ defined in 
-			# Section 7.4.
-			reason = struct.unpack( ">H", payload[0:2] )[0]
-			payload = payload[2:]
-			if len(payload):
-				reason_string = payload
-			else:
-				reason_string = "?"
-			self.app.trace( "WebSocket CLOSE reason from client %s: %d (%s)" % (self.app.query.remote_addr, reason, reason_string) )
-		return payload_offset+length, payload.decode("utf-8")
+		
+	class Frame():
+		def __init__( self, s ):
+			frame = bytes()
+			frame += s.recv(2)
+			op, length = struct.unpack( ">BB", frame[0:2] )
+			fin = (op & 2**7)!=0
+			op &= 2**4-1
+			masked = (length & 2**7)!=0
+			length &= 2**7-1
+			if not fin:
+				raise NotImplementedError( "FIXME: Unable to handle fragmented frames" )
+			if op not in (1,8,9,10):
+				raise NotImplementedError( "FIXME: Only text messages supported" )
+			if op==9:
+				pass #FIXME
+				#print( "WebSocket PING received from client %s" % (self.app.query.remote_addr) )
+			if op==10:
+				pass #FIXME
+				#print( "WebSocket PONG received from client %s" % (self.app.query.remote_addr) )
+			payload_offset = 2
+			if length == 126:
+				frame += s.recv(2)
+				length = struct.unpack( ">H", frame[2:2+2] )[0]
+				payload_offset += 2
+			elif length == 127:
+				frame += s.recv(8)
+				length = struct.unpack( ">Q", frame[2:2+8] )[0]
+				payload_offset += 8
+			if masked:
+				frame += s.recv(4)
+				mask = frame[ payload_offset : payload_offset+4 ]
+				payload_offset += 4
+			frame += s.recv(length)
+			payload = frame[ payload_offset : payload_offset+length ]
+			if masked:
+				decoded_payload = b""
+				for i in range(len(payload)):
+					decoded_payload += struct.pack( ">B", payload[i] ^ mask[i%4] )
+				payload = decoded_payload
+			if op==8:
+				self.reason = 0
+				if len(payload)>=2:
+					# The Close frame MAY contain a body [...] If there is a body, the first 
+					# two bytes of the body MUST be a 2-byte unsigned integer (in network 
+					# byte order) representing a status code with value /code/ defined in 
+					# Section 7.4.
+					self.reason = struct.unpack( ">H", payload[0:2] )[0]
+				payload = payload[2:]
+			self.op = op
+			self.is_text = self.op==1
+			self.is_binary = self.op==2
+			self.is_close = self.op==8
+			self.is_ping = self.op==9
+			self.is_pong = self.op==10
+			self.payload = payload
+			self.text = None
+			if self.is_text:
+				self.text = payload.decode("utf-8")
 			
-	def read_client_bytes( self ):
+	def read_frames_from_client( self ):
 		while not self.quitting:
 			try:
-				byte = self.socket.recv(1)
+				frame = self.Frame( self.socket )
 			except OSError as e:
-				self.app.trace( "WebSocket client %s hung up? Initiating server-side shutdown." % (self.app.query.remote_addr) )
+				print( "WebSocket client %s hung up? Initiating server-side shutdown." % (self.app.query.remote_addr) )
 				self.quitting = True
 				return
-			self.client_data_semaphore.acquire()
-			self.client_data += byte
-			self.client_data_semaphore.release()
-		self.app.trace( "WebSocket-Shutdown (read_client_bytes %s)" % (self.app.query.remote_addr) )
+			except Exception as e:
+				print( "WebSocket could not parse frame from client %s! Initiating server-side shutdown." % (self.app.query.remote_addr) )
+				sys.stderr.write( "\n".join(traceback.format_exception(Exception, e, e.__traceback__)) )
+				self.quitting = True
+				return
+			self.last_msg_received = time.time()
+			if frame.is_text:
+				self.client_messages_semaphore.acquire()
+				self.client_messages.append( frame.text )
+				self.client_messages_semaphore.release()
+				self.client_message_event.set()
+			elif frame.is_close:
+				print( "WebSocket CLOSE reason from client %s: %d (%s)" % (self.app.query.remote_addr, frame.reason, frame.payload) )
+				self.quitting = True
+			elif frame.is_ping:
+				print( "WebSocket PING from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
+				self.send( frame.payload, opcode=10 )
+			elif frame.is_pong:
+				print( "WebSocket PONG from client %s (%s)" % (self.app.query.remote_addr, frame.payload) )
+				self.roundtrip_times = self.roundtrip_times[-9:]+[ int(1000*(time.time()-float(frame.payload.decode("utf-8")))) ]
+				print( "WebSocket recent round trip times (ms): %s" % (str(self.roundtrip_times)) )
+		print( "WebSocket-Shutdown (read_frames_from_client %s)" % (self.app.query.remote_addr) )
 	
-	def send( self, message ):
+	def send( self, message, opcode=1 ):
 		"""Highlevel thread-safe interface for sending messages to the client 
 			from the server-side application endpoint. Actual sending is been
-			done from the WebSockets read method."""
+			done from elsewhere."""
 		self.server_data_semaphore.acquire()
-		self.server_data += self.make_frame( message )
+		self.server_data += self.make_frame( message, opcode=opcode )
 		self.server_data_semaphore.release()
 	
-	def read( self, size ):
-		"""Responsible for sending data provided by the server-side application endpoint 
-			to the client and currently also for handing messages originating from the
+	def communicate( self ):
+		"""Forward data provided by the server-side application endpoint 
+			to the WebSocket server and forward messages originating from the
 			client up to the onmessage handler of the server-side application endpoint."""
-		while not self.quitting:
-			# 1.) Check if we can decode a complete frame from the client and hand it up
-			# to the server-side endpoint for consumtion:
-			self.client_data_semaphore.acquire()
-			try:
-				client_read_length, client_message = self.decode_frame( self.client_data )
-				if client_read_length>0:
-					self.client_data = self.client_data[client_read_length:]
-			except Exception as e:
-				# decode_frame should leave incomplete frames untouched, by returning a zero chunk,
-				# but must raise exceptions on fatal parse errors. Ignoring erroneous input would 
-				# leave the socket in an unusable exception loop. Discarding arbitrary chunks of 
-				# input on the other hand would probably lead to subsequent errors, so the only 
-				# sane option in this situation is to close the socket in a controlled manner:
-				self.app.log( "\n".join(traceback.format_exception(Exception, e, e.__traceback__)) )
-				self.close()
-				raise
-			self.client_data_semaphore.release()
-			if client_read_length>0:
-				self.onmessage( client_message )
-			# 2.) Check if we have frame data from send calls of the server-side endpoint,
-			# that we can hand down to the webserver:
-			self.server_data_semaphore.acquire()
-			server_chunk = self.server_data[0:size]
-			if len(server_chunk):
-				self.server_data = self.server_data[len(server_chunk):]
-			self.server_data_semaphore.release()
-			if len(server_chunk):
-				return server_chunk
-			# 3.) Check if we did anything at all and take a nap if not so:
-			if client_read_length==0 and not len(server_chunk):
-				time.sleep(0.1)
-		self.app.trace( "WebSocket-Shutdown (read %s)" % (self.app.query.remote_addr) )
-		# return zero size buffer to signalize eof:
-		return b''
+		# 1.) Check for decoded frames from the client and forward them
+		# to the server-side endpoint for consumtion:
+		self.client_messages_semaphore.acquire()
+		client_message_count = 0
+		while self.client_messages:
+			self.onmessage( self.client_messages.pop() )
+			client_message_count += 1
+		self.client_messages_semaphore.release()
+		self.client_message_event.clear()
+		if time.time() > self.last_msg_received+self.keep_alive_timeout:
+			self.send( str(time.time()), opcode=9 ) # send PING as a keep alive message
+			self.last_msg_received = time.time()
+		# 2.) Check if we have frame data from send calls of the server-side endpoint,
+		# that we can forward to the WebSocket server:
+		self.server_data_semaphore.acquire()
+		server_chunk = self.server_data
+		if len(server_chunk):
+			self.server_data = self.server_data[len(server_chunk):]
+		self.server_data_semaphore.release()
+		return server_chunk
 	
 	def close( self ):
-		self.app.trace( "WebSocket-Shutdown (closing %s)..." % (self.app.query.remote_addr) )
+		print( "WebSocket-Shutdown (closing %s)..." % (self.app.query.remote_addr) )
 		# request Termination on the server-side application endpoint:
-		if endpoint:
-			self.endpoint.stop()
-			self.endpoint.join() # wait on the endpoint thread
+		self.endpoint.stop()
+		self.endpoint.join() # wait on the endpoint thread
 		# signalize Termination to input and output subroutines:
 		self.quitting = True
 		self.client_reader.join() # wait on client reader thread

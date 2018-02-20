@@ -1,0 +1,134 @@
+<div class="ems-entry">
+	<div class="entry-decorator-left"></div>
+	<div class="entry-decorator-top"></div>
+	<div class="entry-metadata">
+		<div class="entry-author">
+		</div>
+		<div class="entry-time">
+			<div class="entry-ctime">
+				<div class="entry-ctime-label">${_("Erstellt:")}</div>
+				<div class="entry-ctime-day"></div>
+				<div class="entry-ctime-time"></div>
+			</div>
+			<div class="entry-mtime">
+				<div class="entry-mtime-label">${_("Zuletzt geändert:")}</div>
+				<div class="entry-mtime-day"></div>
+				<div class="entry-mtime-time"></div>
+			</div>
+		</div>
+	</div>
+	<div class="entry-bubble">
+		<div class="entry-heading">
+			<div class="entry-title-line">
+				<div class="entry-title-label">${_("Betreff:")}</div>
+				<div class="entry-title"></div>
+				<div class="entry-publication">
+					<a class="entry-publication-link">${_("Externer Link")}</a>
+				</div>
+				<div class="entry-edit-toolbar">
+					<div class="entry-edit-range-tools">
+						<div class="entry-edit-range-tools-description">
+							${_("Markierter Text bzw. Eingabeposition:")}
+						</div>
+						<div class="entry-edit-range-tools-symbols">
+							<img class="keysym-ctrl" src="images/${_('key_strg_plus.svg')}" title="${_("Strg+...")}" />
+							<img class="keysym-hyperlink" src="images/key_l_hyperlink.svg" title="${_("L: Verlinkung")}" />
+							<img class="keysym-highlight" src="images/key_h_highlight.svg" title="${_("H: Hervorhebung")}" />
+							<img class="keysym-bold" src="images/key_b_bold.svg" title="${_("B: fett")}" />
+							<img class="keysym-italic" src="images/key_i_italic.svg" title="${_("I: schräg")}" />
+							<img class="keysym-fixed" src="images/key_f_fixed.svg" title="${_("F: feste Breite")}" />
+							<img class="keysym-underline" src="images/key_u_underline.svg" title="${_("U: Unterstreichung")}" />
+							<img class="keysym-strikethrough" src="images/key_s_strikethrough.svg" title="${_("S: Durchstreichung")}" />
+							<img class="keysym-large" src="images/key_plus_large.svg" title="${_("+: groß")}" />
+							<img class="keysym-small" src="images/key_minus_small.svg" title="${_("-: klein")}" />
+							<img class="keysym-upload" src="images/key_d_upload.svg" title="${_("D: Datei einfügen")}" />
+						</div>
+					</div>
+					<div class="entry-edit-list-tools">
+						<div class="entry-edit-list-tools-description">
+							${_("Listenfunktionen:")}
+						</div>
+						<div class="entry-edit-list-tools-symbols">
+							<img class="keysym-tab-right" src="images/key_tab_right.svg" title="${_("Tab: Einrückung erhöhen")}" />
+							<img class="keysym-tab-left" src="images/key_tab_left.svg" title="${_("Umschalt+Tab: Einrückung verringern")}" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="entry-content"></div>
+	</div>
+	<div class="entry-tools">
+		<div class="entry-tools-decorator-left"></div>
+		<div class="entry-tools-decorator-top"></div>
+		<div class="entry-tools-content">
+			<div class="entry-tags">
+				<div class="entry-tags-label">${_("Thema:")}</div>
+				<button class="entry-tags-show-selection-button require-permission-write-entry" title="${_('Weiteres Thema anfügen')}">${_("...")}</button>
+				<div class="entry-tags-selection" style="display:none" >
+					<div class="entry-tags-close-selection-button" title="${_('Auswahl ausblenden')}"></div>
+					<div class="entry-tags-searchbar" ></div>
+					<div class="entry-tags-search-result-scroll-container-hack" style="display:none" >
+						<div class="entry-tags-search-result" ></div>
+					</div>
+				</div>
+				<div class="entry-tags-content"></div>
+			</div>
+			<button class="entry-title-tool-button-search" title="${_('Nur Beiträge mit diesem Titel darstellen')}" >
+				<img class="entry-tools-button-symbol" src="tango-scalable/actions/system-search.svg" />
+				${_("Titel suchen")}
+			</button>
+			<button class="entry-response-button require-permission-write-self">
+				<img class="entry-tools-button-symbol entry-response-symbol" src="tango-scalable/actions/mail-reply-sender.svg" />
+				${_("Antworten")}
+			</button>
+			<div class="require-permission-write-entry">
+				<button class="entry-link-button">
+					<img class="entry-tools-button-symbol entry-link-symbol" src="tango-scalable/apps/internet-web-browser.svg" />
+					${_("Extern verlinken")}
+				</button>
+			</div>
+			<div class="require-permission-write-entry">
+				<button class="entry-edit-button">
+					<img class="entry-tools-button-symbol entry-edit-symbol" src="tango-scalable/apps/accessories-text-editor.svg" />
+					${_("Bearbeiten")}
+				</button>
+			</div>
+			<div class="require-permission-delete-entry">
+				<button class="entry-delete-button">
+					<img class="entry-tools-button-symbol entry-delete-symbol" src="tango-scalable/status/user-trash-full.svg" />
+					${_("Löschen")}
+				</button>
+			</div>
+		</div>
+		<div class="entry-tools-decorator-bottom"></div>
+		<div class="entry-tools-decorator-right"></div>
+	</div>
+	<div class="entry-edit-tools" >
+		<div class="entry-edit-tools-decorator-left"></div>
+		<div class="entry-edit-tools-decorator-top"></div>
+		<div class="entry-edit-tools-content">
+			<div class="entry-tags"></div>
+			<button class="entry-edit-toggle-toolbar">
+				<img class="entry-tools-button-symbol entry-edit-toggle-toolbar-symbol" src="tango-scalable/categories/applications-accessories.svg" />
+				${_("Werkzeugleiste")}
+			</button>
+			<button class="entry-edit-file-button">
+				<img class="entry-tools-button-symbol entry-edit-file-symbol" src="images/upload.svg" />
+				${_("Datei einfügen")}
+			</button>
+			<button class="entry-edit-send-button">
+				<img class="entry-tools-button-symbol entry-edit-send-symbol" src="tango-scalable/mimetypes/application-certificate.svg" />
+				${_("Abschicken")}
+			</button>
+			<button class="entry-edit-discard-button">
+				<img class="entry-tools-button-symbol entry-edit-discard-button" src="tango-scalable/actions/mail-mark-junk.svg" />
+				${_("Verwerfen")}
+			</button>
+		</div>
+		<div class="entry-edit-tools-decorator-bottom"></div>
+		<div class="entry-edit-tools-decorator-right"></div>
+	</div>
+	<div class="entry-decorator-bottom"></div>
+	<div class="entry-decorator-right"></div>
+</div>

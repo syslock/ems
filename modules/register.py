@@ -1,4 +1,4 @@
-import imp, smtplib, sqlite3
+import imp, smtplib, sqlite3, json, traceback
 from email.mime.text import MIMEText
 
 from lib import application
@@ -35,9 +35,9 @@ def process( app ):
 	session = app.session
 	if "msid" in query.parms:
 		confirmation_session = application.Session( app, query.parms["msid"] )
-		if "registration_sid" in confirmation_session.parms \
-		and confirmation_session.parms["registration_sid"] == session.sid \
-		and "registration_user_id" in confirmation_session.parms:
+		#if "registration_sid" in confirmation_session.parms \
+		#and confirmation_session.parms["registration_sid"] == session.sid \
+		if "registration_user_id" in confirmation_session.parms:
 			user_id = int( confirmation_session.parms["registration_user_id"] )
 			usr = user.User( app=app, user_id=user_id )
 			# Nutzer Lese-/Schreib-Zugriff auf sein eigenes Nutzerobjekt geben:
@@ -45,9 +45,19 @@ def process( app ):
 			usr.grant_write( user_id )
 			confirmation_session.parms=[]
 			confirmation_session.store()
-			response.output = str( {"succeeded" : True} )
+			response.output = json.dumps( {"succeeded" : True} )
+			try:
+				send_registration_notification( app=app, usr=usr )
+			except Exception as e:
+				for line in traceback.format_exception( Exception, e, e.__traceback__ ):
+					app.log( line )
 			return
 		else:
+			try:
+				send_registration_failed_notification( app=app, confirmation_session=confirmation_session )
+			except Exception as e:
+				for line in traceback.format_exception( Exception, e, e.__traceback__ ):
+					app.log( line )
 			raise Exception( "Registration confirmation failed" )
 	elif "nick" in query.parms and "password" in query.parms \
 	and "email" in query.parms:
@@ -59,9 +69,12 @@ def process( app ):
 			# Neuauslösung der Email-Bestätigung an eine ggf. geänderte 
 			# Adresse erlauben:
 			usr = login.check_login( app )
+			app_old_user = app.user
+			app.user = user.get_admin_user(app)
 			usr.update( email=email )
+			app.user = app_old_user
 			send_confirmation_request( app=app, user_id=usr.id )
-			response.output = str( {"succeeded" : True} )
+			response.output = json.dumps( {"succeeded" : True} )
 			return
 		else:
 			app_old_user = app.user
@@ -75,7 +88,7 @@ def process( app ):
 			# er vom Administrator oder einem Cronjob später nochmal ausgelöst
 			# werden kann:
 			send_confirmation_request( app=app, user_id=usr.id )
-			response.output = str( {"succeeded" : True} )
+			response.output = json.dumps( {"succeeded" : True} )
 			return
 	else:
 		raise Exception( "Missing parameters" )
@@ -107,13 +120,78 @@ def send_confirmation_request( app, user_id ):
 		msg_vars.update( vars(config) )
 		msg = MIMEText( config.registration_message % msg_vars )
 		msg.set_charset("utf-8")
-		msg["Subject"] = config.registration_subject % vars(config)
-		email_from = config.registration_from % vars(config)
-		msg["From"] = email_from
+		msg["Subject"] = config.site_email_subject_prefix % vars(config) + _("Registration confirmation")
+		site_email_address = config.site_email_address % vars(config)
+		msg["From"] = site_email_address
 		msg["To"] = email
 		if hasattr(config, "smtp_user") and hasattr(config, "smtp_password"):
 			server.login( config.smtp_user, config.smtp_password )
-		server.sendmail( email_from, [email], msg.as_string() )
+		server.sendmail( site_email_address, [email], msg.as_string() )
 	else:
 		raise Exception( "smtp_host not configured" )
+
+def send_registration_notification( app, usr ):
+	session = app.session
+	config = app.config
+	if hasattr( config, "smtp_host" ):
+		server = None
+		if hasattr( config, "smtp_port" ):
+			server = smtplib.SMTP( config.smtp_host, config.smtp_port )
+		else:
+			server = smtplib.SMTP( config.smtp_host )
+		if hasattr(config, "smtp_tls") and config.smtp_tls:
+			server.starttls()
+		msg_tpl = _("The new user %(nick)s registered successfully for %(sitename)s. Please assign the required access groups to her/him.")
+		msg_vars = usr.status()["login"]
+		msg_vars.update( vars(config) )
+		msg = MIMEText( msg_tpl % msg_vars )
+		msg.set_charset("utf-8")
+		msg["Subject"] = config.site_email_subject_prefix % vars(config) + _("Registration notification")
+		site_email_address = config.site_email_address % vars(config)
+		msg["From"] = site_email_address
+		msg["To"] = site_email_address
+		if hasattr(config, "smtp_user") and hasattr(config, "smtp_password"):
+			server.login( config.smtp_user, config.smtp_password )
+		server.sendmail( site_email_address, [site_email_address], msg.as_string() )
+
+def send_registration_failed_notification( app, confirmation_session ):
+	session = app.session
+	config = app.config
+	query = app.query
+	usr = None
+	if "registration_user_id" in confirmation_session.parms:
+		user_id = int( confirmation_session.parms["registration_user_id"] )
+		usr = user.User( app=app, user_id=user_id )
+	if hasattr( config, "smtp_host" ):
+		server = None
+		if hasattr( config, "smtp_port" ):
+			server = smtplib.SMTP( config.smtp_host, config.smtp_port )
+		else:
+			server = smtplib.SMTP( config.smtp_host )
+		if hasattr(config, "smtp_tls") and config.smtp_tls:
+			server.starttls()
+		msg_tpl = _("A registration confirmation for %(sitename)s failed.")
+		msg_vars = {}
+		if usr:
+			msg_tpl += _("\nThe registration session corresponds to user %(nick)s with email %(email)s.")
+			msg_vars.update( usr.status()["login"] )
+			msg_tpl += _("\nMost likely the registration confirmation link was used by the user trying to register, but accidentally opened in different browser (session) or cookies where disabled." )
+		else:
+			msg_tpl += _("\nThe registration session corresponds to no user.")
+			msg_tpl += _("\nMost likely an outdated registration confirmation link was used by the user trying to register.")
+		msg_tpl += _("\nLess likely someone else tried to steal the users account." )
+		msg_vars.update( vars(config) )
+		msg_tpl = msg_tpl % msg_vars
+		msg_tpl += _("\n\nquery.parms: ")+str(query.parms)
+		msg_tpl += _("\nconfirmation_session.parms: ")+str(confirmation_session.parms)
+		msg_tpl += _("\nsession.parms: ")+str(session.parms)
+		msg = MIMEText( msg_tpl )
+		msg.set_charset("utf-8")
+		msg["Subject"] = config.site_email_subject_prefix % vars(config) + _("Registration failure")
+		site_email_address = config.site_email_address % vars(config)
+		msg["From"] = site_email_address
+		msg["To"] = site_email_address
+		if hasattr(config, "smtp_user") and hasattr(config, "smtp_password"):
+			server.login( config.smtp_user, config.smtp_password )
+		server.sendmail( site_email_address, [site_email_address], msg.as_string() )
 

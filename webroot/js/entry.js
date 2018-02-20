@@ -1,509 +1,365 @@
-function get_short_type( type ) {
-	return type.match(/.*\.([^.]*)/)[1]
-}
-function new_item( parms ) {
-	if( !parms.obj ) {
-		show_error( "new_item ohne Objektdefinition" )
-		return;
-	}
-	var obj = parms.obj;
-	if( !obj.type ) {
-		show_error( "new_item ohne Objekt-Typ-Definition" )
-		return;
-	}
-	var short_type = get_short_type( obj.type )
-	if( obj.id==undefined ) {
-		// Neues Objekt auf dem Server anlegen:
-		var url = "ems.wsgi?do=store&type="+obj.type;
-		// optionale Zusatzparameter:
-		if( obj.title ) url += "&title="+obj.title
-		if( obj.nick ) url += "&nick="+obj.nick
-		if( obj.name ) url += "&name="+obj.name
-		$.ajax({
-			url : url,
-			async : false,
-			success :
-		function( result ) {
-			result = parse_result( result )
-			if( result.succeeded && result.id!=undefined ) {
-				obj.id = Number(result.id)
-				if( !parms.dom_object ) {
-					// Neues Element im Browser anlegen:
-					var item = new_item( parms )
-					var button = $("."+short_type+"-edit",item)[0]
-					if( button ) edit_entry( button )
-				}
-				else {
-					$(parms.dom_object).data( {obj: obj} );
-				}
+// FIXME: module encapsulation:
+var Entry = null;
+
+define( ["jquery","item","link-tool"], function($,BaseItem) {
+Entry = function( parms ) {
+	var my = this;
+	parms = parms ? parms : {};
+	parms.obj = parms.obj ? parms.obj : {};
+	parms.obj.type = parms.obj.type ? parms.obj.type : "application/x-obj.entry";
+	BaseItem.call( this, parms );
+};
+Entry.prototype = Object.create( BaseItem.prototype );
+Entry.prototype.constructor = Entry;
+
+Entry.prototype.init = function( parms ) {
+	var my = this;
+	if( my.template==undefined ) {
+		// FIXME: We should try to do only one request for the template,
+		//        even if a bunch of objects are initiated the same time,
+		//        e.g. at initial page load.
+		GlobalRequestQueue.add({
+			module : "render",
+			args : {tpl : "elements/entry.html"},
+			done : function(result) {
+				Entry.prototype.template = result;
+				my.init( parms );
+			}, 
+			fail : function(result) {
+				show_error( result )
 			}
-		}})
-		return undefined;
+		});
+		GlobalRequestQueue.process();
 	} else {
-		var item = parms.dom_object;
-		if( !item && parms.update ) {
-			if( parms.dom_parent ) {
-				item = $(".ems-"+short_type, parms.dom_parent)[0]
-			} else if( parms.dom_child ) {
-				item = $(parms.dom_child).closest(".ems-"+short_type)[0]
-			}
+		BaseItem.prototype.init.call( this );
+		my.entry = $( ".ems-entry", my.dom_object )[0];
+		my.title = $( ".entry-title", my.entry )[0];
+		my.content = $( ".entry-content", my.entry )[0];
+		my.std_tools = $( ".entry-tools", my.entry )[0];
+		my.std_tags = $( ".entry-tags", my.std_tools )[0];
+		my.edit_tools = $( ".entry-edit-tools", my.entry )[0];
+		my.edit_tags = $( ".entry-tags", my.edit_tools )[0];
+		my.author = $('.entry-author', my.dom_object)[0];
+		my.tags_selection = $(".entry-tags-selection", my.entry)[0];
+		my.tags_searchbar = $(".entry-tags-searchbar", my.entry)[0];
+		my.tags_search_result = $(".entry-tags-search-result", my.entry)[0];
+		my.tags_search_result_scroll_container_hack = $(".entry-tags-search-result-scroll-container-hack", my.entry)[0];
+		my.tags_content = $(".entry-tags-content", my.entry)[0];
+		my.button_title_search = $(".entry-title-tool-button-search", my.entry)[0];
+		
+		if( !parms.preserve_content ) {
+			$(my.content).empty();
+			$(my.author).empty();
+			$(my.tags_content).empty();
 		}
-		if( !item && !parms.duplicates ) {
-			item = $("#ems-"+short_type+"-"+String(obj.id))[0]
-		}
-		if( !item ) {
-			item = $("#ems-"+short_type+"-template").first().clone()[0];
-			item.id = "ems-"+short_type+"-"+String(obj.id)
-			item.style.display = ""
-			if( parms.dom_parent ) {
-				if( parms.prepend ) {
-					$(parms.dom_parent).first().prepend( item );
-				} else {
-					$(parms.dom_parent).first().append( item );
+		
+		if( my.dom_parent ) {
+			for( var i in my.obj.children ) {
+				var dom_parent = my.content;
+				var child = my.obj.children[i];
+				if( child.type == "application/x-obj.tag" ) {
+					dom_parent = my.tags_content;
 				}
-				// Im DOM eingehängte Objekte kapseln wir auf der obersten Ebene mit .ems-item
-				$(item).wrap( '<div class="ems-item"></div>' );
-			} else if( parms.dom_child ) {
-				$(parms.dom_child).first().before( item );
-				$("."+short_type+"-content",item).append( parms.dom_child );
-			}
-			$(item).data( {obj: obj} );
-		}
-		for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
-			var value = obj[ field_name ];
-			if( field_name in {"ctime":1, "mtime":1} ) {
-				var date = new Date(value*1000);
-				var day = date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear()
-				var hours = date.getHours();
-				hours = (hours<10) ? "0"+String(hours) : String(hours);
-				var minutes = date.getMinutes();
-				minutes = (minutes<10) ? "0"+String(minutes) : String(minutes);
-				var time = hours+":"+minutes;
-				$( "."+short_type+"-"+field_name+"-day", item ).first().text( day );
-				$( "."+short_type+"-"+field_name+"-time", item ).first().text( time );
-			} else {
-				$( "."+short_type+"-"+field_name, item ).first().text( value );
-			}
-		}
-		if( obj.ctime && obj.mtime && Math.round(obj.ctime/60)==Math.round(obj.mtime/60) ) {
-			$( "."+short_type+"-mtime", item ).first().hide();
-		}
-		for( permission in {"read":1,"write":1,"delete":1,"insert":1} ) {
-			if( $.inArray(permission, obj.permissions)==-1 ) {
-				$( ".require-permission-"+permission+"-"+short_type, item ).each( function(i, elem) {
-					elem.style.display="none";
-				})
-			}
-		}
-		return item;
-	}
-}
-
-function create_download( obj ) {
-	var prettyprint_title = function(obj) {
-		return (obj.title ? obj.title : 'file_'+String(obj.id)+'.'+obj.type.match(/.*\/(.*)/)[1])
-	}
-	var link = $('<a></a>').attr({
-		href: 'ems.wsgi?do=get&view=data&id='+String(obj.id)+'&attachment=true',
-		target: '_blank', title: prettyprint_title(obj)+' herunterladen...', 
-		class: 'download-link', download: prettyprint_title(obj)
-	}).append( $('<img />').attr({ 
-		src: 'tango-scalable/actions/document-save.svg', 
-		class: 'download-icon' 
-	}));
-	link.append( '<div class="download-title">'+obj.title+'</div><div class="download-size">('+prettyprint_size(obj.size)+')</div>' );
-	link = link[0];
-	$(link).data( {obj: obj} );
-	obj.dom_object = link;
-	return link;
-}
-
-function load_visible_objects( parms ) {
-	var offset = (parms.offset ? "&offset="+String(parms.offset) : "");
-	var limit = (parms.limit ? "&limit="+String(parms.limit) : "");
-	var type = (parms.type ? "&type="+parms.type : "");
-	var ids = (parms.ids && parms.ids.length ? "&id="+parms.ids.join(",") : "");
-	var parent_ids = (parms.parent_ids && parms.parent_ids.length ? "&parent_id="+parms.parent_ids.join(",") : "");
-	var child_ids = (parms.child_ids && parms.child_ids.length ? "&child_id="+parms.child_ids.join(",") : "");
-	var permissions = (parms.permissions && parms.permissions.length ? "&permissions="+parms.permissions.join(",") : "");
-	var dom_parent = (parms.dom_parent ? parms.dom_parent : $(".ems-content")[0]);
-	GlobalRequestQueue.add( {
-		url : "ems.wsgi?do=get&view=all&recursive=true"+offset+limit+type+ids+parent_ids+child_ids+permissions,
-		async : true,
-		success :
-	function( result ) {
-		result = parse_result( result )
-		for( i in result ) {
-			show_object( {obj: result[i], dom_parent: dom_parent, limit: parms.limit} )
-		}
-	}} );
-	GlobalRequestQueue.process();
-}
-
-function show_object( parms )
-{
-	var obj = parms.obj;
-	var dom_parent = parms.dom_parent;
-	var dom_child = parms.dom_child;
-	var limit = parms.limit;
-	var duplicates = parms.duplicates;
-	var prepend = parms.prepend;
-	var update = parms.update;
-	if( obj.id && !obj.type ) {
-		$.get( "ems.wsgi?do=get&id="+obj.id+"&view=all&recursive=true"+(limit ? "&limit="+limit : ""),
-		function( result ) {
-			result = parse_result( result )
-			if( result.succeeded==undefined ) {
-				for( i in result ) {
-					var merged_obj = {}
-					for( key in obj ) merged_obj[key] = obj[key];
-					for( key in result[i] ) merged_obj[key] = result[i][key];
-					show_object( {obj:merged_obj, dom_parent:(dom_parent ? dom_parent : (!dom_child) ? $(".ems-content")[0] : undefined), dom_child:dom_child, duplicates:duplicates, limit:limit, prepend:prepend, update:update} )
-				}
-			}
-		})
-	} else if( obj.type == "application/x-obj.group" ) {
-		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
-		if( dom_parent ) {
-			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
-			}
-		}
-	} else if( obj.type == "application/x-obj.minion" ) {
-		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
-		if( dom_parent ) {
-			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
-			}
-		}
-	} else if( obj.type == "application/x-obj.user" ) {
-		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
-		if( obj.avatar_id ) {
-			replace_user_image( item, obj.avatar_id );
-		}
-		if( dom_parent ) {
-			/*for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
-			}*/
-		}
-	} else if( obj.type == "application/x-obj.entry" ) {
-		var item = new_item( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} )
-		var entry_author = $('.entry-author', item)[0];
-		if( dom_parent ) {
-			for( var i in obj.children ) {
-				show_object( {obj:obj.children[i], dom_parent:$("."+get_short_type(obj.type)+"-content",item)[0], limit:limit, update:update} )
+				show_object( {obj:my.obj.children[i], dom_parent:dom_parent, parent:my} )
 			}
 			var user_found = false;
-			for( var i in obj.parents ) {
-				var parent = obj.parents[i];
+			for( var i in my.obj.parents ) {
+				var parent = my.obj.parents[i];
 				if( parent.type == "application/x-obj.user" ) {
 					user_found = true;
-					show_object( {obj:parent, dom_parent:entry_author, limit:limit, duplicates:true, update:update} );
+					show_object( {obj:parent, dom_parent:my.author, duplicates:true, parent:my} );
 				}
 			}
 			if( !user_found ) {
-				show_object( {obj:{id:3}, dom_parent:entry_author, limit:limit, duplicates:true, update:update} );
+				show_object( {obj:{id:3}, dom_parent:my.author, duplicates:true, parent:my} );
 			}
 		}
-	} else if( obj.type == "text/plain" ) {
-		if( dom_parent && obj.data ) {
-			obj.dom_object = $('<span>').attr( {class: 'entry-text'} )[0];
-			$(obj.dom_object).text( obj.data );
-			$(obj.dom_object).data( {obj: obj} );
-			$(dom_parent).append( obj.dom_object );
-		}
-	} else if( obj.type == "text/html" ) {
-		if( dom_parent && obj.data ) {
-			obj.dom_object = $( obj.data )[0];
-			$(obj.dom_object).data( {obj: obj} );
-			$(dom_parent).append( obj.dom_object );
-		}
-	} else if( obj.type && obj.type.match(/^image\//) && obj.id ) {
-		if( dom_parent ) {
-			obj.dom_object = $('<img>').attr( {src: 'ems.wsgi?do=get&id='+obj.id+'&view=data', class: 'entry-media'} )[0];
-			$(obj.dom_object).data( {obj: obj} );
-			$(dom_parent).append( obj.dom_object );
-		}
-	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
-		if( dom_parent ) {
-			var video_box = $('<div>').attr( {class: 'entry-media'} );
-			obj.dom_object = video_box;
-			$(obj.dom_object).data( {obj: obj} );
-			var status = $('<div>').attr( {class: 'video-status'} )[0];
-			$(video_box).append( status );
-			var video = $('<video>').attr( {class: 'video', controls: '', preload: 'none'} )[0];
-			video.onplay = function() { $(status).hide(); };
-			video.onmouseover = function() { video.preload='metadata'; };
-			$(video_box).append( video );
-			$(status).append( $('<img>').attr({class: 'video-status-image', src: 'tango-scalable/categories/applications-system.svg'}) );
-			var status_text = $('<div>').attr( {class: 'video-status-text'} );
-			$(status).append( status_text );
-			$(video_box).append( status );
-			var variants = $('<div>').attr( {class: 'video-variants'} )[0];
-			$(video_box).append( variants );
-			var identification_callback = function(raw_result) {
-				var result = parse_result( raw_result );
-				if( result.succeeded ) {
-					$(variants).empty();
-					for( var i=0; i<result.objects.length; i++ ) {
-						var variant_obj = result.objects[i];
-						var variant = $('<div>').attr( {class: 'video-variant'} )[0];
-						if( video.canPlayType(variant_obj.type) ) {
-							$(variant).addClass( 'canplay' );
-						} else {
-							$(variant).addClass( 'cannotplay' );
-						}
-						if( $(video).data("selected_variant_id")==variant_obj.id ) {
-							$(variant).addClass( 'selected' );
-						}
-						$(variant).data( {obj: variant_obj} );
-						$(variant).bind( 'click', function(event) {
-							// FIXME: variant_obj.id hat immer den selben Wert!
-							// Wir müssen die Variant-Elemente mit ihren DB-Objekten assoziieren und diese hier aus
-							// dem DOM abrufen...
-							var variant_obj = $(event.target).closest('.video-variant').data("obj");
-							video.src = 'ems.wsgi?do=get&id='+String(variant_obj.id)+'&view=data';
-							$(video).data( {selected_variant_id: variant_obj.id} );
-							identification_callback( raw_result );
-						});
-						var Bps = Number(variant_obj.size) / Number(variant_obj.mplayer.id.length);
-						$(variant).text( variant_obj.type+" "+String(variant_obj.mplayer.id.video.width)+"x"+String(variant_obj.mplayer.id.video.height)+" "+prettyprint_size(Bps)+"/s" );
-						$(variant).append( '&nbsp;' );
-						$(variant).append( create_download(variant_obj) );
-						$(variants).append( variant );
-					}
-				}
+		
+		my.button_show_tag_selection = $( ".entry-tags-show-selection-button", my.dom_object )[0];
+		$(my.button_show_tag_selection).off("click").on( "click", function(){ my.show_tag_selection(); } );
+		my.button_hide_tag_selection = $( ".entry-tags-close-selection-button", my.dom_object )[0];
+		$(my.button_hide_tag_selection).off("click").on( "click", function(){ my.hide_tag_selection(); } );
+		my.button_respond = $( ".entry-response-button", my.dom_object )[0];
+		$(my.button_respond).off("click").on( "click", function(){ my.new_response(); } );
+		my.button_link_external = $( ".entry-link-button", my.dom_object )[0];
+		$(my.button_link_external).off("click").on( "click", function(){ my.link_external(); } );
+		my.button_edit = $( ".entry-edit-button", my.dom_object )[0];
+		$(my.button_edit).off("click").on( "click", function(){ my.edit(); } );
+		my.button_delete = $( ".entry-delete-button", my.dom_object )[0];
+		$(my.button_delete).off("click").on( "click", function(){ my.delete_entry(); } );
+		my.button_file = $( ".entry-edit-file-button", my.dom_object )[0];
+		$(my.button_file).off("click").on( "click", function() { new UploadDialog( {dom_parent: my.content, wrap: true} ); } );
+		my.button_save = $( ".entry-edit-send-button", my.dom_object )[0];
+		$(my.button_save).off("click").on( "click", function() { my.store(); } );
+		my.button_discard = $( ".entry-edit-discard-button", my.dom_object )[0];
+		$(my.button_discard).off("click").on( "click", function() { my.discard_response(); } );
+		my.edit_toolbar = $( ".entry-edit-toolbar", my.dom_object )[0];
+		my.button_toggle_toolbar = $(".entry-edit-toggle-toolbar", my.dom_object )[0];
+		$(my.button_toggle_toolbar).off("click").on( "click", function() { $(my.edit_toolbar).toggle(); } );
+		
+		my.button_hyperlink = $( ".keysym-hyperlink", my.dom_object )[0];
+		$(my.button_hyperlink).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'l', preventDefault:function(){}} ); } );
+		my.button_highlight = $( ".keysym-highlight", my.dom_object )[0];
+		$(my.button_highlight).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'h', preventDefault:function(){}} ); } );
+		my.button_bold = $( ".keysym-bold", my.dom_object )[0];
+		$(my.button_bold).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'b', preventDefault:function(){}} ); } );
+		my.button_italic = $( ".keysym-italic", my.dom_object )[0];
+		$(my.button_italic).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'i', preventDefault:function(){}} ); } );
+		my.button_fixed = $( ".keysym-fixed", my.dom_object )[0];
+		$(my.button_fixed).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'f', preventDefault:function(){}} ); } );
+		my.button_underline = $( ".keysym-underline", my.dom_object )[0];
+		$(my.button_underline).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'u', preventDefault:function(){}} ); } );
+		my.button_strikethrough = $( ".keysym-strikethrough", my.dom_object )[0];
+		$(my.button_strikethrough).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'s', preventDefault:function(){}} ); } );
+		my.button_large = $( ".keysym-large", my.dom_object )[0];
+		$(my.button_large).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'+', preventDefault:function(){}} ); } );
+		my.button_small = $( ".keysym-small", my.dom_object )[0];
+		$(my.button_small).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'-', preventDefault:function(){}} ); } );
+		my.button_toolbar_file = $( ".keysym-upload", my.dom_object )[0];
+		$(my.button_toolbar_file).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'d', preventDefault:function(){}} ); } );
+		my.button_tab_right = $( ".keysym-tab-right", my.dom_object )[0];
+		$(my.button_tab_right).off("click").on( "click", function(){ my.on_keydown( {shiftKey:false, keyCode:9, preventDefault:function(){}} ); } );
+		my.button_tab_left = $( ".keysym-tab-left", my.dom_object )[0];
+		$(my.button_tab_left).off("click").on( "click", function(){ my.on_keydown( {shiftKey:true, keyCode:9, preventDefault:function(){}} ); } );
+		my.button_toolbar_quote = $( ".keysym-quote", my.dom_object )[0];
+		$(my.button_toolbar_quote).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'e', preventDefault:function(){}} ); } );
+		
+		$(my.button_title_search).on("click", function() {
+			var search_text = $(my.title).text();
+			if ( search_text.startsWith("Re") )
+			{
+				search_text = search_text.replace(/^Re: /, "");
 			}
-			var conversion_callback = function(result) {
-				result = parse_result( result );
-				if( result.succeeded ) {
-					var stale_source_count = 0;
-					var ready_source_count = 0;
-					var identification_request_list = [ obj.id ];
-					$(status_text).empty();
-					if( result.objects.length ) {
-						for( var i=0; i<result.objects.length; i++ ) {
-							var conv_obj = result.objects[i];
-							if( conv_obj.type.match('^video/.*') ) {
-								if( conv_obj.size>0 ) {
-									$(status_text).append( $('<div>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
-									ready_source_count++;
-									// ggf. neue Video-Source hinzufügen, falls nicht schon vorhanden:
-									if( !video.src && video.canPlayType(conv_obj.type) ) {
-										video.src = 'ems.wsgi?do=get&id='+String(conv_obj.id)+'&view=data';
-										$(video).data( {selected_variant_id: conv_obj.id} );
-									}
-									identification_request_list.push( conv_obj.id );
-								} else {
-									$(status_text).append( $('<div>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
-									stale_source_count++;
-								}
-							} else if( conv_obj.type.match('^image/.*') ) {
-								if( conv_obj.size>0 ) {
-									$(status_text).append( $('<div>').attr({class: 'video-status-success'}).text(conv_obj.type+": OK") );
-									ready_source_count++;
-									$(video).attr( {poster: 'ems.wsgi?do=get&id='+conv_obj.id+'&view=data'} );
-								} else {
-									$(status_text).append( $('<div>').attr({class: 'video-status-warning'}).text(conv_obj.type+": processing") );
-									stale_source_count++;
-								}
-							}
-						}
-					}
-					GlobalRequestQueue.add( {url:'ems.wsgi?do=identify&id='+String(identification_request_list), success:identification_callback} );
-					GlobalRequestQueue.process();
-					
-					// Original-Video-Daten als Fallback für unfertige/fehlgeschlagene Konvertierung:
-					if( !video.src && video.canPlayType(obj.type) ) {
-						video.src = 'ems.wsgi?do=get&id='+obj.id+'&view=data';
-					}
-					
-					if( ready_source_count+stale_source_count==0 ) {
-						// ggf. länger dauernde Anforderung für u.U. fehlende Konvertierungen:
-						GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=convert&id='+String(obj.id)+'&view=all', success:conversion_callback}, "long" );
-						GlobalRequestQueue.process();
-					} else if( stale_source_count==0 ) {
-						$(status).hide();
-					}
-					if( !video.src ) {
-						setTimeout( function() {
-							// Schnell-Lookup von bereits vorhandenen Konvertierungen wiederholen:
-							GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', success:conversion_callback} );
-							GlobalRequestQueue.process();
-						}, 5000 );
-					}
-					video.addEventListener( 'canplay', function(event) {
-						$(status).hide();
-					} );
-				}
-			};
-			// Schnell-Lookup von bereits vorhandenen Konvertierungen:
-			GlobalRequestQueue.add( {url:'ems.wsgi?do=convert&mode=status&id='+String(obj.id)+'&view=all', success:conversion_callback} );
-			GlobalRequestQueue.process();
-			$(dom_parent).append( obj.dom_object );
-		}
-	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
-		if( dom_parent && obj.title ) {
-			obj.dom_object = $('#entry-tag-template').clone().attr( {id: undefined, title: obj.title} )[0];
-			$(obj.dom_object).data( {obj: obj} );
-			var tag_label_obj = $('.entry-tag-label', obj.dom_object)[0];
-			var tag_label_limit = 30;
-			var tag_label = obj.title.length<=20 ? obj.title : obj.title.substr(0,tag_label_limit-3)+"...";
-			$(tag_label_obj).text( tag_label );
-			$('.entry-tag-tool-filter-for', obj.dom_object)[0].onclick = function(ev) {
-				var parms = { child_ids:{}, parent_ids:{} }; parms.child_ids[obj.id] = obj;
-				apply_page_filter( parms );
-			};
-			$('.entry-tag-tool-filter-exclude', obj.dom_object)[0].onclick = function(ev) {
-				var parms = { child_ids:{}, parent_ids:{} }; parms.child_ids[-obj.id] = obj;
-				apply_page_filter( parms );
-			};
-			if( $(dom_parent).hasClass('entry-tags-selection') ) {
-				$(dom_parent).append( obj.dom_object );
-				$('.entry-tag-add', obj.dom_object).show();
-				$('.entry-tag-remove', obj.dom_object).hide();
-			} else {
-				$(dom_parent).closest('.ems-entry').find('.entry-tags-content').append( obj.dom_object );
-				$('.entry-tag-add', obj.dom_object).hide();
-				$('.entry-tag-remove', obj.dom_object).show();
-			}
-			obj.dom_object.style.display="";
-		}
-	} else if ( obj.type && obj.type=="application/x-obj.publication" ) {
-		if( dom_parent ) {
-			obj.dom_object = $(dom_parent).closest('.ems-entry').find('.entry-publication')[0];
-			$(obj.dom_object).addClass('entry-publication-active');
-			$(obj.dom_object).data( {obj: obj} );
-			var pub_link_obj = $('.entry-publication-link', obj.dom_object)[0];
-			var entry_id = $(dom_parent).closest('.ems-entry').data("obj").id;
-			var url = get_tpl_url("overview.html")+"&id="+String(entry_id)+"&sid="+obj.data;
-			$(pub_link_obj).attr( {href: url} );
-			$(pub_link_obj).click( function() {
-				show_message( "Dieser Link würde dich ausloggen. Kopiere ihn daher über das Rechtslick-Menü oder gleich hier:" );
-				show_error( url );
-				return false;
-			});
-		}
-	} else if( dom_parent && obj.id ) {
-		var download_link = create_download( obj );
-		$(dom_parent).append( download_link );
+			global_search.entry.text( "title:\""+search_text+"\"" );
+			global_search.search();
+		});
 	}
 }
 
-function filter_user_content( button, mode ) {
-	var user_element = $(button).closest('.ems-user')[0];
-	var user_id = $(user_element).data().obj.id;
-	var mode_factor = mode=='for' ? 1 : -1;
-	var parms = { child_ids:{}, parent_ids:{} }; 
-	parms.parent_ids[mode_factor*user_id] = $(user_element).data().obj;
-	apply_page_filter( parms );
-}
-
-var offsets_loaded = {};
-var filters = { ids:{}, child_ids:{}, parent_ids:{} };
-function apply_page_filter( parms ) {
-	if( parms==undefined ) parms={ ids:{}, child_ids:{}, parent_ids:{} };
-	for( var filter_type in {"ids":true, "child_ids":true, "parent_ids":true} ) {
-		for( var xid in parms[filter_type] ) {
-			if( filters[filter_type][ -xid ] ) {
-				delete filters[filter_type][ -xid ];
-			}
-			filters[filter_type][ xid ] = parms[filter_type][xid];
-		}
+Entry.prototype.edit = function() {
+	var my = this;
+	$(my.entry).addClass("new-entry");
+	
+	if( my.title ) {
+		my.title.contentEditable = true
+		if( my.title.innerHTML.length==0 || !my.content ) my.title.focus()
 	}
-	var filter_view = $('.page-filter-view')[0];
-	$(filter_view).empty();
-	for( var filter_type in {"ids":true, "child_ids":true, "parent_ids":true} ) {
-		for( var xid in filters[filter_type] ) {
-			var obj = filters[filter_type][xid];
-			if( obj ) {
-				var filter_item = $('<div>').attr( {'class':(Number(xid)<0 ? 'filter-item filter-item-exclude' : 'filter-item filter-item-include')} )[0];
-				$(filter_item).text( obj.title ? obj.title : obj.nick ? obj.nick : filter_type+String(xid) );
-				$(filter_item).data( {obj: obj, filter_type: filter_type, filter_id: xid} );
-				obj.dom_object = filter_item;
-				filter_item.onclick = function(ev) {
-					delete filters[$(this).data().filter_type][$(this).data().filter_id];
-					apply_page_filter();
-				};
-				$(filter_view).append( filter_item );
-			}
-		}
-	}
-	var ids = []; for( var _id in filters.ids ) { if(_id) ids.push(_id) };
-	var child_ids = []; for( var child_id in filters.child_ids ) { if(child_id) child_ids.push(child_id) };
-	var parent_ids = []; for( var parent_id in filters.parent_ids ) { if(parent_id) parent_ids.push(parent_id) };
-	var page_filter = $('.page-filter')[0];
-	if( ids.length+child_ids.length+parent_ids.length > 0 ) {
-		$(page_filter).addClass( 'page-filter-active' );
-	} else {
-		$(page_filter).removeClass( 'page-filter-active' );
-	}
-	$('.ems-content').empty();
-	var scroll_offset = 0;
-	var scroll_step = 10;
-	var scroll_time = (new Date()).getTime();
-	offsets_loaded = {};
-	offsets_loaded[ scroll_offset ] = true;
-	load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', ids: ids, child_ids: child_ids, parent_ids: parent_ids} );
-	var handle_scroll_event = function() {
-		var scrollTop = document.documentElement.scrollTop ||
-			document.body.scrollTop;
-		var offsetHeight = document.body.offsetHeight;
-		var clientHeight = document.documentElement.clientHeight;
-		if (offsetHeight <= scrollTop + clientHeight) {
-			// Scroll end detected
-			var new_scroll_time = (new Date()).getTime();
-			if( new_scroll_time-scroll_time > 1000 ) {
-				// Mindestwartezeit für Nachladeaktionen überschritten
-				scroll_time = new_scroll_time;
-				scroll_offset += scroll_step;
-				if( offsets_loaded[scroll_offset]!=true ) {
-					offsets_loaded[ scroll_offset ] = true;
-					var ids = []; for( var _id in filters.ids ) { if(_id) ids.push(_id) };
-					var child_ids = []; for( var child_id in filters.child_ids ) { if(child_id) child_ids.push(child_id) };
-					var parent_ids = []; for( var parent_id in filters.parent_ids ) { if(parent_id) parent_ids.push(parent_id) };
-					load_visible_objects( {offset: scroll_offset, limit: scroll_step, type: 'application/x-obj.entry', ids: ids, child_ids: child_ids, parent_ids: parent_ids} );
-				} else {
-					// discard doublicate event
-				}
-			}
-		}
-	};
-	window.removeEventListener( 'scroll', handle_scroll_event, false );
-	window.addEventListener( 'scroll', handle_scroll_event, false );
-}
-
-function edit_entry( button )
-{
-	var entry = $(button).closest(".ems-entry")[0];
-	$(entry).addClass("new-entry");
-	var title = $( ".entry-title", entry )[0]
-	var content = $( ".entry-content", entry )[0]
-	if( title ) {
-		title.contentEditable = true
-		if( title.innerHTML.length==0 || !content ) title.focus()
-	}
-	if( content ) {
-		content.contentEditable = true
-		if( title.innerHTML.length>0 ) content.focus()
+	if( my.content ) {
+		my.content.contentEditable = true
+		if( my.title.innerHTML.length>0 ) my.content.focus();
+		
+		$('.objref', my.content).each( function(i, element) {
+			new UploadDialog( {replace_content: $(element).children().first()} );
+		});
+		
+		$(my.content).off("keypress").on( "keypress", function(e) { my.on_keypress(e); } );
+		$(my.content).off("keydown").on( "keydown", function(e) { my.on_keydown(e); } );
 	}
 	
-	// Standard-Toolbox verbergen und Editieren-Toolbox anzeigen:
-	var std_tools = $( ".entry-tools", entry )[0];
-	$(std_tools.style).hide();
-	var edit_tools = $( ".entry-edit-tools", entry )[0];
-	//$(edit_tools).show();
-	$(edit_tools).css( {display:'inline-block'} );
-	// Themen des Beitrages kopieren:
-	$(".entry-tags",edit_tools).empty().append( $(".entry-tags",std_tools).clone(true,true).contents() );
-}
+	// Themen des Beitrages vom Standardwerkzeug in das Bearbeitungswerkzeug verschieben:
+	$(my.edit_tags).empty().append( $(my.std_tags).contents().detach() );
+};
 
-function get_plain_text( element ) {
+Entry.prototype.on_keypress = function( event ) {
+	var my = this;
+	var key_char = String.fromCharCode( event.which );
+	if( key_char=='-' || key_char=='*' ) {
+		// Create new unordered list and first item in place of leading '-' or '*'
+		// Working: Firefox, Chrome, Android Stock Browser
+		// FIXME: Creation of lists not working at all in Mobile Chrome (different DOM?)
+		// FIXME: Unable to edit text within newly created list items in Mobile Firefox
+		// FIXME: Random crashes in Mobile Firefox?
+		var range = get_element_cursor_range();
+		var is_block_node = function( node ) {
+			var block_names = {
+				'DIV' : true,
+				'BR' : true,
+				'UL' : true,
+				'OL' : true
+			}
+			return block_names[ node.nodeName ] ? true : false;
+		}
+		if( range 
+			&& (
+				(range.startContainer==my.content)
+				|| range.startContainer.parentNode==my.content 
+					&& ( 
+						range.startOffset==0 /*first Node*/
+						|| /*Firefox Newline*/ (range.startOffset>0 && range.startContainer.childNodes[range.startOffset-1] && is_block_node(range.startContainer.childNodes[range.startOffset-1]) )
+						|| /*Chrome Newline*/ (range.startContainer.childNodes.length==1 && is_block_node(range.startContainer.childNodes[0]) )
+					)
+				)
+			) {
+			var new_list = $('<ul></ul>');
+			var new_item = $('<li></li>');
+			new_list.append( new_item );
+			range.insertNode( new_list[0] );
+			range.collapse();
+			range.selectNodeContents( new_item[0] );
+			// In Firefox the range is selected by selectNodeContents,
+			// but in Chrome we have to clear the windows selection 
+			// and add the new range explicitly:
+			var sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange( range );
+			event.preventDefault();
+		}
+	}
+};
+
+Entry.prototype.on_keydown = function( event ) {
+	var my = this;
+	var format_keys = {
+		'h' : 'text-marking',
+		'b' : 'text-bold',
+		'i' : 'text-italic',
+		'f' : 'text-fixed',
+		'm' : 'text-fixed',
+		'u' : 'text-underline',
+		's' : 'text-strikethrough',
+		'o' : 'text-overline',
+		'+' : 'text-larger',
+		'-' : 'text-smaller',
+		'l' : 'link',
+		'd' : 'upload',
+		'e' : 'block-quote'
+	}
+	if( event.keyCode==9 ) {
+		var range = get_element_cursor_range();
+		if( range ) {
+			var list_item = range.startContainer.nodeName=='LI' ? range.startContainer : $(range.startContainer).closest('li')[0];
+			if( list_item ) {
+				if( event.shiftKey==false && list_item.previousSibling && list_item.previousSibling.nodeName=='LI' ) {
+					var prev_list_item = list_item.previousSibling;
+					$(list_item).detach();
+					if( $(prev_list_item).children().last().length && $(prev_list_item).children().last()[0].nodeName=='UL' ) {
+						$(prev_list_item).children().last().append( list_item );
+					} else {
+						$(prev_list_item).append( list_item );
+						$(list_item).wrap('<ul></ul>');
+					}
+					range.collapse();
+					range.selectNodeContents( list_item );
+					range.collapse();
+					var sel = window.getSelection();
+					sel.removeAllRanges();
+					sel.addRange( range );
+				} else if( event.shiftKey==true && list_item.parentNode.parentNode.nodeName=='LI' ) {
+					var list = list_item.parentNode;
+					var parent_item = list_item.parentNode.parentNode;
+					$(list_item).detach();
+					$(list_item).insertAfter( parent_item );
+					sibling_count = 0;
+					for( var i=list.childNodes.length-1; i>=0; i-- ) {
+						var li = list.childNodes[i];
+						if( li.nodeName=='LI' ) {
+							sibling_count++;
+						}
+					}
+					if( sibling_count==0 ) $(list).remove();
+					range.collapse();
+					range.selectNodeContents( list_item );
+					range.collapse();
+					var sel = window.getSelection();
+					sel.removeAllRanges();
+					sel.addRange( range );
+				}
+			}
+		}
+		event.preventDefault();
+	} else if( event.ctrlKey==true && format_keys[event.key]!=undefined ) {
+		var format = format_keys[event.key];
+		var range = get_element_cursor_range();
+		if( format=='link' ) {
+			var existing_links_found = false;
+			// Zunächst alle existierenden Hyperlinks in aktueller (nicht leerer) Markierung suchen und ggf. bearbeiten:
+			var links_to_edit = []; // But we must not modify the dom while iterating over it!
+			for( var current_container = range.startContainer; 
+					!range.collapsed && current_container != null;
+					current_container = (current_container==range.endContainer || current_container.contains(range.endContainer) ? null : current_container.nextSibling) ) {
+				if( current_container.nodeName=='A' ) links_to_edit.push( current_container );
+				for( var i = (current_container==range.startContainer ? range.startOffset : 0 );
+						current_container.nodeName!='#text' && i < (current_container==range.endContainer ? range.endOffset : current_container.length);
+						i++ ) {
+					var current_node = current_container.childNodes[i];
+					if( current_node ) {
+						if( current_node.nodeName=='A' ) links_to_edit.push( current_node );
+						$( 'a', current_node ).each( function(i, item) { links_to_edit.push(item); } );
+					}
+				}
+			}
+			for( var i=0; i<links_to_edit.length; i++ ) {
+				var new_link_tool = new LinkTool( {link_node: links_to_edit[i]} );
+				existing_links_found = true;
+			}
+			// Alternativ tiefsten, existierenden Hyperlink an aktueller Cursorposition finden und bearbeiten:
+			if( !existing_links_found ) {
+				var closest_link = $(range.startContainer).closest('a')[0];
+				if( closest_link ) {
+					var new_link_tool = new LinkTool( {link_node: closest_link} );
+					existing_links_found = true;
+				}
+			}
+			// Alternativ den markierten (nicht leeren) Content als neuen Hyperlink auszeichnen:
+			if( !existing_links_found && range.collapsed==false ) {
+				var contents = range.extractContents();
+				var new_link = $('<a></a>').attr({'href' : ''}).append(contents)[0];
+				range.insertNode( new_link );
+				var new_link_tool = new LinkTool( {link_node: new_link} );
+			}
+			range.collapse();
+			event.preventDefault();
+		} else if( format=='upload' ) {
+			new UploadDialog( {dom_parent: my.content, wrap: true} );
+			event.preventDefault();
+		} else if( format=="block-quote" ) {
+			// markierten Content in neuen Zitierungsblock verschieben:
+			var contents = range.extractContents();
+			var new_block = $('<div></div>').addClass("block-quote").append(contents)[0];
+			range.insertNode( new_block );
+			event.preventDefault();
+		} else if( !range.collapsed ) {
+			var contents = range.extractContents();
+			var remove_count = 0;
+			// Die Textformatierungsklassen text-larger und text-smaller wirken relativ 
+			// bezogen auf Elternelemente, und sollen daher beliebig geschachtelt werden können.
+			if( !(format=="text-larger" || format=="text-smaller") ) {
+				// Andere Textformatierungsklassen sollen innerhalb der Auswahl entfernt
+				// werden, falls sie darin früher gesetzt wurden:
+				$( "span."+format+",span."+format+"-off", contents ).each( function(i,item) {
+					$(item).replaceWith( $(item).contents() );
+					remove_count += 1;
+				});
+			}
+			if( remove_count==0 ) {
+				// Falls in der Auswahl keine passende Textformatierung entfernt werden konnte,
+				// möchte der Nutzer:
+				var closest_format_switching_ancestor = $(range.commonAncestorContainer).closest( "span."+format+",span."+format+"-off" ).first();
+				if( closest_format_switching_ancestor.length && closest_format_switching_ancestor.hasClass(format) ) {
+					// a) die bereits wirksame, passende Textformatierung eines Elternelementes innerhalb 
+					// der Auswahl deaktivieren:
+					range.insertNode( $('<span></span>').attr({'class' : format+"-off"}).append(contents)[0] );
+				} else {
+					// b) die passende Textformatierung auf die Auswahl aktivieren:
+					range.insertNode( $('<span></span>').attr({'class' : format}).append(contents)[0] );
+				}
+				
+			} else {
+				range.insertNode( contents );
+			}
+			range.collapse();
+			event.preventDefault();
+		}
+	}
+};
+
+Entry.prototype.get_plain_text = function( element ) {
+	var my = this;
 	var current_plain_text = "";
 	for( var i=0; i<element.childNodes.length; i++ ) {
 		var child = element.childNodes[i];
 		if( child.nodeName!="#text" ) {
-			current_plain_text += get_plain_text( child );
+			current_plain_text += my.get_plain_text( child );
 			if( child.nodeName=="BR" || child.nodeName=="DIV" ) {
 				current_plain_text += "\n";
 			}
@@ -511,529 +367,338 @@ function get_plain_text( element ) {
 		else current_plain_text += child.textContent;
 	}
 	return current_plain_text;
-}
+};
 
-function get_object_list( element, text_obj ) {
-	var current_list = [];
-	if( element.nodeName=="#text" ) {
-		var token_list = element.textContent.match( /https?:\/\/[^ ]+|./gim );
-		token_list = token_list ? token_list : [];
-		var current_plain_text = "";
-		var finalize_plain_text = function( plain_text ) {
-			var obj = { 'type': 'text/plain', 'data': plain_text };
-			if( text_obj && text_obj.unassigned ) {
-				obj.id = Number(text_obj.id);
-				text_obj.unassigned = false;
-				if( obj.data != text_obj.data ) {
-					obj.changed = true;
-				} else {
-					obj.changed = false;
-				}
-			}
-			if( obj.data.replace(/\s/g,'').length ) {
-				// Nur nichtleere Texte übernehmen
-				current_list.push( obj );
-			}
-		}
-		for( var i=0; i<token_list.length; i++ ) {
-			if( token_list[i].length==1 ) {
-				current_plain_text += token_list[i];
-			} else if( token_list[i].length>1 ) {
-				if( current_plain_text.length) {
-					finalize_plain_text( current_plain_text );
-					current_plain_text = "";
-				}
-				var obj = { 'type': 'text/html', 'data': $('<a>').attr({target:"_blank", href:token_list[i]}).text(token_list[i])[0].outerHTML };
-				current_list.push( obj );
-			}
-		}
-		if( current_plain_text.length) {
-			finalize_plain_text( current_plain_text );
-		}
-	} else if( element.nodeName=="BR" || element.nodeName=="A" ) {
-		if( $(element).data().obj ) {
-			if( $(element).data().obj.data != element.outerHTML ) {
-				$(element).data().obj.data = element.outerHTML;
-				$(element).data().obj.changed = true;
-			}
-			current_list.push( $(element).data().obj );
-		} else {
-			var obj = { 'type': 'text/html', 'data': element.outerHTML };
-			current_list.push( obj );
-		}
-	} else if( $(element).data().obj && $(element).data().obj.type!="text/plain" ) {
-		// bestehende text/plain-Objekte werden beim Baumdurchlauf dem erst besten 
-		// Text-Node zugewiesen und nicht, wie andere Objekte direkt hier übernommen...
-		current_list.push( $(element).data().obj );
-	}
-	if( !$(element).data().obj || $(element).data().obj.type=="text/plain" ) {
-		if( $(element).data().obj && $(element).data().obj.type=="text/plain" ) {
-			text_obj = $(element).data().obj;
-			text_obj.unassigned = true;
-		}
-		for( var i=0; i<element.childNodes.length; i++ ) {
-			var child = element.childNodes[i];
-			current_list = current_list.concat( get_object_list(child, text_obj) );
-		}
-	}
-	return current_list;
-}
+Entry.prototype.restore_standard_tools = function() {
+	var my = this;
+	// Themen vom Bearbeitungswerkzeug zurück in das Standardwerkzeug verschieben:
+	$(my.std_tags).empty().append( $(my.edit_tags).contents().detach() );
+	$(my.edit_toolbar).hide();
+};
 
-function restore_standard_tools( entry ) {
-	// temporären Klon der Editieren-Toolbox wieder aus diesem Beitrag löschen und Standard-Toolbox wieder anzeigen:
-	var edit_tools = $( ".entry-edit-tools", entry )[0];
-	$(edit_tools).hide();
-	var std_tools = $( ".entry-tools", entry )[0];
-	$(std_tools).show();
-}
-
-function remove_new_entry_item( entry ) {
+Entry.prototype.remove_new_entry_item = function() {
+	var my = this;
 	// neues entry-Objekt und Pseudo-Item löschen:
-	var item = $(entry).closest(".ems-item")[0];
-	$(item).remove();
-}
+	$(my.dom_object).remove();
+};
 
-function save_entry( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	var upload_dialog = $( ".upload-dialog", entry )[0];
-	if( upload_dialog ) {
-		$( "button", upload_dialog ).wrap( $("<div>").addClass("highlight") );
-		return;
-	}
-	$(entry).removeClass("new-entry");
+Entry.prototype.store = function() {
+	var my = this;
+	
+	$(my.entry).removeClass("new-entry");
 	var new_entry_created = false;
-	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
-		// neues entry-Objekt mit einem neuen DB-Objekt assoziieren:
-		new_item( {obj:{type: "application/x-obj.entry"}, dom_object: entry} );
+	if( !my.obj || !my.obj.id ) {
+		// BaseItem.prototype.store() erledigt die eigentliche Speicherung
 		new_entry_created = true;
 	}
-	var entry_id = $(entry).data().obj.id;
-	var title = $( ".entry-title", entry )[0];
-	if( title ) {
-		title.contentEditable = false
-		var title_text = get_plain_text( title )
-		$.ajax({
-			url : "ems.wsgi?do=store&id="+String(entry_id),
-			type : "POST",
-			data : { title: title_text },
-			async : false,
-			success :
-		function( result ) {
-			result = parse_result( result )
-		}})
+	if( my.title ) {
+		my.title.contentEditable = false
+		my.obj.title = my.get_plain_text( my.title )
 	}
-	var content = $( ".entry-content", entry )[0];
-	if( content ) {
-		content.contentEditable = false
-		var content_list = get_object_list( content );
-		var tags = $( ".entry-tags-content", entry )[0];
-		if( tags ) {
-			content_list = content_list.concat( get_object_list(tags) );
-		}
-		// Inhalt speichern:
-		var part_id_list = []
-		for( var i in content_list ) {
-			var obj = content_list[i];
-			if( obj.id==undefined && obj.type && obj.data ) {
-				// neu zu speichernde Objekte mit Inhalt, ohne bestehende ID-Zuordnung:
-				// (bisher nur text/plain)
-				$.ajax({
-					url : "ems.wsgi?do=store&type="+obj.type+"&parent_id="+String(entry_id)+"&sequence="+String(i),
-					type : "POST",
-					data : { data: obj.data },
-					async : false, /* hier, ohne komplizierteres Event-Hanlding, wichtig zur Vermeidung von Race-Conditions */
-					success :
-				function( result ) {
-					result = parse_result( result )
-					if( result.succeeded ) {
-						part_id_list.push( result.id )
-					}
-				}})
-			} else if( obj.id && (obj.unassigned==undefined || obj.unassigned==true || obj.changed==true) ) {
-				// bereits gespeicherte oder lokal geänderte Objekte, mit bestehender ID-Zuordnung, 
-				// die dem Eintrag in korrekter Sequenz (neu) zugewiesen oder gespeichert werden müssen:
-				$.ajax({
-					url : "ems.wsgi?do=store&id="+obj.id+"&parent_id="+String(entry_id)+"&sequence="+String(i),
-					type : obj.changed ? "POST" : "GET",
-					data : obj.changed ? { data: obj.data } : undefined,
-					async : false, /* hier, ohne komplizierteres Event-Hanlding, wichtig zur Vermeidung von Race-Conditions */
-					success :
-				function( result ) {
-					result = parse_result( result )
-					if( result.succeeded ) {
-						part_id_list.push( result.id )
-					}
-				}})
-			}
-		}
-		// serverseitige Bereinigung alter Daten:
-		// (Damit das so funktioniert, ist es wichtig, dass der Neuzuordnungsfall bestehender Objekte (2. Fall oben)
-		//  eine Duplikatbehandlung der Eltern-Kind-Beziehungen vornimmt, sodass bestehende Zuordnungen aktualisiert
-		//  (Sequenz) und nicht vermehrt werden...)
-		$.ajax({
-			url : "ems.wsgi?do=delete&parent_id="+String(entry_id)
-				+"&child_not_in="+part_id_list.join(","),
-			async : false,
-			success :
-		function( result ) {
-			result = parse_result( result )
-		}})
-	}
-	if( new_entry_created ) {
-		remove_new_entry_item( entry );
-		show_object( {dom_parent: $(".ems-content")[0], obj: {id: entry_id}, prepend: true} );
-	} else {
-		restore_standard_tools( entry );
-	}
-}
-
-function new_response( user, button ) {
-	var reference_item = undefined;
-	if( button ) {
-		reference_item = $(button).closest(".ems-item")[0];
-	}
-	var new_entry = $("#ems-entry-template").first().clone()[0];
-	new_entry.id="";
-	if( reference_item ) {
-		$(reference_item).before( new_entry );
-	} else {
-		$(".ems-content").first().prepend( new_entry );
-	}
-	$(new_entry).wrap( '<div class="ems-item"></div>' )
-	if( reference_item ) {
-		// Antworttitel aus Titel des Referenzbeitrages generieren:
-		reference_title = $(".entry-title", reference_item).first().text();
-		if( !reference_title.match(/^Re:/i) ) {
-			reference_title = "Re: "+reference_title;
-		}
-		$(".entry-title", new_entry).text( reference_title );
-		// Themen des Referenzbeitrages kopieren:
-		var ref_tools = $( ".entry-tools", reference_item )[0];
-		var new_tools = $( ".entry-tools", new_entry )[0];
-		$(".entry-tags",new_tools).empty().append( $(".entry-tags",ref_tools).clone(true,true).contents() );
-	}
-	new_entry.style.display="";
-	var entry_author = $( ".entry-author", new_entry )[0];
-	user_element = new_item( {obj:user, duplicates: true, dom_parent: entry_author} );
-	if( user_element && user.avatar_id ) {
-		replace_user_image( user_element, user.avatar_id );
-	}
-	edit_entry( new_entry );
-}
-
-function delete_entry( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	Confirm.confirm( {message: 'Diesen Eintrag wirklich löschen?', before: $('.entry-tools',entry).first(),
-		ok_parms: {entry: entry}, ok_callback: function( parms ) {
-			var entry = parms.entry;
-			$.ajax({
-				url : "ems.wsgi?do=delete&id="+String($(entry).data().obj.id),
-				success :
-			function( result ) {
-				result = parse_result( result );
-				if( result.succeeded ) {
-					var item = $(entry).closest(".ems-item").remove();
+	BaseItem.prototype.store.call( my, {callback: function() {
+		if( my.content ) {
+			var upload_dialogs = $( ".upload-dialog", my.content );
+			upload_dialogs.each( function(i, element) {
+				if( element && $(element).data && $(element).data("upload_dialog") ) {
+					// FIXME: Wir sollten einen generischen Weg haben die JS-Objekte in den DOM-Elementen zu referenzieren.
+					$(element).data("upload_dialog").confirm_upload();
 				}
-			}})
-		}
-	});
-}
-
-function discard_response( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	$(entry).removeClass("new-entry");
-	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
-		remove_new_entry_item( entry );
-	}
-	else {
-		restore_standard_tools( entry );
-		var title = $( ".entry-title", entry )[0]
-		var content = $( ".entry-content", entry )[0]
-		if( title ) {
-			title.contentEditable = false;
-		}
-		if( content ) {
-			content.contentEditable = false;
-		}
-		// Daten neu laden, um lokale Änderungen zu beseitigen:
-		$(".entry-content", entry).empty()
-		$(".entry-tags-content", entry).empty()
-		show_object( {dom_parent: entry, obj: $(entry).data().obj, update: true} );
-	}
-}
-
-function add_file( parms ) {
-	var upload_dialog = $(".upload-dialog-template").clone()[0];
-	$(upload_dialog).removeClass().addClass("upload-dialog");
-	if( parms.custom_class ) {
-		$(upload_dialog).addClass( parms.custom_class );
-	}
-	upload_dialog.style.display="";
-	var selection = window.getSelection();
-	var range = undefined;
-	try {
-		range = selection.getRangeAt(0);
-	} catch (error) {
-		//show_error( error );
-	}
-	if( range && ((parms.dom_parent==range.startContainer) || $(parms.dom_parent).has(range.startContainer)[0]) ) {
-		range.deleteContents();
-		range.insertNode( upload_dialog );
-	} else {
-		var container = $(parms.dom_parent).first();
-		container.append( upload_dialog );
-	}
-	if( parms.wrap ) {
-		if( !upload_dialog.previousSibling || upload_dialog.previousSibling.nodeName!="BR" ) {
-			$(upload_dialog).before( "<br/>" );
-		}
-		if( !upload_dialog.nextSibling || upload_dialog.nextSibling.nodeName!="BR" ) {
-			$(upload_dialog).after( "<br/><br/>" );
-		}
-	}
-	try {
-		selection.collapseToStart(); // verhindert automatische Auswahl des Dialogfeldes
-	} catch (error ) {
-		//show_error( error );
-	}
-	upload_dialog.contentEditable = false; // verhindert Editierbarkeit des Dialogfeldes
-	$(upload_dialog).on( "click select", function() {
-		window.getSelection().collapseToStart(); // verhindert Auswahl des Dialogfeldes
-	});
-	
-	var preview_area = $(".upload-preview", upload_dialog)[0];
-	$(upload_dialog).data( {"replace_upload_preview": function( upload_id, source_obj ) {
-		$.ajax({
-			url : "ems.wsgi?do=get&view=all&id="+String(upload_id),
-			success :
-		function( result ) {
-			result = parse_result( result );
-			if( result && result.length ) {
-				var meta = result[0];
-				if( meta.title ) $('.upload-title',upload_dialog).text( meta.title );
-				if( meta.type ) $('.upload-type',upload_dialog).text( "["+meta.type+"]" );
-				if( meta.size ) $('.upload-size',upload_dialog).text( prettyprint_size(meta.size) );
-				$(preview_area).empty();
-				show_object( {obj: meta, dom_parent: preview_area} );
-				if( meta.dom_object ) { 
-					$(meta.dom_object).addClass('upload-object');
-					$(meta.dom_object).addClass('upload-preview-content');
+			});
+			var old_objrefs = $( ".objref", my.content );
+			old_objrefs.each( function(i, objref) {
+				if( !$(objref).data("obj") || !$(objref).data("obj").id ) {
+					// Alte objref-Elemente, ohne Objektmetadaten werden unter Beibehaltung
+					// ihrer Kindelemente herausgelöst...
+					$(objref).children().unwrap();
+				} else {
+					// solche mit Objektmetadaten, umgeformt, da beim Speichern 
+					// nur die aktuellen Objektmetadaten verwendet werden sollen.
+					$(objref).removeClass( "objref" ).removeAttr( "oid" );
 				}
-				if( parms.custom_callback ) {
-					parms.custom_callback( {obj: meta, source_obj: source_obj} );
+			});
+			// HTTP(S)-Link-Signaturen in Text-Knoten außerhalb von A-Element mit neuen A-Elementen ummanteln:
+			var text_nodes = get_text_nodes_in( $('.entry-content')[0] );
+			for( var i in text_nodes ) {
+				var text_node = text_nodes[i];
+				if( $(text_node).closest('a').length==0 ) {
+					$(text_node).replaceWith( $(text_node).text().replace(/(https?:\/\/[^ ]+)/gim,'<a href="$1" target="_blank">$1</a>') );
 				}
 			}
-		}});
-	}});
-	
-	var upload_progress = $(".upload-progress", upload_dialog)[0];
-	$(preview_area).bind( "dragover", function(event) {
-		return false;
-	});
-	$(preview_area).bind( "dragenter", function(event) {
-		$(event.delegateTarget).addClass('upload-preview-over');
-		return false;
-	});
-	$(preview_area).bind( "dragleave", function(event) {
-		$(event.delegateTarget).removeClass('upload-preview-over');
-		return false;
-	});
-	$(preview_area).bind( "drop", function(event) {
-		$(event.delegateTarget).removeClass('upload-preview-over');
-		var dt = event.originalEvent.dataTransfer;
-		if( dt.files && dt.files.length ) {
-			try {
-				form_data = new FormData()
-				for( var i=0; i<dt.files.length; i++ ) {
-					var file = dt.files[i];
-					form_data.append( "file-"+String(i), file )
-				}
-				$.ajax({
-					url : "ems.wsgi?do=store",
-					type : "POST",
-					data : form_data,
-					contentType: false, /*form_data den Content-Type bestimmen lassen*/
-					processData: false, /*jede Zwischenverarbeitung untersagen, die Daten sind ok so...*/
-					xhr :
-				function() {
-					var xhr = new window.XMLHttpRequest();
-					xhr.upload.addEventListener( "progress", function(evt) {
-						if( evt.lengthComputable ) {
-							var percentComplete = 100 * evt.loaded / evt.total;
-							var progress_string = String(Math.round(percentComplete))+"%";
-							$(upload_progress).width( progress_string );
-							$(upload_progress).text( progress_string );
+			my.content.contentEditable = false;
+			var store_content = $(my.content).clone(true,true);
+			var extract_children = function( element, data ) {
+				$(element).children().each( function(i,element) {
+					var obj = $(element).data("obj");
+					if( obj && obj.id ) {
+						if( obj.type=="text/html" || obj.type=="text/plain" ) {
+							if( !data.html_obj.id && obj.type=="text/html" ) {
+								// Das erste bestehende HTML-Objekt wird als Speicherplatz für den ganzen HTML-Content 
+								// verwendet, bei bestehenden Beiträgen ist dies in der Regel bereits das Top-Level-Item.
+								data.html_obj = obj;
+							}
+							$(element).data( {"obj":undefined} );
+							if( obj.children && obj.children.length ) {
+								data.extracted_children = data.extracted_children.concat( obj.chilren );
+							}
+							extract_children( element, data );
+						} else {
+							$(element).replaceWith( $("<div></div>").attr({'class':'objref', 'oid':String(obj.id)}) );
+							data.extracted_children.push( obj );
 						}
-					}, false );
-					return xhr;
-				},
-					success :
-				function( result ) {
+					} else {
+						extract_children( element, data );
+					}
+				});
+			};
+			var content_data = { html_obj:{type:"text/html"}, extracted_children:[] };
+			extract_children( store_content, content_data );
+			// Standard-Tools wiederherstellen und Themen des Beitrages ermitteln:
+			my.restore_standard_tools();
+			var tag_data = { html_obj:{}, extracted_children:[] };
+			if( my.tags_content ) {
+				extract_children( my.tags_content, tag_data );
+			}
+			
+			// Refresh-Callback:
+			var entry_stored_callback = function() {
+				// Beitrag vorn neu anfügen:
+				my.remove_new_entry_item();
+				show_object( {dom_parent: my.dom_parent, obj: {id: my.obj.id}, prepend: true} );
+			}
+			
+			// Inhalt speichern:
+			var html_obj = content_data.html_obj;
+			$(".entry-html",store_content).children().unwrap();
+			html_obj.data = store_content.html();
+			var html_store_args = { type: html_obj.type, parent_id: String(my.obj.id), data: html_obj.data };
+			if( html_obj.id ) {
+				html_store_args.id = html_obj.id;
+			}
+			post_module( "store", {
+				args : html_store_args,
+				done : function(result) {
+					result = parse_result(result);
+					if( result.succeeded && result.id ) {
+						var html_id = result.id;
+						// im Beitragstext referenzierte Kindobjekte speichern:
+						var content_id_list = [];
+						for( var i in content_data.extracted_children ) {
+							var obj = content_data.extracted_children[i];
+							if( obj && obj.id ) {
+								content_id_list.push( obj.id );
+							}
+						}
+						var delete_childs_not_in = function( parent_id, child_not_in, done ) {
+							post_module( "delete", {
+								args : {parent_id : String(parent_id), child_not_in : child_not_in.join(",")},
+								done : done
+							});
+						}
+						if( content_id_list.length ) {
+							post_module( "store", {
+								args : { parent_id: String(html_id), id: content_id_list.join(",") },
+								done : function(result) {
+									result = parse_result(result);
+									if( result.succeeded && result.id ) {
+										delete_childs_not_in( html_id, content_id_list, entry_stored_callback );
+									}
+								}
+							});
+						} else {
+							delete_childs_not_in( html_id, [], entry_stored_callback );
+						}
+						// Tags (TODO: und andere dem Beitrag direkt untergeordnete Objekte) speichern und verbliebene Kindobjekte bereinigen:
+						var tag_id_list = [];
+						for( var i in tag_data.extracted_children ) {
+							var obj = tag_data.extracted_children[i];
+							if( obj && obj.id ) {
+								tag_id_list.push( obj.id );
+							}
+						}
+						if( tag_id_list.length ) {
+							post_module( "store", {
+								args : { parent_id: String(my.obj.id), id: tag_id_list.join(",") },
+								done : function(result) {
+									result = parse_result(result);
+									if( result.succeeded && result.id ) {
+										delete_childs_not_in( my.obj.id, [html_id].concat(tag_id_list), entry_stored_callback );
+									}
+								}
+							});
+						} else {
+							delete_childs_not_in( my.obj.id, [html_id], entry_stored_callback );
+						}
+					}
+				}
+			});
+		}
+	}});
+};
+
+Entry.prototype.new_response = function() {
+	var my = this;
+	var user = global_user; // FIXME: should not use globals
+	var new_entry = new Entry( {virtual:true, obj:{parents:[user],permissions:['read','write']}, duplicates:true, dom_parent:my.dom_parent, prepend:true} );
+	$(my.dom_object).before( $(new_entry.dom_object).detach() );
+	// Antworttitel aus Titel des Referenzbeitrages generieren:
+	var reference_title = $(my.title).text();
+	if( !reference_title.match(/^Re:/i) ) {
+		reference_title = "Re: "+reference_title;
+	}
+	$(new_entry.title).text( reference_title );
+	// Themen des Referenzbeitrages kopieren:
+	$(new_entry.tags_content).empty().append( $(my.tags_content).contents().clone(true,true) );
+	new_entry.edit();
+};
+
+Entry.prototype.delete_entry = function() {
+	var my = this;
+	Confirm.confirm( {message: 'Diesen Eintrag wirklich löschen?', before: $(my.std_tools).first(),
+		ok_callback: function( parms ) {
+			get_module( "delete", {
+				args : {id : String(my.obj.id)},
+				done : function( result ) {
 					result = parse_result( result );
 					if( result.succeeded ) {
-						var upload_id = Number(result.id);
-						$(upload_dialog).data("replace_upload_preview")( upload_id );
+						my.remove_new_entry_item();
 					}
-				}});
-			} catch( error ) {
-				show_message( "Beim Hochladen der Datei ist ein Fehler aufgetreten. Eventuell unterstützt dein Browser die verwendeten Schnittstellen noch nicht." )
-				show_error( error );
-			}
+				}
+			});
 		}
-		if( dt.mozSourceNode && $(dt.mozSourceNode).data("obj") && $(dt.mozSourceNode).data("obj").id ) {
-			// Droppen eines EMS-Objektes:
-			var source_id = Number( $(dt.mozSourceNode).data("obj").id );
-			$(upload_dialog).data("replace_upload_preview")( source_id, $(dt.mozSourceNode).data("obj") );
-		}
-		return false;
 	});
-}
+};
 
-function close_upload_dialog( button ) {
-	$(button).closest(".upload-dialog").remove();
-}
+Entry.prototype.discard_response = function() {
+	var my = this;
+	my.remove_new_entry_item();
+	if( my.obj && my.obj.id ) {
+		// Daten neu laden, um lokale Änderungen zu beseitigen:
+		show_object( {dom_parent: my.dom_parent, obj: {id: my.obj.id}, prepend: true} );
+	}
+};
 
-function show_recent_uploads( button ) {
-	var upload_dialog = $(button).closest(".upload-dialog")[0];
-	if( ! $(upload_dialog).hasClass("recent-uploads-visible") ) {
-		$(upload_dialog).addClass("recent-uploads-visible");
-		var upload_tools = $(".upload-tools", upload_dialog)[0];
-		var upload_tools_content = $(".upload-tools-content", upload_tools)[0];
-		load_visible_objects( {type: 'video/%,image/%,audio/%,application/octet-stream', permissions: ["write"], limit: 5, parent_ids: [global_user.id], dom_parent: upload_tools_content} );
-		$(upload_tools).bind( "click", function(event) {
-			var obj = $(event.target).closest(".entry-media").data("obj");
-			if( obj && obj.id ) {
-				$(upload_dialog).data("replace_upload_preview")( obj.id );
+Entry.prototype.show_tag_selection = function() {
+	var my = this;
+	$(my.button_show_tag_selection).hide();
+	
+	// Suchtool für Tags initialisieren:
+	var range_scroll_loader = null;
+	var tag_search = new SearchBar( {
+		entry_parent : $(my.tags_searchbar),
+		result_handler : function( result ) {
+			var first_range = false;
+			if( $(my.tags_search_result).children().length==0 ) {
+				first_range = true;
+				var current_search = tag_search.entry.text().replace(/^\s*|\s*$/g,"");
+				if( current_search.length > 0 ) {
+					var current_search_found = false;
+					for( var i=0; i<result.hitlist.length; i++ ) {
+						var obj = result.hitlist[i];
+						if( obj.title && obj.title.toLowerCase()==current_search.toLowerCase() ) {
+							current_search_found = true;
+						}
+					}
+					if( !current_search_found ) {
+						new EntryTag( {
+							obj : {
+								type : 'application/x-obj.tag', 
+								title : current_search,
+								permissions : ["read","write"]
+							},
+							dom_parent : my.tags_search_result,
+							custom_class : 'entry-tag-new',
+							parent: my,
+							virtual: true
+						} );
+					}
+				}
+			}
+			result.dom_parent = my.tags_search_result;
+			result.parent = my;
+			show_search_result( result );
+			if( first_range ) {
+				// Falls tags_search_result initial leer war, müssen wir den Scroll-Container hier
+				// mit der Render-Höhe der ersten Ergebnis-Range initialiseren: 
+				// HACK: Der Ergebniscontainer ist ein in der Höhe unlimitiertes DIV in einem
+				//   unsichtbaren Scroll-Container, der breit genug ist, um seitlich überlappende
+				//   Zusatzwerkzeuge beinhalten zu können. Diese würden sonst beschnitten, da
+				//   CSS derzeit nicht erlaubt overflow-y: scroll und overflow-X: visible zu
+				//   kombinieren. Letzterer Wert wird zu auto (hidden oder scroll) geändert.
+				$(my.tags_search_result).width( $(my.tags_search_result).width() );
+				$(my.tags_search_result).css( {position : 'relative', left : '300px'} );
+				$(my.tags_search_result_scroll_container_hack).css( {
+					'overflow-y' : 'scroll', 
+					'overflow-x' : 'hidden', 
+					'margin-left' : '-300px',
+					'margin-right' : '-20px'
+				} );
+				$(my.tags_search_result_scroll_container_hack).height( Math.max(100,$(my.tags_search_result).height()*0.9) );
+				range_scroll_loader.range_start = result.hitlist.length;
+				range_scroll_loader.scroll_handler_parms = { search_count : tag_search.search_count };
+				range_scroll_loader.start();
+			}
+		},
+		result_types : 'application/x-obj.tag',
+		empty_search : {phrase : 'type:tag', min_weight : "None"},
+		order_by : 'mtime',
+		order_reverse : 'true',
+		range_limit : 10,
+		new_search_handler : function( parms ) {
+			$(my.tags_search_result).empty();
+			$(my.tags_search_result_scroll_container_hack).show();
+			if( range_scroll_loader ) range_scroll_loader.stop();
+			range_scroll_loader = new RangeScrollLoader( {
+				scroll_container : my.tags_search_result_scroll_container_hack,
+				scroll_handler : tag_search.search,
+				scroll_condition : "element_scroll_condition"
+			} );
+		},
+		on_ready : function() {
+			$(my.tags_selection).show();
+			tag_search.entry.outerWidth( $(my.tags_selection).innerWidth()*0.95 );
+			tag_search.entry.focus();
+			tag_search.search();
+		}
+	} );
+};
+
+Entry.prototype.hide_tag_selection = function() {
+	var my = this;
+	$(my.button_show_tag_selection).show();
+	$(my.tags_selection).hide();
+	$(my.tags_search_result_scroll_container_hack).hide();
+	$(my.tags_search_result).empty();
+};
+
+Entry.prototype.link_external = function( recursive ) {
+	var my = this;
+	if( my.obj && my.obj.id ) {
+		get_module( "get", {
+			args : {type : 'application/x-obj.publication', parent_id : my.obj.id},
+			done : function( result ) {
+				result = parse_result( result );
+				if( result.length ) {
+					var pub = result[0];
+					show_object( {parent: my, obj: pub, update: true} );
+					$( ".entry-publication-link", my.entry ).wrap( $("<div>").addClass("highlight") );
+				} else if( !recursive ) {
+					get_module( "store", {
+						args : {type : 'application/x-obj.publication', parent_id : my.obj.id},
+						done : function( result ) {
+							result = parse_result( result );
+							if( result.succeeded ) {
+								my.link_external( /*recursive=*/true );
+							}
+						}
+					});
+				} else {
+					show_message( "Externer Link konnte nicht erstellt werden" );
+				}
 			}
 		});
 	} else {
-		$(upload_dialog).removeClass("recent-uploads-visible");
+		show_message( "Bitte speichere den Beitrag bevor du einen Link erstellst" );
 	}
-}
-
-function confirm_upload( button ) {
-	var upload_dialog = $(button).closest(".upload-dialog")[0];
-	var upload_object = $('.upload-object', upload_dialog)[0];
-	$(upload_dialog).after( upload_object );
-	if( $(upload_object).hasClass('download-link') ) {
-		// fancy.css braucht wegen eines Offset-Bugs einen zusätzlichen Zeilenumbruch nach Links:
-		$(upload_object).after( '<br>' );
-	}
-	upload_object.contentEditable = false; // verhindert Editierbarkeit des Links
-	close_upload_dialog( button );
-}
-
-function show_tag_selection( button ) {
-	var entry_tools = $(button).closest(".entry-tools")[0];
-	var entry_tags = $(button).closest(".entry-tags")[0];
-	var tags_selection = $(".entry-tags-selection", entry_tags)[0];
-	$.get( "ems.wsgi?do=get&type=application/x-obj.tag&limit=1000", 
-	function( result ) {
-		result = parse_result( result );
-		if( !result.error ) {
-			$(tags_selection).empty();
-			
-			var new_tag_input = $('<input>').attr({
-				class: 'entry-tag entry-tags-selection-item', title: 'Neues Thema',
-			})[0];
-			$(new_tag_input).data( {obj: {type:'application/x-obj.tag'}} );
-			new_tag_input.onkeypress = function(event) { if(this.value) onenter(event,add_tag,this); };
-			$(tags_selection).append( new_tag_input );
-			
-			for( var i in result ) {
-				var obj = result[i];
-				show_object( {obj: obj, dom_parent: tags_selection} );
-				$(obj.dom_object).addClass('entry-tags-selection-item');
-			}
-			
-			tags_selection.style.display = "";
-			new_tag_input.focus();
-			
-			$(entry_tools).bind('mouseleave', function(event) {
-				tags_selection.style.display = 'none';
-				$(this).unbind('mouseleave');
-			});
-		}
-	});
-}
-
-function add_tag( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	var entry_id = $(entry).data().obj ? $(entry).data().obj.id : undefined;
-	var entry_id_query = entry_id ? ","+String(entry_id) :"";
-	var tag = $(button).closest('.entry-tag')[0];
-	tag = tag ? tag : button;
-	var tag_id = $(tag).data().obj.id;
-	var tag_id_query = tag_id ? "&id="+String(tag_id) : "";
-	var tag_title_query = tag_id ? "" : tag.value ? "&title="+tag.value : "";
-	var tag_type_query = tag_id ? "" : "&type="+$(tag).data().obj.type;
-	var tags_selection = $(button).closest('.entry-tags-selection')[0];
-	var tags_content = $('.entry-edit-tools .entry-tags-content',entry)[0];
-	$.get( "ems.wsgi?do=store&parent_id=5"+entry_id_query+tag_id_query+tag_title_query+tag_type_query, 
-	function( result ) {
-		result = parse_result( result );
-		if( result.succeeded ) {
-			tag_id = Number(result.id);
-			tags_selection.style.display = 'none';
-			if( entry_id ) {
-				// Daten neu laden, um Änderungen zu übernehmen:
-				$.get( "ems.wsgi?do=get&id="+String(entry_id)+"&view=all&recursive=true",
-				function( result ) {
-					result = parse_result( result );
-					if( !result.error && result.length ) {
-						obj = result[0];
-						$(".entry-content", entry).empty()
-						$(".entry-tags-content", entry).empty()
-						show_object( {dom_parent: entry, obj: obj, update: true} );
-					}
-				});
-			} else {
-				show_object( {dom_parent: tags_content, obj: {id: tag_id}} );
-			}
-		}
-	});
-}
-
-function remove_tag( button ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	var tag = $(button).closest('.entry-tag')[0];
-	if( !$(entry).data().obj || !$(entry).data().obj.id ) {
-		$(tag).remove();
-		return;
-	}
-	var entry_id = $(entry).data().obj.id;
-	var tag_id = $(tag).data().obj.id;
-	var tag_id_query = "&id="+String(tag_id);
-	var tags_content = $(button).closest('.entry-tags-content')[0];
-	$.get( "ems.wsgi?do=delete&parent_id="+String(entry_id)+tag_id_query, 
-	function( result ) {
-		result = parse_result( result );
-		if( result.succeeded ) {
-			$(tag).remove();
-		}
-	});
-}
-
-function link_external( button, recursive ) {
-	var entry = $(button).closest(".ems-entry")[0];
-	var entry_id = $(entry).data().obj.id;
-	$.get( "ems.wsgi?do=get&type=application/x-obj.publication&parent_id="+String(entry_id),
-	function( result ) {
-		result = parse_result( result );
-		if( result.length ) {
-			var pub = result[0];
-			show_object( {dom_parent: entry, obj: pub, update: true} );
-			$( ".entry-publication-link", entry ).wrap( $("<div>").addClass("highlight") );
-		} else if( !recursive ) {
-			$.get( "ems.wsgi?do=store&type=application/x-obj.publication&parent_id="+String(entry_id),
-			function( result ) {
-				result = parse_result( result );
-				if( result.succeeded ) {
-					link_external( button, /*recursive=*/true );
-				}
-			});
-		} else {
-			show_message( "Externer Link konnte nicht erstellt werden" );
-		}
-	});
-}
+};
+return Entry;
+}); //define()

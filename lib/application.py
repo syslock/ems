@@ -12,6 +12,7 @@ class Request:
 	"""Implementiert Parameterübergabe an die Webanwendung"""
 	def __init__( self, environ ):
 		self.environ = environ
+		self.path = os.path.dirname( self.environ["SCRIPT_NAME"] ) or "/"
 		self.remote_addr = self.environ["REMOTE_ADDR"]
 		self.cookies = {}
 		self.parms = {}
@@ -86,20 +87,20 @@ class Cookie:
 		self.value = value
 		self.path = path
 		if not expires:
-			expires = datetime.datetime.utcnow()
-			expires = expires.replace( year=expires.year+1 )
+			expires = datetime.datetime.utcnow() + datetime.timedelta( days=365 )
 		self.expires = expires
 	def get_header( self ):
 		"""Erzeugt einen Set-Cookie-Header im von WSGI erwarteten Tupel-Format"""
 		key = self.key
 		value = self.value
-		path= self.path
+		path = self.path
 		expires = self.expires.strftime( "%a, %d-%m-%y %H:%M:%S GMT" )
-		return ( "Set-Cookie", "%(key)s=%(value)s; path=%(path)s; expires=%(expires)s;" % locals() )
+		return ( "Set-Cookie", "%(key)s=%(value)s; Path=%(path)s; Expires=%(expires)s;" % locals() )
 
 class Response:
 	"""Implementiert Header-Erzeugung und Ausgabekodierung"""
-	def __init__( self, start_response ):
+	def __init__( self, start_response, path="/" ):
+		self.path = path
 		self.status = '200 OK'
 		self.output = ""
 		self.media_type = "text/plain"
@@ -132,7 +133,7 @@ class Response:
 			self.content_length = len(encoded_output)
 		if self.content_length != None:
 			self.response_headers.append( ('Content-Length',  str(self.content_length)) )
-		cookie_objects = map( lambda key: Cookie(key, self.cookies[key]), self.cookies.keys() )
+		cookie_objects = map( lambda key: Cookie(key, self.cookies[key], path=self.path), self.cookies.keys() )
 		for cookie in cookie_objects:
 			self.response_headers.append( cookie.get_header() )
 		if not self.caching:
@@ -161,19 +162,28 @@ class Response:
 class Session:
 	"""Persistente Speicherung von Session-Parametern"""
 	def __init__( self, app, sid=None ):
+		client_sid = sid
 		self.app = app
-		if not sid:
-			sid = "".join(random.sample(string.ascii_uppercase \
-											+ string.ascii_lowercase \
-											+ string.digits, 32))
-		self.sid = sid
 		self.parms = {}
-		c = self.app.db.cursor()
-		c.execute( """select key, value from session_parms
-			where sid=? order by mtime""", [self.sid] )
-		for row in c:
-			key, value = row
-			self.parms[key] = value
+		self.sid = None
+		while not self.sid:
+			if not client_sid:
+				self.sid = client_sid = "".join(random.sample(	string.ascii_uppercase \
+														+ string.ascii_lowercase \
+														+ string.digits, 32))
+			else:
+				c = self.app.db.cursor()
+				c.execute( """select key, value from session_parms
+					where sid=? order by mtime""", [client_sid] )
+				for row in c:
+					key, value = row
+					self.parms[key] = value
+				if len(self.parms):
+					# preserve client sid with known server state
+					self.sid = client_sid
+				else:
+					client_sid = None # discard client sid without known server state
+		self.sid = client_sid
 	def store( self ):
 		c = self.app.db.cursor()
 		c.execute( """delete from session_parms where sid=?""",
@@ -184,20 +194,26 @@ class Session:
 						[self.sid,key,self.parms[key],time.time()] )
 		self.app.db.commit()
 	def get_cookies( self ):
-		return { "sid" : self.sid }
+		return { self.app.name+".sid" : self.sid }
 
 class Application:
 	"""Container für Anfrage- und Antwortobjekte und Pfad- und Datenbankparameter""" 
-	def __init__( self, environ, start_response, name="app", path=None ):
+	def __init__( self, environ, start_response, path=None ):
+		self.config = config
 		self.query = Request( environ )
-		self.response = Response( start_response )
+		self.response = Response( start_response, path=self.query.path )
 		self.path = path
-		self.name = name
+		self.name = "ems"
+		if hasattr(config,"app_name"):
+			self.name = config.app_name
 		self.db_path = os.path.join( self.path, self.name+".db" )
 		self.open_db()
-		self.session = Session( self, sid=("sid" in self.query.parms \
-										  and self.query.parms["sid"] or None) )
-		self.config = config
+		sid = None
+		if self.name+".sid" in self.query.parms:
+			sid = self.query.parms[self.name+".sid"]
+		elif "sid" in self.query.parms:
+			sid = self.query.parms["sid"]
+		self.session = Session( self, sid=sid )
 		self.logfile = None
 		if hasattr(config,"logfile"):
 			self.logfile = open( os.path.join(self.path, config.logfile), "a" )
@@ -219,10 +235,14 @@ class Application:
 		self.db.close()
 		self.db = None
 	def log( self, message ):
+		message = str(message).rstrip()
 		if self.logfile:
-			self.logfile.write( time.ctime()+": "+str(message)+"\n" )
+			self.logfile.write( time.ctime()+": "+message+"\n" )
+			self.logfile.flush()
 		else:
 			print( "["+self.name+"] "+message ) # Write to Server log, e.g. /var/log/htpd/error_log
 	def trace( self, message ):
+		message = str(message).rstrip()
 		if self.tracefile:
-			self.tracefile.write( time.ctime()+": "+str(message)+"\n" )
+			self.tracefile.write( time.ctime()+": "+message+"\n" )
+			self.tracefile.flush()

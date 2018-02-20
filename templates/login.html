@@ -4,33 +4,46 @@
 		<meta charset="utf-8" />
 		<title>${app.config.sitename+_(" - Anmeldung")}</title>
 		<link id="main_style" rel="stylesheet" type="text/css" href="" />
-		<script data-main="js/main.js" src="js/require-jquery.js"></script>
+		<script data-main="js/main.js" src="js/require.js"></script>
 		<script>
-			function init()
-			{
+			function init() {
 				$('.menu-login-widget').hide();
-				hide_register()
-				$.get('ems.wsgi?do=status', 
-				function( result )
-				{
-					result = parse_result( result )
-					if( result.login && result.login.nick!='anonymous' )
-					{
-						open_tpl("overview.html")
+				hide_register();
+				var hint = hint=document.location.search.match("[&?]hint=([^&]*)");
+				get_module( "status", {
+					done : function( result ) {
+						result = parse_result( result );
+						if( result.login && result.login.nick!='anonymous' ) {
+							window.setTimeout( function(){open_tpl("overview.html");}, hint ? 5000 : 0 );
+						} else {
+							$("input.login-nick").focus();
+						}
 					}
-					else
-					{
-						$("input.login-nick").focus()
+				});
+				if( hint ) {
+					hint=hint[1];
+					$('.'+hint).show();
+					if( hint == "password-recovery" ) {
+						show_password_recovery();
+						var msid = null;
+						if( msid=document.location.search.match("[&?]msid=([^&]*)") ) {
+							msid=msid[1];
+							$("input.password-recovery-msid").val( msid );
+						}
 					}
-				})
+				}
 			}
 			
-			function show_register_password_match_message() {
+			function show_password_missmatch_message() {
 				show_message( ${_("'Die eingegebenen Passwörter müssen übereinstimmen'")} )
 			}
 			
 			function show_register_submit_message() {
 				show_message( ${_("""'Vielen Dank! Du solltest nun eine Bestätigungsanfrage via E-Mail mit einem Bestätigungslink erhalten. Beim Aufruf des Bestätigungslinks wird dein Zugang aktiviert, sodass du dich einloggen kannst.'""")} )
+			}
+			
+			function show_password_recovery_request_succeeded_message() {
+				show_message( ${_("""'Du solltest nun eine Bestätigungsanfrage via E-Mail mit einem Bestätigungslink erhalten. Beim Aufruf des Bestätigungslinks erhältst du die Möglichkeit dein Passwort zu ändern.'""")} )
 			}
 		</script>
 	</head>
@@ -42,54 +55,162 @@
 			</div>
 		</div>
 		<div class="ems-content ems-login-content">
-			<div class="login-form">
-				<div class="login-nick">
-					<div class="login-nick-label">
-						${_("Benutzername:")}
-					</div>
-					<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
+			<div class="login-hint registration-confirmation-complete" style="display:none" >
+				<div class="login-hint-heading">
+					${_("Registrierung erfolgreich! Bitte logge dich jetzt ein:")}
 				</div>
-				<div class="login-password">
-					<div class="login-password-label">
-						${_("Passwort:")}
-					</div>
-					<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
-				</div>
-				<button class="login-submit" onclick="login()">
-					${_("Anmelden")}
-				</button>
-				<button class="login-register" onclick="show_register()">
-					${_("Noch nicht registriert?")}
-				</button>
 			</div>
-			<div class="register-form" style="display:none">
-				<div class="register-password">
-					<div class="register-password-label">
-						${_("Passwort wiederholen:")}
-					</div>
-					<input type="password" class="register-password"/>
+			
+			<div class="login-hint registration-confirmation-failed" style="display:none" >
+				<div class="login-hint-heading">
+					${_("Die Registrierungsbestätigung hat leider nicht funktioniert. Bitte versuche folgendes:")}
 				</div>
-				<div class="register-email">
-					<div class="register-email-label">
-						${_("E-Mail-Adresse:")}
-					</div>
-					<input type="text" class="register-email"/>
+				<div>
+					${_("1.) Öffne den Bestätigungslink aus der E-Mail in einem neuen Tab des selben Browserfensters, mit dem du auch das Registrierungsformular ausgefüllt hast. Notfalls mit Kopieren und Einfügen.")}
 				</div>
-				<button class="register-submit" onclick="register()">
-					${_("Registrieren")}
-				</button>
-				<div class="register-reconfirm" style="display:none" >
-					<div class="register-reconfirm-message">
-						${_("Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert.")}<br/>
-						${_("Hast du eine Bestätigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Bestätigungslink geklickt?")}<br/>
-						${_("Wenn du möchtest, kannst du die Bestätigungsanfrage nochmal an die oben angegebene Adresse schicken lassen.")}<br/>
+				<div>
+					${_("2.) Erlaube dieser Seite Cookies zu speichern.")}
+				</div>
+				<div>
+					${_("3.) Stelle sicher, dass du den Bestätigungslink aus der neuesten Bestätigungsanfrage verwendest und keinen veralteten.")}
+				</div>
+				<div>
+					${_("4.) Du kannst eine neue Bestätigungsanfrage anfordern, nachdem du Nutzername und Passwort korrekt eingegeben hast:")}
+				</div>
+			</div>
+			
+			<div class="login-hint password-recovery" style="display:none" >
+				<div class="login-hint-heading">
+					${_("Bitte gib deinen bisherigen Nutzernamen und ein NEUES Password an:")}
+				</div>
+			</div>
+			
+			<div class="login-hint password-recovery-succeeded" style="display:none" >
+				<div class="login-hint-heading">
+					${_("Erfolg! Du solltest dich nun mit deinem neuen Passwort einloggen können:")}
+				</div>
+			</div>
+			
+			<div class="login-hint password-recovery-canceled" style="display:none" >
+				<div class="login-hint-heading">
+					${_("Die Anfrage zur Passwortwiederherstellung wurde abgebrochen.")}
+				</div>
+			</div>
+			
+			<div class="login-hint password-recovery-cancel-failed" style="display:none" >
+				<div class="login-hint-heading">
+					${_("Abbruch der Passwortwiederherstellung fehlgeschlagen. Bitte versuche folgendes:")}
+				</div>
+				<div>
+					${_("1.) Logge dich zunächst ein und öffne den Abbruch-Link aus der E-Mail in einem neuen Tab des selben Browserfensters. Notfalls mit Kopieren und Einfügen.")}
+				</div>
+				<div>
+					${_("2.) Erlaube dieser Seite Cookies zu speichern.")}
+				</div>
+				<div>
+					${_("3.) Stelle sicher, dass du den Abbruch-Link aus der neuesten Bestätigungsanfrage verwendest und keinen veralteten.")}
+				</div>
+				<div>
+					${_("4.) Falls du befürchtest, dass jemand versucht deinen Account zu stehlen, wende dich bitte an einen Administrator!")}
+				</div>
+			</div>
+			
+			<div class="login-forms">
+				<div class="login-form">
+					<div class="login-form-entries">
+						<div class="login-nick">
+							<div class="login-nick-label">
+								${_("Benutzername:")}
+							</div>
+							<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
+						</div>
+						<div class="login-password">
+							<div class="login-password-label">
+								${_("Passwort:")}
+							</div>
+							<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
+						</div>
 					</div>
-					<button class="register-reconfirm-submit" onclick="reconfirm()">
-						${_("Bestätigungs-E-Mail nochmal schicken")}
+					<div class="login-form-buttons">
+						<div class="login-form-primary-buttons">
+							<button class="login-submit" onclick="login()">
+								${_("Anmelden")}
+							</button>
+						</div>
+						<div class="login-form-secondary-buttons">
+							<button class="login-register" onclick="show_register()">
+								${_("Noch nicht registriert?")}
+							</button>
+							<button class="login-recover-password" onclick="show_password_recovery_request()">
+								${_("Passwort vergessen?")}
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="password-recovery-request-form" style="display:none">
+					<div class="password-recovery-request-entries">
+						<div class="password-recovery-email">
+							<div class="password-recovery-email-label">
+								${_("E-Mail-Adresse:")}
+							</div>
+							<input type="text" class="password-recovery-email" onkeypress="onenter(event,request_password_recovery)"/>
+						</div>
+					</div>
+					<div class="password-recovery-request-buttons">
+						<button class="password-recovery-request-submit" onclick="request_password_recovery()">
+							${_("Passwortwiederherstellung anfordern")}
+						</button>
+					</div>
+				</div>
+				<div class="password-recovery-form" style="display:none">
+					<div class="password-recovery-entries">
+						<div class="password-recovery-password">
+							<div class="password-recovery-password-label">
+								${_("Passwort wiederholen:")}
+							</div>
+							<input type="password" class="password-recovery-password" onkeypress="onenter(event,execute_password_recovery)"/>
+						</div>
+						<div class="password-recovery-msid">
+							<div class="password-recovery-msid-label">
+								${_("Sicherheits-Code:")}
+							</div>
+							<input type="password" disabled="true" class="password-recovery-msid" onkeypress="onenter(event,execute_password_recovery)"/>
+						</div>
+					</div>
+					<div class="password-recovery-buttons">
+						<button class="password-recovery-submit" onclick="execute_password_recovery()">
+							${_("Passwort ändern")}
+						</button>
+					</div>
+				</div>
+				<div class="register-form" style="display:none">
+					<div class="register-password">
+						<div class="register-password-label">
+							${_("Passwort wiederholen:")}
+						</div>
+						<input type="password" class="register-password" onkeypress="onenter(event,register)"/>
+					</div>
+					<div class="register-email">
+						<div class="register-email-label">
+							${_("E-Mail-Adresse:")}
+						</div>
+						<input type="text" class="register-email" onkeypress="onenter(event,register)"/>
+					</div>
+					<button class="register-submit" onclick="register()">
+						${_("Registrieren")}
 					</button>
+					<div class="register-reconfirm" style="display:none" >
+						<div class="register-reconfirm-message">
+							${_("Deine Zugangsdaten sind korrekt, dein Konto wurde aber eventuell noch nicht aktiviert.")}<br/>
+							${_("Hast du eine Bestätigungsanfrage via E-Mail erhalten und auf den darin enthaltenen Bestätigungslink geklickt?")}<br/>
+							${_("Wenn du möchtest, kannst du die Bestätigungsanfrage nochmal an die oben angegebene Adresse schicken lassen.")}<br/>
+						</div>
+						<button class="register-reconfirm-submit" onclick="reconfirm()">
+							${_("Bestätigungs-E-Mail nochmal schicken")}
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
-		<%include file="/elements/status_box.html" />
 	</body>
 </html>

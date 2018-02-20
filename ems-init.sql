@@ -29,6 +29,56 @@ CREATE INDEX i_permissions_obj_id ON permissions(object_id ASC);
 CREATE TABLE type_hierarchy (base_type TEXT, derived_type TEXT, UNIQUE (base_type, derived_type) ON CONFLICT REPLACE);
 CREATE INDEX i_typehier_base ON type_hierarchy(base_type ASC);
 CREATE INDEX i_typehier_derived ON type_hierarchy(derived_type ASC);
+CREATE TABLE `player_positions` (
+	`object_id`	INTEGER NOT NULL,
+	`x`	INTEGER NOT NULL DEFAULT '0',
+	`y`	INTEGER NOT NULL DEFAULT '0'
+);
+CREATE TABLE `keywords` (
+	`key_id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	`word`	TEXT NOT NULL,
+	`object_id`	INTEGER NOT NULL,
+	`pos`	INTEGER NOT NULL DEFAULT '0',
+	`rank`	INTEGER NOT NULL DEFAULT '1',
+	`scan_source`	TEXT,
+	`scan_time`	INTEGER
+);
+CREATE INDEX i_keywords_word ON keywords(word ASC);
+CREATE INDEX i_keywords_object_id ON keywords(object_id ASC);
+CREATE INDEX i_keywords_scan_source ON keywords(scan_source ASC);
+CREATE TABLE `file_transfers` (
+	`object_id`	INTEGER NOT NULL UNIQUE,
+	`chunk_count`	INTEGER NOT NULL,
+	`byte_count`	INTEGER NOT NULL,
+	`expected_size`	INTEGER NOT NULL,
+	`start_time`	INTEGER,
+	`end_time`	INTEGER,
+	`source`	TEXT,
+	`destination`	TEXT,
+	PRIMARY KEY(object_id)
+);
+CREATE TABLE `substitutes` (
+	`original_id`	INTEGER NOT NULL,
+	`substitute_id`	INTEGER NOT NULL,
+	`type`	TEXT NOT NULL,
+	`size`	INTEGER NOT NULL,
+	`priority`	INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX `i_substitutes_original_id` ON `substitutes` (`original_id` );
+CREATE TABLE "chess_games" (
+	`id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	`game_id`	NUMERIC,
+	`player_id`	NUMERIC,
+	`mtime`	NUMERIC,
+	`figure`	NUMERIC,
+	`from_field`	NUMERIC,
+	`to_field`	NUMERIC
+);
+CREATE TABLE "image_info" (
+	`object_id`	INTEGER NOT NULL UNIQUE,
+	`rotation`	INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX `i_image_info_id` ON `image_info` (`object_id` ASC);
 
 INSERT INTO objects (id,type) VALUES(1,'application/x-obj.group');
 INSERT INTO groups (object_id,name,description) VALUES(1,'root','Root object for everything else');

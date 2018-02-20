@@ -33,8 +33,10 @@ ems/
             entry.js : entry handling (get, store, display)
             localization.js : translations and related code
             login.js : login specific code
-            main.js : RequireJS main file, used to include the rest of the code
-            require-jquery.js : combination of JQuery and RequireJS libraries
+            main.js : RequireJS main file, currently used to include the rest of the code
+            require.js : RequireJS library
+            jquery.js : jQuery libary
+            jquery.cookie.js : jQuery Cookie Plugin
             util.js : some generic routines used throughout the code
         ems.wsgi : application entry point (FIXME: should this be here?)
         index.html : redirects to overview template
@@ -45,17 +47,17 @@ ems/
 
 Installation
 ~~~~~~~~~~~~
-- install Python 3
-- install the Mako template library (http://www.makotemplates.org/) for Python 3
-- setup a webserver with a Python 3 WSGI component
-    - e.g. Apache/mod_wsgi, nginx/uwsgi_python32
+- Requirements:
+    - Python 3
+    - the Mako template library (http://www.makotemplates.org/) for Python 3
+    - a webserver with a Python 3 WSGI component
+        - e.g. Apache/mod_wsgi, nginx/uwsgi_python32
 - make webroot/ accessable by your webserver
-    - apache example:
+    - apache(version 2.4) example:
         <Directory "/path/to/ems/webroot">
             Options Indexes FollowSymLinks
             AllowOverride None
-            Order allow,deny
-            Allow from all
+            Require all granted
         </Directory>
         Alias "/ems" "/path/to/ems/webroot"
     - nginx example:
@@ -86,3 +88,10 @@ Installation
     cat ems-init.sql |sqlite3 ${EMS_PATH)/ems.db
 - create ${EMS_PATH}/config.py (see config.py.example)
 
+
+Notes:
+    - make sure that the user that runs the webserver has sufficient privileges on the ems directory
+          - after some trouble i moved the whole ems diretory tree from inside my home to a different location and recursively changed the ownership of the tree
+              mv /home/my-user/ems /ems
+              chown -R http:http /ems
+    - the default password for the admin user is "admin"

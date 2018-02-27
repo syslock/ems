@@ -58,7 +58,59 @@ class DBObject:
 		else:
 			raise errors.ParameterError( "Cannot create anonymous object without parent" )
 	
+	def select( self, **keyargs ):
+		inclusions = {}
+		exclusions = {}
+		for key in keyargs:
+			if key.startswith( "not_" ):
+				_key = key[ key.find("_")+1 : ]
+				exclusions[ _key ] = keyargs[key]
+			else:
+				inclusions[ key ] = keyargs[key]
+		sql_cond = ""
+		for name in ("inclusions", "exclusions"):
+			l = locals()[name]
+			if len(l):
+				if name=="inclusions":
+					sql_cond += " and ("
+				else:
+					sql_cond += " and not ("
+				for i, key in enumerate(l):
+					patterns = l[key]
+					patterns = patterns if type(patterns)==list else [patterns]
+					for j, pattern in enumerate(patterns):
+						if i+j>0:
+							sql_cond += " or"
+						sql_cond += " %s like '%s'" % ( key, pattern.replace("'","''") )
+				sql_cond += " )"
+		c = self.app.db.cursor()
+		stmt = """select child_id from objects inner join membership m on m.child_id=id where m.parent_id=?"""+sql_cond
+		c.execute( stmt, [self.id] )
+		result = []
+		for row in c:
+			result.append( row[0] )
+		return result
+	
+	def flat_copy( self, new_parent_id, include=None, exclude=None ):
+		# FIXME: should flat_copy instantiate an object of the best matching type in type hierarchy?
+		new_object = DBObject( self.app, parent_id=new_parent_id, media_type=self.media_type )
+		c = self.app.db.cursor()
+		c.execute( """select data from titles where object_id=?""", [self.id] )
+		result = c.fetchone()
+		if result and result[0]:
+			new_object.update( title=result[0] )
+		for child_id in self.children:
+			if include!=None and child_id not in include:
+				continue
+			if exclude!=None and child_id in exclude:
+				continue
+			# silently ignore child objects the current user can not write:
+			if self.app.user.can_write( child_id ):
+				DBObject( self.app, object_id=child_id ).update( parent_id=new_object.id )
+		return new_object
+	
 	def update( self, **keyargs ):
+		# FIXME: should update throw an error on unhandled keyargs? overrides would have to prevent that, by filtering custom keyargs!
 		if not self.app.user.can_write( self.id ):
 			raise errors.PrivilegeError()
 		sequence = 0
@@ -227,6 +279,46 @@ class DBObject:
 			c.execute( """insert into permissions (subject_id, object_id, access_mask) values (?,?,%(access_mask)d)""" \
 							% locals(), [self.id, object_id] )
 			self.app.db.commit()
+	
+	@classmethod
+	def delete_in_unsafe( cls, app, object_id_list ):
+		in_list = ",".join( [str(x) for x in object_id_list] )
+		c = app.db.cursor()
+		c.execute( """delete from objects where id in (%(in_list)s)""" % locals() )
+		app.db.commit()
+		# FIXME: Alles folgende ist eigentlich nur nötig, wenn das Backend die 
+		# Foreign-Key-Constraints nicht unterstützt. Wie stellen wir das fest?
+		c.execute( """delete from membership where child_id in (%(in_list)s) or parent_id in (%(in_list)s)""" % locals() )
+		c.execute( """delete from users where object_id in (%(in_list)s)""" % locals() )
+		c.execute( """delete from text where object_id in (%(in_list)s)""" % locals() )
+		c.execute( """delete from titles where object_id in (%(in_list)s)""" % locals() )
+		c.execute( """delete from permissions where object_id in (%(in_list)s) or subject_id in (%(in_list)s)""" % locals() )
+		app.db.commit()
+	
+	@classmethod
+	def delete_in( cls, app, object_id_list, parent_id=None ):
+		if not parent_id:
+			for object_id in object_id_list:
+				if not app.user.can_delete( object_id ):
+					raise errors.PrivilegeError( "%d cannot delete %d" % (app.user.id, object_id) )
+			DBObject.delete_in_unsafe( app, object_id_list )
+		else:
+			for object_id in object_id_list:
+				if not app.user.can_write( object_id ):
+					raise errors.PrivilegeError( "%d cannot write %d" % (app.user.id, object_id) )
+			if not app.user.can_write( parent_id ):
+				raise errors.PrivilegeError( "%d cannot write %d" % (app.user.id, parent_id) )
+			# angegebene Mitgliedschaften löschen
+			in_list = ",".join( [str(x) for x in object_id_list] )
+			c = app.db.cursor()
+			c.execute( """delete from membership where child_id in (%(in_list)s) and parent_id=?""" % locals(), [parent_id] )
+			app.db.commit()
+			# neu erzeugte Zombie-Objekte finden und komplett löschen (Rechte haben wir oben bereits geprüft)
+			c.execute( """select id from objects o left join membership m on o.id=m.child_id where o.id in (%(in_list)s) and m.child_id is null""" % locals() )
+			delete_list = []
+			for row in c:
+				delete_list.append( row[0] )
+			DBObject.delete_in_unsafe( app, delete_list )
 
 
 def get_root_object( app ):
@@ -241,9 +333,20 @@ def get_root_object( app ):
 
 class Group( DBObject ):
 	media_type = "application/x-obj.group"
+	
 	def __init__( self, app, **keyargs ):
 		keyargs["media_type"] = self.media_type
 		super().__init__( app, **keyargs )
+	
+	def flat_copy( self, new_parent_id ):
+		new_object = super().flat_copy( new_parent_id )
+		c = self.app.db.cursor()
+		c.execute( """select name, description from groups where object_id=?""", [self.id] )
+		result = c.fetchone()
+		if result:
+			new_object.update( name=result[0], description=result[1] )
+		return new_object
+	
 	def update( self, **keyargs ):
 		super().update( **keyargs )
 		update_fields = []
@@ -296,6 +399,14 @@ class Text( DBObject ):
 			data = result[0]
 		data = data or "" # Nicht None zurück geben, um andere Programmteile nicht zu verwirren...
 		return data
+	def flat_copy( self, new_parent_id ):
+		# FIXME: should flat_copy instantiate an object of the best matching type in type hierarchy?
+		new_object = Text( app=self.app, object_id=super().flat_copy(new_parent_id).id )
+		c = self.app.db.cursor()
+		c.execute( """select data from text where object_id=?""", [self.id] )
+		result = c.fetchone()
+		if result:
+			new_object.update( data=result[0] )
 
 
 class HTML( Text ):
@@ -324,6 +435,9 @@ class Minion( Text ):
 		return result
 
 
+# FIXME: This is broken and should either be discarded or replaced by a generic class 
+#        for table based object extensions that is not restricted to user objects only.
+#        (used by iswi/profile.py)
 class UserAttributes( DBObject ):
 	"""Abstrakte Basisklasse, für nutzerspezifische Zusatzattribute, wie z.b.
 		Profildaten etc.; Implementierungen benötigen die Klassenattribute
@@ -344,6 +458,10 @@ class UserAttributes( DBObject ):
 			c.execute( """insert into """+self.table+""" (object_id, user_id) 
 							values(?,?)""", [self.id, self.user.id] )
 		app.db.commit()
+	
+	def flat_copy( self, new_parent_id ):
+		raise NotImplementedError()
+	
 	def update( self, **keyargs ):
 		super().update( **keyargs )
 		update_fields = []
@@ -364,6 +482,7 @@ class UserAttributes( DBObject ):
 			# FIXME: security issue? UserAttributes are as public as the User itself is...
 			for i in range(len(update_fields)):
 				self.index( data=update_values[i], source="user."+update_fields[i], rank=2 )
+	
 	def get( self, query, obj ):
 		requested_fields = []
 		valid_fields = ["user_id"] + list(self.valid_fields)

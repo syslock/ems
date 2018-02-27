@@ -25,6 +25,10 @@ class File( db_object.DBObject ):
 				self.media_type = File.base_type
 				c = self.app.db.cursor()
 				c.execute( """update objects set type=? where id=?""", [self.media_type, self.id] )
+	
+	def flat_copy( self, new_parent_id ):
+		raise NotImplementedError()
+	
 	@classmethod
 	def supports( cls, app, file_type ):
 		if file_type==cls.base_type:
@@ -34,6 +38,7 @@ class File( db_object.DBObject ):
 			c.execute( """select base_type, derived_type from type_hierarchy where base_type=? and derived_type=?""", [cls.base_type, file_type] )
 			result = c.fetchone()
 			return result!=None
+	
 	def update( self, **keyargs ):
 		super().update( **keyargs )
 		if "data" in keyargs and keyargs["data"]!=None:
@@ -66,11 +71,13 @@ class File( db_object.DBObject ):
 				f = open( self.storage_path, "wb" )
 				shutil.copyfileobj( keyargs["data"], f )
 				f.close()
+	
 	def get_size( self ):
 		try:
 			return os.stat( self.storage_path ).st_size
 		except FileNotFoundError as e:
 			return None
+	
 	def get_data( self, meta_obj=None, attachment=False, type_override=None ):
 		# Caching für Dateien erlauben:
 		self.app.response.caching = True
@@ -112,6 +119,7 @@ class File( db_object.DBObject ):
 					full_size = self.get_size()
 					self.app.response.content_range = "bytes %d-%d/%d" % (full_size-stop,full_size-1,full_size)
 		return result
+	
 	def identify( self ):
 		def populate_dict( dict, path, value, delim="." ):
 			key_parts = path.split(delim)
@@ -193,12 +201,15 @@ class File( db_object.DBObject ):
 		else:
 			raise NotImplementedError( "unsupported media type: "+self.media_type )
 
+
 class Image( File ):
 	def __init__( self, app, **keyargs ):
 		super().__init__( app, **keyargs )
+	
 	@classmethod
 	def supports( cls, app, file_type ):
 		return file_type.startswith( "image/" )
+	
 	def update( self, **keyargs ):
 		super().update( **keyargs )
 		if "rotation" in keyargs and keyargs["rotation"]!=None:
@@ -211,6 +222,7 @@ class Image( File ):
 			else:
 				c.execute( """insert into image_info (object_id,rotation) values (?,?)""", [self.id, round(float(keyargs["rotation"]))] )
 				self.app.db.commit()
+	
 	def get_rotation( self ):
 		c = self.app.db.cursor()
 		c.execute( """select rotation from image_info where object_id=?""", [self.id] )

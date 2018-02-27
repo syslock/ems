@@ -28,6 +28,9 @@ class User( db_object.DBObject ):
 			except sqlite3.IntegrityError as e:
 				raise Exception( "Nick already in use" )
 	
+	def flat_copy( self, new_parent_id ):
+		raise NotImplementedError()
+	
 	def status( self ):
 		result = {}
 		c = self.app.db.cursor()
@@ -112,8 +115,10 @@ class User( db_object.DBObject ):
 	
 	def can_read( self, object_id=None, limit=None ):
 		return self.can_access( object_id, "read", limit=limit )
+	
 	def can_write( self, object_id=None, limit=None ):
 		return self.can_access( object_id, "write", limit=limit )
+	
 	def can_delete( self, object_id, limit=None ):
 		"""Ein Objekt ist löschbar, wenn es selbst und alle Eltern schreibbar sind."""
 		c = self.app.db.cursor()
@@ -128,6 +133,7 @@ class User( db_object.DBObject ):
 			parent_id = row[0]
 			deletable = deletable and self.can_write( parent_id, limit=limit )
 		return deletable and has_parent
+	
 	def can_access( self, object_id, access_type, limit=None ):
 		access_key = (self.id, object_id, access_type)
 		if access_key not in self.app.access_cache:
@@ -135,6 +141,7 @@ class User( db_object.DBObject ):
 			self.app.trace( "can_access: "+str(access_key)+" "+str(self.app.access_cache[access_key]) )
 			self.app.trace( "access_cache size: "+str(len(self.app.access_cache)) )
 		return self.app.access_cache[ access_key ]
+	
 	def _can_access( self, object_id, access_type, limit=None ):
 		if access_type not in self.ACCESS_MASKS:
 			raise NotImplementedError( "Unsupported access_type" )
@@ -211,6 +218,7 @@ class User( db_object.DBObject ):
 					break
 			return result
 		return False
+
 
 class SpecialUser( User ):
 	def __init__( self, app, nick ):

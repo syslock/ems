@@ -7,9 +7,6 @@ from lib import db_object
 db_object = imp.reload( db_object )
 from lib import files
 files = imp.reload( files )
-# FIXME: Löschenfunktion nach DBObject ausmodularisieren:
-from modules import delete as delete_module
-delete_module = imp.reload( delete_module )
 # FIXME: Objektbeschreibungsfunktion nach DBObject ausmodularisieren:
 from modules import get as get_module
 get_module = imp.reload( get_module )
@@ -136,7 +133,7 @@ def process( app ):
 							# Privilege-Escalation damit nicht nur der Eigentümer des Target-Objekts diesen Code ausführen kann:
 							app_old_user = app.user
 							app.user = user.get_admin_user(app)
-							delete_module.delete_in( app, [new_obj.id] )
+							db_object.DBObject.delete_in( app, [new_obj.id] )
 							app.user = app_old_user
 							os.remove( new_tmp_name )
 							c = app.db.cursor()

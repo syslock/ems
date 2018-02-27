@@ -10,3 +10,7 @@ phpbb_images/
 webroot/tango-scalable/
 stream-tests/
 ignore/
+__pycache__/*
+lib/__pycache__/*
+*.log
+*.trace

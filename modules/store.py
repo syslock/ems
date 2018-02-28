@@ -136,6 +136,7 @@ def store_object( app, file_item=None ):
 			elif media_type == db_object.Minion.media_type:
 				obj = db_object.Minion( app, object_id=object_id, parent_id=parent_id, sequence=sequence )
 			else:
+				# FIXME: use DBObject.create_typed_object()?
 				obj = db_object.DBObject( app, object_id=object_id, 
 										parent_id=parent_id, 
 										media_type=media_type,

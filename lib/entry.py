@@ -4,6 +4,7 @@ errors = imp.reload( errors )
 from lib import db_object
 db_object = imp.reload( db_object )
 
+
 class Entry( db_object.DBObject ):
 	media_type = "application/x-obj.entry"
 	def __init__( self, app, **keyargs ):
@@ -22,11 +23,12 @@ class Entry( db_object.DBObject ):
 		c.execute( """update objects set type='application/x-obj.draft' where id=?""", [draft.id] )
 		self.app.db.commit()
 		for orig_child_id in self.select( not_type=reference_types+['application/x-obj.draft'] ):
-			# FIXME: DBObject needs a factory method that knows about child classes and can return an instance of the best matching child class!
-			orig_child = db_object.DBObject( app=self.app, object_id=orig_child_id )
+			orig_child = db_object.DBObject.create_typed_object( app=self.app, object_id=orig_child_id )
 			draft_child = orig_child.flat_copy( new_parent_id=draft.id )
 		return Draft( app=self.app, object_id=draft.id )
-			
+db_object.DBObject.register_class( Entry )
+
+
 class Draft( Entry ):
 	media_type = "application/x-obj.draft"
 	def __init__( self, app, **keyargs ):
@@ -81,3 +83,4 @@ class Draft( Entry ):
 			c2.execute( """insert into membership parent_id, child_id, sequence values (?,?,?)""", [parent_id,row[0],row[1]] )
 			self.app.db.commit()
 		db_object.DBObject.delete_in( self.app, object_id_list=[self.id], parent_id=parent_id )
+db_object.DBObject.register_class( Draft )

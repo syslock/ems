@@ -218,6 +218,7 @@ class User( db_object.DBObject ):
 					break
 			return result
 		return False
+db_object.DBObject.register_class( User )
 
 
 class SpecialUser( User ):

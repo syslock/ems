@@ -28,3 +28,4 @@ class Publication( db_object.DBObject ):
 			return None
 		else:
 			return result[0]
+db_object.DBObject.register_class( Publication )

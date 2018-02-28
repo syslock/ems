@@ -58,6 +58,27 @@ class DBObject:
 		else:
 			raise errors.ParameterError( "Cannot create anonymous object without parent" )
 	
+	class_register = {}
+	
+	@classmethod
+	def register_class( cls, new_class ):
+		DBObject.class_register[ new_class.media_type ] = new_class
+		
+	@classmethod
+	def create_typed_object( cls, app, object_id=None, parent_id=None, media_type=None, sequence=0 ):
+		if media_type == None:
+			if object_id != None:
+				c = app.db.cursor()
+				c.execute( """select type from objects where id=?""", [object_id] )
+				media_type = c.fetchone()[0]
+			else:
+				raise errors.ParameterError( """create_typed_object needs object_id or media_type""" )
+		if media_type in DBObject.class_register:
+			selected_class = DBObject.class_register[ media_type ]
+		else:
+			selected_class = DBObject
+		return selected_class( app=app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )
+	
 	def select( self, **keyargs ):
 		inclusions = {}
 		exclusions = {}
@@ -92,8 +113,7 @@ class DBObject:
 		return result
 	
 	def flat_copy( self, new_parent_id, include=None, exclude=None ):
-		# FIXME: should flat_copy instantiate an object of the best matching type in type hierarchy?
-		new_object = DBObject( self.app, parent_id=new_parent_id, media_type=self.media_type )
+		new_object = DBObject.create_typed_object( app=self.app, parent_id=new_parent_id, media_type=self.media_type )
 		c = self.app.db.cursor()
 		c.execute( """select data from titles where object_id=?""", [self.id] )
 		result = c.fetchone()
@@ -367,6 +387,7 @@ class Group( DBObject ):
 							[keyargs[field], self.id] )
 			self.app.db.commit()
 			self.index( data=keyargs[field], source="group."+field, rank=2 )
+DBObject.register_class( Group )
 
 
 class Text( DBObject ):
@@ -400,13 +421,13 @@ class Text( DBObject ):
 		data = data or "" # Nicht None zurück geben, um andere Programmteile nicht zu verwirren...
 		return data
 	def flat_copy( self, new_parent_id ):
-		# FIXME: should flat_copy instantiate an object of the best matching type in type hierarchy?
-		new_object = Text( app=self.app, object_id=super().flat_copy(new_parent_id).id )
+		new_object = super().flat_copy( new_parent_id )
 		c = self.app.db.cursor()
 		c.execute( """select data from text where object_id=?""", [self.id] )
 		result = c.fetchone()
 		if result:
 			new_object.update( data=result[0] )
+DBObject.register_class( Text )
 
 
 class HTML( Text ):
@@ -423,6 +444,7 @@ class HTML( Text ):
 		for pair in reversed(self.app.query.XML_FIXES):
 			result = result.replace( pair[1], pair[0] )
 		return result
+DBObject.register_class( HTML )
 
 
 class Minion( Text ):
@@ -433,6 +455,7 @@ class Minion( Text ):
 	def get_data( self, **keyargs ):
 		result = super().get_data( **keyargs )
 		return result
+DBObject.register_class( Minion )
 
 
 # FIXME: This is broken and should either be discarded or replaced by a generic class 
@@ -501,3 +524,4 @@ class UserAttributes( DBObject ):
 		for i in range(len(result)):
 			obj[ requested_fields[i] ] = result[i]
 		return obj
+#DBObject.register_class( UserAttributes )

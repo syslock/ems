@@ -419,6 +419,7 @@ function show_object( parms ){
 				show_error( url );
 				return false;
 			});
+			$(parent.dom_object).find('.entry-link-button').hide();
 		}
 	} else if( dom_parent && obj.id ) {
 		var download_link = create_download( obj );

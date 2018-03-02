@@ -42,6 +42,7 @@ search_type_alias = {
 	"audio" : "audio/%",
 	"image" : "image/%",
 	"entry" : "application/x-obj.entry",
+	"draft" : "application/x-obj.draft",
 	"minion" : "application/x-obj.minion",
 	"publication" : "application/x-obj.publication",
 	"tag" : "application/x-obj.tag",

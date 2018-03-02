@@ -140,13 +140,23 @@ Entry.prototype.edit = function() {
 	var my = this;
 	$(my.entry).addClass("new-entry");
 	
+	var new_title = false;
 	if( my.title ) {
 		my.title.contentEditable = true
-		if( my.title.innerHTML.length==0 || !my.content ) my.title.focus()
+		my.title.focus();
+		if( my.title.innerHTML.length==0 ) {
+			// Create selection with ellipsis within emtpy title fields:
+			new_title = true;
+			var range = get_element_cursor_range();
+			range.insertNode( new Text("...") );
+			var sel = window.getSelection();
+			sel.removeAllRanges();
+			sel.addRange( range );
+		}
 	}
 	if( my.content ) {
 		my.content.contentEditable = true
-		if( my.title.innerHTML.length>0 ) my.content.focus();
+		if( !new_title ) my.content.focus();
 		
 		$('.objref', my.content).each( function(i, element) {
 			new UploadDialog( {replace_content: $(element).children().first()} );

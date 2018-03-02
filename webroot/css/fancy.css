@@ -189,30 +189,52 @@ select {
 .entry-title-label {
 	display: none;
 }
-.entry-title-line{
+.entry-title-line {
 	display: block;
 }
 .entry-title {
-	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
+	display: inline; /* Elemente der Titelzeile sollen nebeneinander angeordnet sein */
 	font-weight: bold;
 	text-decoration: underline;
+	margin-bottom: 10px;
 	padding: 2px;
-	padding-bottom: 10px;
 	border: 2px solid transparent;
 }
+.new-entry .entry-title {
+	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
+	padding: 3px;
+	border: 1px dotted grey;
+}
 .entry-title:focus {
+	padding: 2px;
 	border: 2px solid orange;
 }
-.entry-publication {
+.entry-status-notification {
 	display: none;
-	position: relative;
 	float:right;
-	top: -2em;
-	background-color: rgba(255,255,255,0.9);
-	border-radius: 5px;
+	background-color: rgba(255,255,255,0.1);
+	border: 1px solid grey;
+	border-radius: 2mm;
+	padding: 1mm;
+	margin-left: 0.5em;
 }
-.entry-publication-active {
+.entry-status-notification-active {
+	display: inline; /* Elemente der Titelzeile sollen nebeneinander angeordnet sein */
+}
+.entry-status-notification-symbol {
+	height: 1.5em;
+	vertical-align: bottom;
+}
+.entry-draft-notification {
+	background-color: rgba(255,128,0,0.1);
+	border: 1px solid orange;
+}
+.entry-draft-notification-label {
 	display: inline;
+}
+.entry-publication-notification {
+	background-color: rgba(0,0,255,0.1);
+	border: 1px solid blue;
 }
 .entry-time {
 	display: inline-block;
@@ -261,7 +283,12 @@ select {
 	padding: 2px;
 	border: 2px solid transparent;
 }
+.new-entry .entry-content {
+	padding: 3px;
+	border: 1px dotted grey;
+}
 .entry-content:focus {
+	padding: 2px;
 	border: 2px solid orange;
 }
 .entry-tools {

@@ -407,8 +407,8 @@ function show_object( parms ){
 		}
 	} else if ( obj.type && obj.type=="application/x-obj.publication" ) {
 		if( parent ) {
-			obj.dom_object = $(parent.dom_object).find('.entry-publication')[0];
-			$(obj.dom_object).addClass('entry-publication-active');
+			obj.dom_object = $(parent.dom_object).find('.entry-publication-notification')[0];
+			$(obj.dom_object).addClass('entry-status-notification-active');
 			$(obj.dom_object).data( {obj: obj} );
 			var pub_link_obj = $('.entry-publication-link', obj.dom_object)[0];
 			var entry_id = parent.obj.id;
@@ -420,6 +420,12 @@ function show_object( parms ){
 				return false;
 			});
 			$(parent.dom_object).find('.entry-link-button').hide();
+		}
+	} else if ( obj.type && obj.type=="application/x-obj.draft" ) {
+		if( parent ) {
+			obj.dom_object = $(parent.dom_object).find('.entry-draft-notification')[0];
+			$(obj.dom_object).addClass('entry-status-notification-active');
+			$(obj.dom_object).data( {obj: obj} );
 		}
 	} else if( dom_parent && obj.id ) {
 		var download_link = create_download( obj );

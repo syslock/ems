@@ -136,12 +136,15 @@ class DBObject:
 		sequence = 0
 		if "sequence" in keyargs and keyargs["sequence"]!=None:
 			sequence = keyargs["sequence"]
+		c = self.app.db.cursor()
 		media_type = None
 		if "media_type" in keyargs and keyargs["media_type"]!=None:
 			media_type = keyargs["media_type"]
 			if media_type!=self.media_type:
-				raise NotImplementedError( "Cannot change media type" )
-		c = self.app.db.cursor()
+				c.execute( """update objects set type=? where id=?""", [media_type, self.id] )
+				self.app.db.commit()
+				self.media_type = media_type
+				self.index( data=self.media_type, source="type", rank=1 )
 		parent_id = None
 		if "parent_id" in keyargs and keyargs["parent_id"]!=None:
 			parent_id = keyargs["parent_id"]

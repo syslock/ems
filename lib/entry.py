@@ -20,8 +20,7 @@ class Entry( db_object.DBObject ):
 			raise NotImplementedError( "Tried to create more than one draft for an entry" )
 		reference_types = [ 'application/x-obj.tag', 'application/x-obj.publication' ]
 		draft = self.flat_copy( new_parent_id=self.id, include=self.select(type=reference_types) )
-		c.execute( """update objects set type='application/x-obj.draft' where id=?""", [draft.id] )
-		self.app.db.commit()
+		draft.update( media_type='application/x-obj.draft' )
 		for orig_child_id in self.select( not_type=reference_types+['application/x-obj.draft'] ):
 			orig_child = db_object.DBObject.create_typed_object( app=self.app, object_id=orig_child_id )
 			draft_child = orig_child.flat_copy( new_parent_id=draft.id )

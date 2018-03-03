@@ -163,7 +163,7 @@ function create_download( obj ) {
 		target: '_blank', title: prettyprint_title(obj)+' herunterladen...', 
 		class: 'ems-item download-link', download: prettyprint_title(obj)
 	}).append( $('<img />').attr({ 
-		src: 'tango-scalable/actions/document-save.svg', 
+		src: 'tango-scalable/actions/go-down.svg', 
 		class: 'download-icon' 
 	}));
 	link.append( '<div class="download-title">'+obj.title+'</div><div class="download-size">('+prettyprint_size(obj.size)+')</div>' );

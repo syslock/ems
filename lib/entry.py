@@ -79,7 +79,7 @@ class Draft( Entry ):
 		c.execute( """select child_id,sequence from membership where parent_id=?""", [self.id] )
 		for row in c:
 			c2 = self.app.db.cursor()
-			c2.execute( """insert into membership parent_id, child_id, sequence values (?,?,?)""", [parent_id,row[0],row[1]] )
+			c2.execute( """insert into membership (parent_id, child_id, sequence) values (?,?,?)""", [parent_id,row[0],row[1]] )
 			self.app.db.commit()
 		db_object.DBObject.delete_in( self.app, object_id_list=[self.id], parent_id=parent_id )
 db_object.DBObject.register_class( Draft )

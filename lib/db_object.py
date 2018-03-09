@@ -54,11 +54,11 @@ class DBObject:
 		else:
 			raise errors.ParameterError( "Cannot create anonymous object without parent" )
 	
-	class_register = {}
+	class_registry = {}
 	
 	@classmethod
 	def register_class( cls, new_class ):
-		DBObject.class_register[ new_class.media_type ] = new_class
+		DBObject.class_registry[ new_class.media_type ] = new_class
 		
 	@classmethod
 	def create_typed_object( cls, app, object_id=None, parent_id=None, media_type=None, sequence=0 ):
@@ -69,8 +69,8 @@ class DBObject:
 				media_type = c.fetchone()[0]
 			else:
 				raise errors.ParameterError( """create_typed_object needs object_id or media_type""" )
-		if media_type in DBObject.class_register:
-			selected_class = DBObject.class_register[ media_type ]
+		if media_type in DBObject.class_registry:
+			selected_class = DBObject.class_registry[ media_type ]
 		else:
 			selected_class = DBObject
 		return selected_class( app=app, object_id=object_id, parent_id=parent_id, media_type=media_type, sequence=sequence )

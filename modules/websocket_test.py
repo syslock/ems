@@ -1,8 +1,6 @@
-import imp, threading, time
+import threading, time
 from lib import websocket
-websocket = imp.reload( websocket )
 from lib import errors
-errors = imp.reload( errors )
 
 def process( app ):
 	if websocket.WebSocket.can_handle( app.query ):

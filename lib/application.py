@@ -4,9 +4,7 @@ import config
 config = imp.reload( config ) # DEBUG? 
 # Es muss einen Weg geben die Konfiguration auf Befehl neu einzulesen...
 from lib import errors
-errors = imp.reload( errors ) # DEBUG?
 from lib import user
-user = imp.reload( user )
 
 class Request:
 	"""Implementiert Parameterübergabe an die Webanwendung"""

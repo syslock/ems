@@ -1,6 +1,5 @@
-import imp, itertools, json
+import itertools, json
 from lib import user
-user = imp.reload( user )
 
 def process( app ):
 	query = app.query

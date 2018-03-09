@@ -1,10 +1,6 @@
-import time, imp
+import time
 from lib import errors
-errors = imp.reload( errors )
 from lib import lexer
-lexer = imp.reload( lexer )
-from lib import files
-#files = imp.reload( files )
 
 class DBObject:
 	def __init__( self, app, object_id=None, parent_id=None, 
@@ -242,6 +238,7 @@ class DBObject:
 		for row in c:
 			parent_id = row[0]
 			curr_parent_type = row[1]
+			from lib import files
 			if not parent_type_set or curr_parent_type in parent_type_set or "file" in parent_type_set and files.File.supports(self.app, curr_parent_type):
 				result += [parent_id]
 			if parent_id not in cache:
@@ -264,6 +261,7 @@ class DBObject:
 		for row in c:
 			child_id = row[0]
 			curr_child_type = row[1]
+			from lib import files
 			if not child_type_set or curr_child_type in child_type_set or "file" in child_type_set and files.File.supports(self.app, curr_child_type):
 				result += [child_id]
 			if child_id not in cache:

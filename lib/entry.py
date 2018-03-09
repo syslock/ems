@@ -1,8 +1,5 @@
-import imp
 from lib import errors
-errors = imp.reload( errors )
 from lib import db_object
-db_object = imp.reload( db_object )
 
 
 class Entry( db_object.DBObject ):

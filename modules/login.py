@@ -1,10 +1,6 @@
-import imp
 from lib import password
-password = imp.reload( password )
 from lib import user
-user = imp.reload( user )
 from lib import application
-application = imp.reload( application )
 
 def process( app ):
 	"""Autorisierung der Session eines gültigen Nutzers, sonst Ausnahme"""

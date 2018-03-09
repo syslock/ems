@@ -1,6 +1,4 @@
-import imp
 from lib import db_object
-db_object = imp.reload( db_object )
 
 class Contact( db_object.UserAttributes ):
 	table = "contacts"

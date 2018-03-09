@@ -1,12 +1,9 @@
-import imp, smtplib, sqlite3, json, traceback
+import smtplib, sqlite3, json, traceback
 from email.mime.text import MIMEText
 
 from lib import application
-application = imp.reload( application ) # DEBUG
 from lib import user
-user = imp.reload( user ) # DEBUG
 from modules import login
-login = imp.reload( login ) # DEBUG
 
 
 def process( app ):

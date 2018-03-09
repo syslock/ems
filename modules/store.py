@@ -1,14 +1,9 @@
-import time, imp, itertools, cgi, json
+import time, itertools, cgi, json
 from lib import user
-user = imp.reload( user )
 from lib import errors
-errors = imp.reload( errors )
 from lib import db_object
-db_object = imp.reload( db_object )
 from lib import publication
-publication = imp.reload( publication )
 from lib import files
-files = imp.reload( files )
 
 def process( app ):
 	"""Speichert neue Datenobjekte (Texte bzw. Textbestandteile, später evtl. 
@@ -94,7 +89,7 @@ def store_object( app, file_item=None ):
 			sequence = int( query.parms["sequence"] )
 		store_id_list = []
 		for object_id in object_id_list:
-			# Falls wir mehrere Objekt-IDs unter einer Parent-ID gespeichert werden sollen,
+			# Falls mehrere Objekt-IDs unter einer Parent-ID gespeichert werden sollen,
 			# können die einzelnen Objekt-Medientypen abweichen, weshalb bei solchen
 			# Requests kein Medientyp mitgegeben und dieser für die einzelnen Objekte
 			# aus der Datenbank abgefragt wird.

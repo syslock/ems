@@ -1,12 +1,8 @@
-import imp, re, json, datetime
+import re, json, datetime
 from lib import db_object
-db_object = imp.reload( db_object )
 from lib import errors
-errors = imp.reload( errors )
 from lib import files
-files = imp.reload( files )
 from modules import get
-get = imp.reload( get )
 
 def process( app ):
 	q = app.query

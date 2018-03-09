@@ -1,9 +1,8 @@
-import imp, os
+import os
 from mako.template import Template
 from mako.lookup import TemplateLookup
 import mako.exceptions
 from lib import errors
-errors = imp.reload( errors )
 
 # media type assignments: http://www.iana.org/assignments/media-types/index.html
 response_types_by_extension = {

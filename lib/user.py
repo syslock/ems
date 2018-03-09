@@ -1,12 +1,8 @@
-import sqlite3, time, re, socket, imp
+import sqlite3, time, re, socket
 from lib import password
-password = imp.reload( password ) # DEBUG
 from lib import errors
-errors = imp.reload( errors )
 from lib import db_object
-db_object = imp.reload( db_object )
 from lib import files
-files = imp.reload( files )
 
 class User( db_object.DBObject ):
 	media_type = "application/x-obj.user"

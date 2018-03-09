@@ -1,8 +1,6 @@
-import imp, os, shutil, io, re, subprocess
+import os, shutil, io, re, subprocess
 from lib import errors
-errors = imp.reload( errors )
 from lib import db_object
-db_object = imp.reload( db_object )
 
 class File( db_object.DBObject ):
 	base_type = "application/octet-stream" # https://www.rfc-editor.org/rfc/rfc2046.txt

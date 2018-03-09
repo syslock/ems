@@ -1,18 +1,12 @@
-import imp, re, subprocess, os, json
+import re, subprocess, os, json
 from lib import user
-user = imp.reload( user )
 from lib import errors
-errors = imp.reload( errors )
 from lib import db_object
-db_object = imp.reload( db_object )
 from lib import files
-files = imp.reload( files )
 # FIXME: Löschenfunktion nach DBObject ausmodularisieren:
 from modules import delete as delete_module
-delete_module = imp.reload( delete_module )
 # FIXME: Objektbeschreibungsfunktion nach DBObject ausmodularisieren:
 from modules import get as get_module
-get_module = imp.reload( get_module )
 
 def process( app ):
 	query = app.query

@@ -1,14 +1,9 @@
-import time, imp, json
+import time, json
 from lib import user
-user = imp.reload( user )
 from lib import errors
-errors = imp.reload( errors )
 from lib import db_object
-db_object = imp.reload( db_object )
 from lib import publication
-publication = imp.reload( publication )
 from lib import files
-files = imp.reload( files )
 
 def process( app ):
 	query = app.query

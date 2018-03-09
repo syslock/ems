@@ -1,10 +1,8 @@
 import socket, os, sys, base64, hashlib, imp, struct, time, signal, threading, traceback, ssl
 from lib import errors
-errors = imp.reload( errors )
 from lib import application
-application = imp.reload( application )
 import config
-config = imp.reload( config )
+config = imp.reload( config ) # DEBUG?
 
 class WSListener():
 	def __init__( self, _config=None ):
@@ -91,8 +89,6 @@ class WSServer( threading.Thread ):
 			if "." in mod_name:
 				raise Exception( "Illegaler Modulname: %(mod_name)s" % locals() )
 			self.module = __import__( "modules."+mod_name, fromlist=[mod_name] )
-			# disabled reload, as some modules have internal state and ws server is restarted everytime anyways
-			#self.module = imp.reload( self.module ) 
 		else:
 			raise errors.ParameterError()
 		self.ws = WebSocket( self.app, self.con, self )

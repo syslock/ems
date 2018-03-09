@@ -20,6 +20,16 @@ BaseItem = function( parms ) {
 	my.init( parms );
 }
 
+// The sort_type is used to select and populate child elements in the dom sub tree 
+// that is the objects visual representation and is defined by the visualization 
+// template. The dom sub tree may also contain child elements representing objects 
+// of different types, already populated into the tree. The short_type therefore 
+// should by unique within the range of different objects living in the tree.
+// FIXME: Maybe the short_type should not be guessed from the objects media_type.
+// Earlier an object types template was fixed and had to be embedded by the main 
+// view. In newer generation code the template is loaded dynamically by the objects 
+// visualization module. It should be in the responsibility of that visualization
+// module to populate the sub tree or provide API to access standard elements.
 BaseItem.prototype.get_short_type = function( type ) {
 	var my = this;
 	var _type = type ? type : my.obj.type;

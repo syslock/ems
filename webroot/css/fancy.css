@@ -654,7 +654,7 @@ button.draft-button {
     background-color: lightyellow;
     border: 1px solid darkgrey;
     padding: 1mm;
-    margin-bottom: 3mm;
+    margin-top: 3mm;
     border-radius: 1mm;
 }
 .draft .entry-edit-toolbar {

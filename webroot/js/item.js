@@ -127,15 +127,9 @@ BaseItem.prototype.display = function() {
 		var value = my.obj[ field_name ];
 		if( value!=undefined ) {
 			if( field_name in {"ctime":1, "mtime":1} ) {
-				var date = new Date(value*1000);
-				var day = date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear()
-				var hours = date.getHours();
-				hours = (hours<10) ? "0"+String(hours) : String(hours);
-				var minutes = date.getMinutes();
-				minutes = (minutes<10) ? "0"+String(minutes) : String(minutes);
-				var time = hours+":"+minutes;
-				$( "."+my.short_type+"-"+field_name+"-day", item ).first().text( day );
-				$( "."+my.short_type+"-"+field_name+"-time", item ).first().text( time );
+				var date_and_time = prettyprint_date_and_time( value );
+				$( "."+my.short_type+"-"+field_name+"-day", item ).first().text( date_and_time.date );
+				$( "."+my.short_type+"-"+field_name+"-time", item ).first().text( date_and_time.time );
 			} else {
 				$( "."+my.short_type+"-"+field_name, item ).first().text( value );
 			}
@@ -249,6 +243,41 @@ function show_object( parms ){
 		}});
 	} else if( obj.type == "application/x-obj.entry" ) {
 		new Entry( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} );
+	} else if( obj.type && obj.type == "application/x-obj.draft" ) {
+		var parent_entry = null;
+		var parent_user = null;
+		for( i in obj.parents ) {
+			if( obj.parents[i].type == "application/x-obj.entry" ) {
+				parent_entry = obj.parents[i];
+			}
+		}
+		if( !parent && !parent_entry ) {
+			// Display owned drafts not belonging to entries as standalone objects:
+			if( $.inArray("write",obj.permissions) != -1 ) {
+				new Draft( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} );
+			}
+		} else if( parent ) {
+			// Display draft availability notification for drafts belonging to entries:
+			obj.dom_object = $(parent.dom_object).find('.entry-draft-notification')[0];
+			$(obj.dom_object).addClass('entry-status-notification-active');
+			$(obj.dom_object).data( {obj: obj} );
+			var date_and_time = prettyprint_date_and_time( obj.mtime );
+			$(obj.dom_object).attr( {"title" : date_and_time.date+" "+date_and_time.time} );
+			// Need to query explictly for a parent user as the reverse path is probably not available:
+			get_module( "get", {
+				"args" : { "child_id" : obj.id },
+				"done" : function( result ) {
+					result = parse_result( result );
+					for( i in result ) {
+						var parent_obj = result[i];
+						if( parent_obj.type == "application/x-obj.user" && parent_obj.avatar_id ) {
+							replace_user_image( obj.dom_object, parent_obj.avatar_id );
+							$(obj.dom_object).attr( {"title" : parent_obj.nick+" "+$(obj.dom_object).attr("title")} );
+						}
+					}
+				}
+			});
+		}
 	} else if( obj.type == "text/plain" ) {
 		if( dom_parent && obj.data ) {
 			obj.dom_object = $('<span>').attr( {class: 'entry-text'} )[0];
@@ -430,12 +459,6 @@ function show_object( parms ){
 				return false;
 			});
 			$(parent.dom_object).find('.entry-link-button').hide();
-		}
-	} else if ( obj.type && obj.type=="application/x-obj.draft" ) {
-		if( parent ) {
-			obj.dom_object = $(parent.dom_object).find('.entry-draft-notification')[0];
-			$(obj.dom_object).addClass('entry-status-notification-active');
-			$(obj.dom_object).data( {obj: obj} );
 		}
 	} else if( dom_parent && obj.id ) {
 		var download_link = create_download( obj );

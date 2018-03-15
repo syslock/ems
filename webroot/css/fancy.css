@@ -138,7 +138,7 @@ select {
 .page-widgets .page-widgets-right-stack {
 	display: inline; /* wtf, somehow need this for child absolute positioning to work */
 }
-.page-widgets .new-entry-button {
+.page-widgets .new-draft-button {
 	display: block;
 	margin-top: 3px;
 }
@@ -200,7 +200,7 @@ select {
 	padding: 2px;
 	border: 2px solid transparent;
 }
-.new-entry .entry-title {
+.draft .entry-title {
 	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
 	padding: 3px;
 	border: 1px dotted grey;
@@ -219,7 +219,10 @@ select {
 	margin-left: 0.5em;
 }
 .entry-status-notification-active {
-	display: inline; /* Elemente der Titelzeile sollen nebeneinander angeordnet sein */
+	display: inline-block; /* Elemente der Titelzeile sollen nebeneinander angeordnet sein */
+}
+.entry-status-notification-symbol-container {
+	display: inline-block;
 }
 .entry-status-notification-symbol {
 	height: 1.5em;
@@ -230,7 +233,15 @@ select {
 	border: 1px solid orange;
 }
 .entry-draft-notification-label {
-	display: inline;
+	display: inline-block;
+}
+.entry-draft-notification .user-image, .entry-draft-notification .user-image-content {
+	display: inline-block;
+	width: 1.5em;
+	height: 1.5em;
+}
+.entry-draft-notification .user-image-content {
+	vertical-align: bottom;
 }
 .entry-publication-notification {
 	background-color: rgba(0,0,255,0.1);
@@ -283,7 +294,7 @@ select {
 	padding: 2px;
 	border: 2px solid transparent;
 }
-.new-entry .entry-content {
+.draft .entry-content {
 	padding: 3px;
 	border: 1px dotted grey;
 }
@@ -321,15 +332,18 @@ select {
 	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
 .entry-tools-content button {
+	display: block;
 	position: relative;
 	width: 100%;
 	margin-top: 2px;
 	margin-bottom: 2px;
+	padding-left: 1em;
 }
 .entry-tools-button-symbol {
     position: absolute;
 	height: 90%;
-	left: 0;
+	left: 1mm;
+	bottom: 1px;
 }
 button.entry-response-button {
 	font-size: larger;
@@ -338,6 +352,10 @@ button.entry-delete-button {
 	width: 50%;
 	margin-left: 50%;
 	font-size: smaller;
+	padding-left: 2em;
+}
+button.draft-button {
+	display: none;
 }
 .entry-tools-decorator-right {
 	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
@@ -618,7 +636,7 @@ button.entry-delete-button {
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */
 /* ------------------------------------------------------------------------- */
-.new-entry .entry-decorator-left {
+.draft .entry-decorator-left {
 	position: absolute;
 	margin-top: 30px;
 	margin-left: 90px;
@@ -628,7 +646,7 @@ button.entry-delete-button {
 	border: 2px solid orange;
 	border-radius: 50%;
 }
-.new-entry .entry-bubble {
+.draft .entry-bubble {
 	border: 2px solid orange;
 }
 .entry-edit-toolbar {
@@ -650,62 +668,31 @@ button.entry-delete-button {
 .entry-edit-list-tools-symbols img {
 	height: 3em;
 }
-.new-entry .entry-tools {
-	display: none;
-}
-.entry-edit-tools {
-	display: none;
-	position: absolute;
-	margin-left: 10px;
-}
-.new-entry .entry-edit-tools {
+.draft .entry-tools {
 	display: inline-block;
 }
-.entry-edit-tools-decorator-left {
-	position: absolute;
-	margin-top: 13px;
-	margin-left: -29px;
-	width: 0px;
-	height: 0px;
+.draft .entry-tools-decorator-left {
 	border-right: 30px solid green;
-	border-top: 60px solid transparent;
-	border-bottom: 60px solid transparent;
 }
-.entry-edit-tools-content {
-	position: absolute;
-	min-height: 126px;
-	min-width: 180px;
-	border-radius: 20px;
+.draft .entry-tools-content {
 	border: 1px solid green;
 	border-left: 3px solid green;
-	background-color: white;
-	padding: 10px;
-	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
 }
-.entry-edit-tools-content button {
-	position: relative;
-	width: 100%;
-	margin-top: 2px;
-	margin-bottom: 2px;
-}
-button.entry-edit-send-button {
+button.entry-send-button {
 	font-size: larger;
 }
-button.entry-edit-discard-button {
+button.entry-draft-discard-button {
 	width: 50%;
 	margin-left: 50%;
 	font-size: smaller;
+	padding-left: 2em;
 }
-.entry-edit-tools-decorator-right {
-	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
-	position: absolute;
-	margin-left: -30px;
-	margin-top: -40px;
-	width: 250px;
-	height: 230px;
-	background-color: transparent;
+.draft .draft-button {
+	display: block;
 }
-
+.draft .entry-button {
+	display: none;
+}
 /* ------------------------------------------------------------------------- */
 /* ----------------------------------- Tags -------------------------------- */
 /* ------------------------------------------------------------------------- */

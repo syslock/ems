@@ -60,9 +60,9 @@
 								range_scroll_loader.scroll_handler_parms = { search_count : global_search.search_count };
 								range_scroll_loader.start();
 							},
-							outer_width : $('.new-entry-button').outerWidth(),
-							result_types : 'application/x-obj.entry',
-							empty_search : {phrase : 'type:entry', min_weight : "None"},
+							outer_width : $('.new-draft-button').outerWidth(),
+							result_types : 'application/x-obj.entry,application/x-obj.draft',
+							empty_search : {phrase : 'type:entry type:draft', min_weight : "None"},
 							order_by : 'ctime',
 							order_reverse : 'true',
 							range_limit : 10,
@@ -193,7 +193,7 @@
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename" />
 			<div class="page-widgets">
 				<div class="page-widgets-left-stack">
-					<button class="new-entry-button require-permissions-write-self" style="visibility:hidden" onclick="new Entry( {virtual:true, obj:{parents:[global_user],permissions:['read','write']}, duplicates:true, dom_parent:$('.ems-content')[0], prepend:true} ).edit();">
+					<button class="new-draft-button require-permissions-write-self" style="visibility:hidden" onclick="new Draft( {virtual:true, obj:{parents:[global_user],permissions:['read','write']}, duplicates:true, dom_parent:$('.ems-content')[0], prepend:true} )">
 						${_("Beitrag erstellen")}
 					</button>
 					<!--<div class="page-filter">

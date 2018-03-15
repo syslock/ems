@@ -205,6 +205,18 @@ function prettyprint_time( time ) {
 	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+' '+({0:"s", 1:"min"})[idx];
 }
 
+function prettyprint_date_and_time( timestamp ) {
+	// FIXME: i18n
+	var date = new Date(timestamp*1000);
+	var day = date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear()
+	var hours = date.getHours();
+	hours = (hours<10) ? "0"+String(hours) : String(hours);
+	var minutes = date.getMinutes();
+	minutes = (minutes<10) ? "0"+String(minutes) : String(minutes);
+	var time = hours+":"+minutes;
+	return { "date" : day, "time" : time };
+}
+
 // https://stackoverflow.com/questions/2897155/get-cursor-position-in-characters-within-a-text-input-field
 /*
 ** Returns the caret (cursor) position of the specified text field.

@@ -23,11 +23,16 @@
 				<div class="entry-title-label">${_("Betreff:")}</div>
 				<div class="entry-title"></div>
 				<div class="entry-status-notification entry-draft-notification">
-					<img class="entry-status-notification-symbol" src="tango-scalable/apps/accessories-text-editor.svg" >
-					<div class="entry-draft-notification-label">${_("Entwurf vorhanden")}</div>
+					<div class="entry-status-notification-symbol-container">
+						<img class="entry-status-notification-symbol" src="tango-scalable/apps/accessories-text-editor.svg" />
+					</div>
+					<div class="entry-draft-notification-label">${_("in Bearbeitung")}</div>
+					<div class="entry-draft-notification-image-container user-image"></div>
 				</div>
 				<div class="entry-status-notification entry-publication-notification">
-					<img class="entry-status-notification-symbol" src="tango-scalable/apps/internet-web-browser.svg" >
+					<div class="entry-status-notification-symbol-container">
+						<img class="entry-status-notification-symbol" src="tango-scalable/apps/internet-web-browser.svg" />
+					</div>
 					<a class="entry-publication-link">${_("Externer Link")}</a>
 				</div>
 				<div class="entry-edit-toolbar">
@@ -79,60 +84,45 @@
 				</div>
 				<div class="entry-tags-content"></div>
 			</div>
-			<button class="entry-title-tool-button-search" title="${_('Nur Beiträge mit diesem Titel darstellen')}" >
+			<button class="entry-title-search-button entry-button" title="${_('Nur Beiträge mit diesem Titel darstellen')}" >
 				<img class="entry-tools-button-symbol" src="tango-scalable/actions/system-search.svg" />
-				${_("Titel suchen")}
+				<div class="entry-tools-button-label">${_("Titel suchen")}</div>
 			</button>
-			<button class="entry-response-button require-permission-write-self">
+			<button class="entry-toggle-toolbar draft-button">
+				<img class="entry-tools-button-symbol entry-toggle-toolbar-symbol" src="tango-scalable/categories/applications-accessories.svg" />
+				<div class="entry-tools-button-label">${_("Werkzeugleiste")}</div>
+			</button>
+			<button class="entry-response-button entry-button require-permission-write-self">
 				<img class="entry-tools-button-symbol entry-response-symbol" src="tango-scalable/actions/mail-reply-sender.svg" />
-				${_("Antworten")}
+				<div class="entry-tools-button-label">${_("Antworten")}</div>
 			</button>
-			<div class="require-permission-write-entry">
-				<button class="entry-link-button">
-					<img class="entry-tools-button-symbol entry-link-symbol" src="tango-scalable/apps/internet-web-browser.svg" />
-					${_("Extern verlinken")}
-				</button>
-			</div>
-			<div class="require-permission-write-entry">
-				<button class="entry-edit-button">
-					<img class="entry-tools-button-symbol entry-edit-symbol" src="tango-scalable/apps/accessories-text-editor.svg" />
-					${_("Bearbeiten")}
-				</button>
-			</div>
-			<div class="require-permission-delete-entry">
-				<button class="entry-delete-button">
-					<img class="entry-tools-button-symbol entry-delete-symbol" src="tango-scalable/status/user-trash-full.svg" />
-					${_("Löschen")}
-				</button>
-			</div>
+			<button class="entry-link-button entry-button require-permission-write-entry">
+				<img class="entry-tools-button-symbol entry-link-symbol" src="tango-scalable/apps/internet-web-browser.svg" />
+				<div class="entry-tools-button-label">${_("Extern verlinken")}</div>
+			</button>
+			<button class="entry-edit-button entry-button require-permission-write-entry">
+				<img class="entry-tools-button-symbol entry-edit-symbol" src="tango-scalable/apps/accessories-text-editor.svg" />
+				<div class="entry-tools-button-label">${_("Bearbeiten")}</div>
+			</button>
+			<button class="entry-save-button draft-button">
+				<img class="entry-tools-button-symbol entry-save-symbol" src="tango-scalable/devices/media-floppy.svg" />
+				<div class="entry-tools-button-label">${_("Entwurf speichern")}</div>
+			</button>
+			<button class="entry-send-button draft-button">
+				<img class="entry-tools-button-symbol entry-send-symbol" src="tango-scalable/mimetypes/application-certificate.svg" />
+				<div class="entry-tools-button-label">${_("Veröffentlichen")}</div>
+			</button>
+			<button class="entry-draft-discard-button draft-button">
+				<img class="entry-tools-button-symbol entry-draft-discard-button" src="tango-scalable/actions/mail-mark-junk.svg" />
+				<div class="entry-tools-button-label">${_("Verwerfen")}</div>
+			</button>
+			<button class="entry-delete-button entry-button require-permission-delete-entry">
+				<img class="entry-tools-button-symbol entry-delete-symbol" src="tango-scalable/status/user-trash-full.svg" />
+				<div class="entry-tools-button-label">${_("Löschen")}</div>
+			</button>
 		</div>
 		<div class="entry-tools-decorator-bottom"></div>
 		<div class="entry-tools-decorator-right"></div>
-	</div>
-	<div class="entry-edit-tools" >
-		<div class="entry-edit-tools-decorator-left"></div>
-		<div class="entry-edit-tools-decorator-top"></div>
-		<div class="entry-edit-tools-content">
-			<div class="entry-tags"></div>
-			<button class="entry-edit-toggle-toolbar">
-				<img class="entry-tools-button-symbol entry-edit-toggle-toolbar-symbol" src="tango-scalable/categories/applications-accessories.svg" />
-				${_("Werkzeugleiste")}
-			</button>
-			<button class="entry-edit-file-button">
-				<img class="entry-tools-button-symbol entry-edit-file-symbol" src="images/upload.svg" />
-				${_("Datei einfügen")}
-			</button>
-			<button class="entry-edit-send-button">
-				<img class="entry-tools-button-symbol entry-edit-send-symbol" src="tango-scalable/mimetypes/application-certificate.svg" />
-				${_("Abschicken")}
-			</button>
-			<button class="entry-edit-discard-button">
-				<img class="entry-tools-button-symbol entry-edit-discard-button" src="tango-scalable/actions/mail-mark-junk.svg" />
-				${_("Verwerfen")}
-			</button>
-		</div>
-		<div class="entry-edit-tools-decorator-bottom"></div>
-		<div class="entry-edit-tools-decorator-right"></div>
 	</div>
 	<div class="entry-decorator-bottom"></div>
 	<div class="entry-decorator-right"></div>

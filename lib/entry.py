@@ -64,7 +64,7 @@ class Draft( Entry ):
 		
 	def merge_to_parent( self ):
 		if not self.app.user.can_write( self.id ):
-			raise errors.PrivilegeError( "Cannot write draft to merge" )
+			raise errors.PrivilegeError( "Cannot write the draft to be merged" )
 		c = self.app.db.cursor()
 		c.execute( """select p.id from membership
 						inner join objects p on p.id=parent_id
@@ -86,4 +86,7 @@ class Draft( Entry ):
 			c2.execute( """insert into membership (parent_id, child_id, sequence) values (?,?,?)""", [parent_id,row[0],row[1]] )
 			self.app.db.commit()
 		db_object.DBObject.delete_in( self.app, object_id_list=[self.id], parent_id=parent_id )
+		parent_entry = Entry( app=self.app, object_id=parent_id )
+		parent_entry.update() # Update parent entries mtime
+		return parent_id
 db_object.DBObject.register_class( Draft )

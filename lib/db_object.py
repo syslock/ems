@@ -160,9 +160,16 @@ class DBObject:
 										where parent_id=? and child_id=?""",
 									[sequence, pid, self.id] )
 					self.app.db.commit()
+		if "ctime" in keyargs and keyargs["ctime"]!=None:
+			self.ctime = float( keyargs["ctime"] )
+			c.execute( """update objects set ctime=?
+							where id=?""",
+						[self.ctime, self.id] )
+			self.app.db.commit()
+		self.mtime = time.time()
 		c.execute( """update objects set mtime=?
 						where id=?""",
-					[time.time(), self.id] )
+					[self.mtime, self.id] )
 		self.app.db.commit()
 		if "title" in keyargs and keyargs["title"]!=None:
 			title = keyargs["title"]

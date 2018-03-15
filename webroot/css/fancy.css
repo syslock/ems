@@ -650,7 +650,15 @@ button.draft-button {
 	border: 2px solid orange;
 }
 .entry-edit-toolbar {
-	display: none;
+    display: none;
+    background-color: lightyellow;
+    border: 1px solid darkgrey;
+    padding: 1mm;
+    margin-bottom: 3mm;
+    border-radius: 1mm;
+}
+.draft .entry-edit-toolbar {
+	display: block;
 }
 .entry-edit-range-tools {
 	display: inline-block;

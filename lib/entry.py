@@ -55,8 +55,12 @@ class Draft( Entry ):
 			c.execute( """delete from membership where parent_id=? and child_id=?""", [row[0], self.id] )
 			self.app.db.commit()
 		# Finally change the type from draft to entry:
-		c.execute( """update objects set type='application/x-obj.entry' where id=?""", [self.id] )
+		self.update( media_type='application/x-obj.entry' )
+		# ... and update creation time to the modification time so the newly 
+		# published entry does not have the initial creation time of the draft:
+		self.update( ctime=self.mtime )
 		self.app.db.commit()
+		return self.id
 		
 	def merge_to_parent( self ):
 		if not self.app.user.can_write( self.id ):

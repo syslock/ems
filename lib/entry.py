@@ -21,7 +21,10 @@ class Entry( db_object.DBObject ):
 		for orig_child_id in self.select( not_type=reference_types+['application/x-obj.draft'] ):
 			orig_child = db_object.DBObject.create_typed_object( app=self.app, object_id=orig_child_id )
 			draft_child = orig_child.flat_copy( new_parent_id=draft.id )
-		return Draft( app=self.app, object_id=draft.id )
+		draft = Draft( app=self.app, object_id=draft.id )
+		# Also directly attach the draft object to the user and copy creation time from entry:
+		draft.update( parent_id=self.app.user.id, ctime=self.ctime )
+		return draft
 db_object.DBObject.register_class( Entry )
 
 

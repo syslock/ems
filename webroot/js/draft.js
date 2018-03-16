@@ -41,6 +41,8 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 			
 			// Try to load metadata of an origination parent entry, 
 			// needed for saving etc.:
+			// FIXME: It would be more robust if this information would be already available
+			//        through the parent list of the draft object given to the constructor.
 			if( my.obj && my.obj.id ) {
 				get_module( "get", {
 					"args" : {
@@ -354,6 +356,8 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 						}
 					}
 				});
+			} else {
+				$(my.dom_object).remove();
 			}
 		}});
 	}
@@ -549,7 +553,6 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 						done : function( result ) {
 							result = parse_result( result );
 							if( result.succeeded ) {
-								$(my.dom_object).remove();
 								// Reload a previously existing parent entry:
 								// (Entry object has to be relaoded from server to be up-to-date.)
 								if( my.parent_entry ) {
@@ -562,9 +565,12 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 											var entry_obj = parse_result( result )[0];
 											if( entry_obj ) {
 												new Entry( {obj:entry_obj, duplicates:true, dom_parent:my.dom_parent, prepend:true} );
+												$(my.dom_object).remove();
 											}
 										}
 									});
+								} else {
+									$(my.dom_object).remove();
 								}
 							}
 						}

@@ -11,9 +11,9 @@ def process( app ):
 	if "id" in query.parms:
 		object_id_list = [int(x) for x in query.parms["id"].split(",") if x!=""]
 		parent_id = "parent_id" in query.parms and int(query.parms["parent_id"]) or None
-		db_object.DBObject.delete_in( app, object_id_list, parent_id=parent_id )
+		delete_list = db_object.DBObject.delete_in( app, object_id_list, parent_id=parent_id )
 		response.output = json.dumps( {"succeeded" : True, 
-								"delete_id_list" : object_id_list} )
+								"delete_id_list" : delete_list} )
 	elif "parent_id" in query.parms:
 		parent_id = int( query.parms["parent_id"] )
 		object_id_list = []
@@ -27,9 +27,9 @@ def process( app ):
 		delete_id_list = []
 		for row in c:
 			delete_id_list.append( row[0] )
-		db_object.DBObject.delete_in( app, delete_id_list, parent_id=parent_id )
+		delete_list = db_object.DBObject.delete_in( app, delete_id_list, parent_id=parent_id )
 		response.output = json.dumps( {"succeeded" : True, 
-								"delete_id_list" : delete_id_list} )
+								"delete_id_list" : delete_list} )
 	else:
 		raise errors.ParameterError()
 

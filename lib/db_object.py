@@ -310,43 +310,69 @@ class DBObject:
 	
 	@classmethod
 	def delete_in_unsafe( cls, app, object_id_list ):
-		in_list = ",".join( [str(x) for x in object_id_list] )
+		# Delete specified objects and unconnected subtrees completely
 		c = app.db.cursor()
+		delete_set = set( object_id_list )
+		delete_set_grown = True
+		while delete_set_grown:
+			delete_set_grown = False
+			in_list = ",".join( [str(x) for x in delete_set] )
+			# select potentially larger set of childs which must be also deleted,
+			# because they have no parent outside of the delete set:
+			c.execute( """select m1.child_id
+							from membership m1
+							left join membership m2 on m1.child_id=m2.child_id and m2.parent_id not in (%(in_list)s)
+							where m1.parent_id in (%(in_list)s) and m2.parent_id is null""" % locals() )
+			for row in c:
+				if row[0] not in delete_set:
+					delete_set_grown = True
+					delete_set.add( row[0] )
 		c.execute( """delete from objects where id in (%(in_list)s)""" % locals() )
 		app.db.commit()
-		# FIXME: Alles folgende ist eigentlich nur nötig, wenn das Backend die 
-		# Foreign-Key-Constraints nicht unterstützt. Wie stellen wir das fest?
 		c.execute( """delete from membership where child_id in (%(in_list)s) or parent_id in (%(in_list)s)""" % locals() )
-		c.execute( """delete from users where object_id in (%(in_list)s)""" % locals() )
-		c.execute( """delete from text where object_id in (%(in_list)s)""" % locals() )
-		c.execute( """delete from titles where object_id in (%(in_list)s)""" % locals() )
+		app.db.commit()
 		c.execute( """delete from permissions where object_id in (%(in_list)s) or subject_id in (%(in_list)s)""" % locals() )
 		app.db.commit()
+		c.execute( """delete from substitutes where original_id in (%(in_list)s) or substitute_id in (%(in_list)s)""" % locals() )
+		app.db.commit()
+		#c.execute( """delete from chess_games where game_id in (%(in_list)s) or player_id in (%(in_list)s)""" % locals() )
+		#app.db.commit()
+		# FIXME: Need an extension registry that can provide information about generic extension tables!
+		# #"applications","contacts","file_transfers",
+		for extension_table in ["users","groups","text","titles",
+								"player_positions","keywords","image_info"]:
+			c.execute( """delete from %(extension_table)s where object_id in (%(in_list)s)""" % locals() )
+			app.db.commit()
+		return list( delete_set )
 	
 	@classmethod
 	def delete_in( cls, app, object_id_list, parent_id=None ):
+		result_delete_list = []
 		if not parent_id:
+			# Without a specified parent_id this method deletes the objects in object_id_list 
+			# and there unconnected subtrees completely if privileged.
 			for object_id in object_id_list:
 				if not app.user.can_delete( object_id ):
 					raise errors.PrivilegeError( "%d cannot delete %d" % (app.user.id, object_id) )
-			DBObject.delete_in_unsafe( app, object_id_list )
+			result_delete_list = DBObject.delete_in_unsafe( app, object_id_list )
 		else:
+			# For a given parent_id at first only the membership between the parent and children in object_id_list is deleted...
 			for object_id in object_id_list:
 				if not app.user.can_write( object_id ):
 					raise errors.PrivilegeError( "%d cannot write %d" % (app.user.id, object_id) )
 			if not app.user.can_write( parent_id ):
 				raise errors.PrivilegeError( "%d cannot write %d" % (app.user.id, parent_id) )
-			# angegebene Mitgliedschaften löschen
 			in_list = ",".join( [str(x) for x in object_id_list] )
 			c = app.db.cursor()
 			c.execute( """delete from membership where child_id in (%(in_list)s) and parent_id=?""" % locals(), [parent_id] )
 			app.db.commit()
-			# neu erzeugte Zombie-Objekte finden und komplett löschen (Rechte haben wir oben bereits geprüft)
+			# ... afterwards we check for zombie children left without any parent and delete unconnected subtrees completely:
 			c.execute( """select id from objects o left join membership m on o.id=m.child_id where o.id in (%(in_list)s) and m.child_id is null""" % locals() )
 			delete_list = []
 			for row in c:
 				delete_list.append( row[0] )
-			DBObject.delete_in_unsafe( app, delete_list )
+			result_delete_list = DBObject.delete_in_unsafe( app, delete_list )
+		return result_delete_list
 
 
 def get_root_object( app ):

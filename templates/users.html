@@ -52,7 +52,7 @@
 								range_scroll_loader.scroll_handler_parms = { search_count : global_search.search_count };
 								range_scroll_loader.start();
 							},
-							outer_width : $('.overview-button').outerWidth(),
+							outer_width : $('.blog-button').outerWidth(),
 							result_types : 'application/x-obj.user',
 							empty_search : {phrase : 'type:user', min_weight : "None"},
 							order_by : 'ctime',
@@ -81,7 +81,7 @@
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename+' - '+_('Nutzer')" />
 			<div class="page-widgets">
 				<div class="page-widgets-left-stack">
-					<%include file="/elements/overview_button.html" />
+					<%include file="/elements/blog_button.html" />
 					<div class="main-searchbar"></div>
 				</div>
 				<div class="page-widgets-right-stack">

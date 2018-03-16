@@ -451,7 +451,7 @@ function show_object( parms ){
 			$(obj.dom_object).data( {obj: obj} );
 			var pub_link_obj = $('.entry-publication-link', obj.dom_object)[0];
 			var entry_id = parent.obj.id;
-			var url = get_tpl_url("overview.html")+"&id="+String(entry_id)+"&sid="+obj.data;
+			var url = get_tpl_url("blog.html")+"&id="+String(entry_id)+"&sid="+obj.data;
 			$(pub_link_obj).attr( {href: url} );
 			$(pub_link_obj).click( function() {
 				show_message( "Dieser Link würde dich ausloggen. Kopiere ihn daher über das Rechtslick-Menü oder gleich hier:" );

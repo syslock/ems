@@ -14,7 +14,7 @@
 					done : function( result ) {
 						result = parse_result( result );
 						if( result.login && result.login.nick!='anonymous' ) {
-							window.setTimeout( function(){open_tpl("overview.html");}, hint ? 5000 : 0 );
+							window.setTimeout( function(){open_tpl("blog.html");}, hint ? 5000 : 0 );
 						} else {
 							$("input.login-nick").focus();
 						}
@@ -51,7 +51,7 @@
 		<div class="page-menu">
 			<%include file="/elements/global_menu.html" args="title=app.config.sitename+' - '+_('Anmeldung')" />
 			<div class="page-widgets">
-				<%include file="/elements/overview_button.html" />
+				<%include file="/elements/blog_button.html" />
 			</div>
 		</div>
 		<div class="ems-content ems-login-content">

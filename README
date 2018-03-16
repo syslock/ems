@@ -24,7 +24,7 @@ ems/
         application.html : ISWI application form
         contact.html : personal contact data form
         login.html : login and registration form
-        overview.html : overview page
+        blog.html : blog
     tools/ : development-tools (mainly translation stuff)
     webroot/ : public data visibile to or executable by web clients
         css/ : stylesheets
@@ -39,7 +39,7 @@ ems/
             jquery.cookie.js : jQuery Cookie Plugin
             util.js : some generic routines used throughout the code
         ems.wsgi : application entry point (FIXME: should this be here?)
-        index.html : redirects to overview template
+        index.html : redirects to blog template
     config.py.example : example configuration file (see Install)
     ems-init.py : SQLite database initialization script (see Install)
     ems.kdev4 : simple KDevelop4 project description

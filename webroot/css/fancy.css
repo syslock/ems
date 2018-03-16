@@ -184,7 +184,7 @@ select {
 	background-color: white;
 	padding: 10px;
 	min-height: 110px;
-	width: 60%;
+	width: calc( 100% - 380px );
 }
 .entry-title-label {
 	display: none;

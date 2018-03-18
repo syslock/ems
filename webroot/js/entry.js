@@ -35,8 +35,8 @@ define( ["jquery","item"], function($,BaseItem) {
 			my.entry = $( ".ems-entry", my.dom_object )[0];
 			my.title = $( ".entry-title", my.entry )[0];
 			my.content = $( ".entry-content", my.entry )[0];
-			my.std_tools = $( ".entry-tools", my.entry )[0];
-			my.std_tags = $( ".entry-tags", my.std_tools )[0];
+			my.entry_tools = $( ".entry-tools", my.entry )[0];
+			my.entry_tags = $( ".entry-tags", my.entry_tools )[0];
 			my.author = $('.entry-author', my.dom_object)[0];
 			my.tags_selection = $(".entry-tags-selection", my.entry)[0];
 			my.tags_searchbar = $(".entry-tags-searchbar", my.entry)[0];
@@ -152,7 +152,7 @@ define( ["jquery","item"], function($,BaseItem) {
 
 	Entry.prototype.delete_entry = function() {
 		var my = this;
-		Confirm.confirm( {message: 'Diesen Eintrag wirklich löschen?', before: $(my.std_tools).first(),
+		Confirm.confirm( {message: 'Diesen Eintrag wirklich löschen?', before: $(my.entry_tools).first(),
 			ok_callback: function( parms ) {
 				get_module( "delete", {
 					args : {id : String(my.obj.id)},

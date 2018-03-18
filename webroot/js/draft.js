@@ -578,7 +578,7 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 	Draft.prototype.delete_draft = function() {
 		var my = this;
 		// FIXME: i18n
-		Confirm.confirm( {message: 'Diesen Entwurf verwerfen?', before: $(my.std_tools).first(),
+		Confirm.confirm( {message: 'Diesen Entwurf verwerfen?', before: $(my.entry_tools).first(),
 			ok_callback: function( parms ) {
 				if( my.obj.id ) {
 					get_module( "delete", {

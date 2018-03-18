@@ -66,10 +66,6 @@
 							<img class="keysym-tab-left" src="images/key_tab_left.svg" title="${_("Umschalt+Tab: Einrückung verringern")}" />
 						</div>
 					</div>
-					<div class="debug-notifiers">
-						<div class="debug-change-notifier"></div>
-						<div class="debug-save-notifier"></div>
-					</div>
 				</div>
 	</div>
 	<div class="entry-tools">
@@ -116,10 +112,20 @@
 				<img class="entry-tools-button-symbol entry-send-symbol" src="tango-scalable/mimetypes/application-certificate.svg" />
 				<div class="entry-tools-button-label">${_("Veröffentlichen")}</div>
 			</button>
-			<button class="entry-draft-discard-button draft-button">
-				<img class="entry-tools-button-symbol entry-draft-discard-button" src="tango-scalable/actions/mail-mark-junk.svg" />
-				<div class="entry-tools-button-label">${_("Verwerfen")}</div>
-			</button>
+			<div class="draft-tools-footer-compound">
+				<div class="change-and-save-notifiers">
+					<div class="change-notifier">
+						<img class="entry-tools-button-symbol change-notifier-icon" src="tango-scalable/apps/accessories-text-editor.svg" />
+					</div>
+					<div class="save-notifier">
+						<img class="entry-tools-button-symbol save-notifier-icon" src="tango-scalable/devices/media-floppy.svg" />
+					</div>
+				</div>
+				<button class="entry-draft-discard-button draft-button">
+					<img class="entry-tools-button-symbol entry-draft-discard-symbol" src="tango-scalable/actions/mail-mark-junk.svg" />
+					<div class="entry-tools-button-label">${_("Verwerfen")}</div>
+				</button>
+			</div>
 			<button class="entry-delete-button entry-button require-permission-delete-entry">
 				<img class="entry-tools-button-symbol entry-delete-symbol" src="tango-scalable/status/user-trash-full.svg" />
 				<div class="entry-tools-button-label">${_("Löschen")}</div>

@@ -85,7 +85,7 @@ class Draft( Entry ):
 			c2 = self.app.db.cursor()
 			c2.execute( """insert into membership (parent_id, child_id, sequence) values (?,?,?)""", [parent_id,row[0],row[1]] )
 			self.app.db.commit()
-		db_object.DBObject.delete_in( self.app, object_id_list=[self.id], parent_id=parent_id )
+		db_object.DBObject.delete_in( self.app, object_id_list=[self.id] )
 		parent_entry = Entry( app=self.app, object_id=parent_id )
 		parent_entry.update() # Update parent entries mtime
 		return parent_id

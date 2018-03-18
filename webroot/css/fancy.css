@@ -307,7 +307,7 @@ select {
 	position: absolute;
 	margin-left: 10px;
 }
-.ems-item:hover .entry-tools {
+.ems-entry:hover .entry-tools {
 	display: inline-block;
 }
 .entry-tools-decorator-left {

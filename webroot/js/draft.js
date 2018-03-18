@@ -124,6 +124,39 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 				
 				$(my.content).off("keypress").on( "keypress", function(e) { my.on_keypress(e); } );
 				$(my.content).off("keydown").on( "keydown", function(e) { my.on_keydown(e); } );
+				
+				my.debug_change_notifier = $( ".debug-change-notifier", my.dom_object );
+				my.debug_save_notifier = $( ".debug-save-notifier", my.dom_object );
+				my.change_timeout = null;
+				my.saving = false;
+				my.change_observer = new MutationObserver( function( event, observer ) {
+					my.debug_change_notifier.addClass( "active" );
+					if( my.change_timeout ) {
+						window.clearTimeout( my.change_timeout );
+					}
+					my.change_timeout = window.setTimeout( function() {
+						my.debug_change_notifier.removeClass( "active" );
+						my.change_timeout = null;
+						if( !my.saving ) {
+							my.saving = true;
+							// We need to disconnect the MutationObserver during saving to prevent
+							// a feedback loop that occures for currently unknown reasons:
+							my.change_observer.disconnect();
+							my.debug_save_notifier.addClass( "active" );
+							my.store( { "draft_stored_callback" : function() {
+								my.saving = false;
+								my.register_change_observations();
+								my.debug_save_notifier.removeClass( "active" );
+							}});
+						}
+					}, 3000 );
+				});
+				my.register_change_observations = function() {
+					my.change_observer.observe( my.title, {childList : true, attributes : true, characterData : true, subtree : true} );
+					my.change_observer.observe( my.content, {childList : true, attributes : true, characterData : true, subtree : true} );
+					my.change_observer.observe( my.tags_content, {childList : true, attributes : true, characterData : true, subtree : true} );
+				};
+				my.register_change_observations();
 			}
 		}
 	};

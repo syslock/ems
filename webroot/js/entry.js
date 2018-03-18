@@ -98,6 +98,15 @@ define( ["jquery","item"], function($,BaseItem) {
 				global_search.entry.text( "title:\""+search_text+"\"" );
 				global_search.search();
 			});
+			
+			$(my.dom_object).off("mousemove").on( "mousemove", function( event ) {
+				if( window.scrollY > ($(my.dom_object).position().top-100) 
+						&& window.scrollY < ($(my.dom_object).position().top+$(my.dom_object).height()-200) ) {
+					$(my.entry_tools).addClass("fixed");
+				} else {
+					$(my.entry_tools).removeClass("fixed");
+				}
+			});
 		}
 	}
 

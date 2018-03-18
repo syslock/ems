@@ -310,6 +310,10 @@ select {
 .ems-entry:hover .entry-tools {
 	display: inline-block;
 }
+.ems-entry:hover .entry-tools.fixed {
+	position: fixed;
+	top: 100px;
+}
 .entry-tools-decorator-left {
 	position: absolute;
 	margin-top: 13px;

@@ -742,7 +742,7 @@ select {
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
-.entry-tags button {
+.entry-tags-show-selection-button,.entry-tag-button {
 	width: 3em;
 }
 .entry-tags-label {
@@ -885,14 +885,18 @@ input.entry-tag {
 	padding-bottom: 5px;
 }
 .entry-tag-tool-button {
+	display: block;
+	position: relative;
 	width: 100%;
-	text-align: left;
-	padding-left: 1.5em;
+	margin-top: 2px;
+	margin-bottom: 2px;
+	padding-left: 1em;
 }
 .entry-tag-tool-button-symbol {
-	position: absolute;
-	left: 0px;
+    position: absolute;
 	height: 90%;
+	left: 1mm;
+	bottom: 1px;
 }
 
 /* ------------------------------------------------------------------------- */

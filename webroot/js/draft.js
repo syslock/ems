@@ -137,18 +137,7 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 					my.change_timeout = window.setTimeout( function() {
 						my.change_notifier.removeClass( "active" );
 						my.change_timeout = null;
-						if( !my.saving ) {
-							my.saving = true;
-							// We need to disconnect the MutationObserver during saving to prevent
-							// a feedback loop that occures for currently unknown reasons:
-							my.change_observer.disconnect();
-							my.save_notifier.addClass( "active" );
-							my.store( { "draft_stored_callback" : function() {
-								my.saving = false;
-								my.register_change_observations();
-								my.save_notifier.removeClass( "active" );
-							}});
-						}
+						my.store();
 					}, 3000 );
 				});
 				my.register_change_observations = function() {
@@ -398,10 +387,26 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 	Draft.prototype.store = function( parms ) {
 		var my = this;
 		
+		if( my.saving ) {
+			// FIXME: Schedule retry or communicate failure to caller?
+			return false;
+		}
+		
+		my.saving = true;
+		// We need to disconnect the MutationObserver during saving to prevent
+		// a feedback loop that occures for currently unknown reasons:
+		my.change_observer.disconnect();
+		my.save_notifier.addClass( "active" );
+		
 		parms = parms ? parms : {};
 		parms.draft_stored_callback = parms.draft_stored_callback ? parms.draft_stored_callback : function() {};
+		var draft_stored_callback = function() {
+			my.saving = false;
+			my.register_change_observations();
+			my.save_notifier.removeClass( "active" );
+			parms.draft_stored_callback();
+		};
 		
-		$(my.entry).removeClass("draft"); // FIXME?
 		var new_entry_created = false;
 		if( !my.obj || !my.obj.id ) {
 			// Entry.prototype.store() erledigt die eigentliche Speicherung
@@ -531,12 +536,12 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 									done : function(result) {
 										result = parse_result(result);
 										if( result.succeeded && result.id ) {
-											delete_childs_not_in( my.obj.id, [html_id].concat(tag_id_list), parms.draft_stored_callback );
+											delete_childs_not_in( my.obj.id, [html_id].concat(tag_id_list), draft_stored_callback );
 										}
 									}
 								});
 							} else {
-								delete_childs_not_in( my.obj.id, [html_id], parms.draft_stored_callback );
+								delete_childs_not_in( my.obj.id, [html_id], draft_stored_callback );
 							}
 						}
 					}

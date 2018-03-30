@@ -146,17 +146,16 @@ define( ["jquery","item"], function($,BaseItem) {
 	Entry.prototype.new_response = function() {
 		var my = this;
 		var user = global_user; // FIXME: should not use globals
-		var new_entry = new Entry( {virtual:true, obj:{parents:[user],permissions:['read','write']}, duplicates:true, dom_parent:my.dom_parent, prepend:true} );
-		$(my.dom_object).before( $(new_entry.dom_object).detach() );
+		var new_draft = new Draft( {virtual:true, obj:{parents:[user],permissions:['read','write']}, duplicates:true, dom_parent:my.dom_parent, prepend:true} );
+		$(my.dom_object).before( $(new_draft.dom_object).detach() );
 		// Antworttitel aus Titel des Referenzbeitrages generieren:
 		var reference_title = $(my.title).text();
 		if( !reference_title.match(/^Re:/i) ) {
 			reference_title = "Re: "+reference_title;
 		}
-		$(new_entry.title).text( reference_title );
+		$(new_draft.title).text( reference_title );
 		// Themen des Referenzbeitrages kopieren:
-		$(new_entry.tags_content).empty().append( $(my.tags_content).contents().clone(true,true) );
-		new_entry.edit();
+		$(new_draft.tags_content).empty().append( $(my.tags_content).contents().clone(true,true) );
 	};
 
 	Entry.prototype.delete_entry = function() {

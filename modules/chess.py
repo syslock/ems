@@ -48,7 +48,6 @@ def run( ws_server ):
 			c.execute( """insert into chess_games (game_id, player_id, mtime, figure)
 							values(?,?,?,?)""",
 							[ws_server.game_id, user.get_anonymous_user(ws_server.app).id, time.time(), initial_board_setting] )
-			ws_server.app.db.commit()
 		result.update({ "succeeded" : True, "actions" : ws_server.board_history[ws_server.max_move_sent_offset:] })
 		ws_server.max_move_sent_offset = len(ws_server.board_history)
 	if ws_server.app.user.can_write( ws_server.game_id ):
@@ -70,7 +69,6 @@ def run( ws_server ):
 				c.execute( """insert into chess_games (game_id, player_id, mtime, figure, from_field, to_field)
 								values(?,?,?,?,?,?)""", 
 								[ws_server.game_id, ws_server.app.user.id, time.time(), action["figure"], action["from_field"], action["to_field"]] )
-				ws_server.app.db.commit()
 	if result:
 		ws_server.ws.send( json.dumps(result) )
 

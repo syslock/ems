@@ -67,7 +67,6 @@ def process( app ):
 					# Zombie-Substitutes bereinigen (FIXME: sollte das von DBObject.delete() erledigt werden?):
 					del_c = app.db.cursor()
 					del_c.execute( """delete from substitutes where substitute_id=?""", [substitute["substitute_id"]] )
-					app.db.commit()
 				else:
 					substitute_obj = db_object.DBObject( app, object_id=substitute["substitute_id"] )
 					conversion = ConversionDescription( role=substitute["type"], width=substitute["size"], media_type=substitute_obj.media_type )
@@ -76,7 +75,6 @@ def process( app ):
 							# bestehendes Poster-Substitute entfernen, da es neu definiete werden soll:
 							del_c = app.db.cursor()
 							del_c.execute( """delete from substitutes where original_id=? and substitute_id=?""", [source_obj.id,substitute_obj.id] )
-							app.db.commit()
 						else:
 							missing_conversions.remove( conversion )
 							results.append( substitute )
@@ -103,7 +101,6 @@ def process( app ):
 					c = app.db.cursor()
 					c.execute( """insert into substitutes (original_id, substitute_id, type, size) values(?,?,?,?)""", 
 														[source_obj.id, new_obj.id, conversion.role, conversion.width] )
-					app.db.commit()
 				# Konvertierungsvorgänge für angelegte Objekte durchführen:
 				for new_obj in new_objects:
 					base_type, sub_type = new_obj.media_type.split("/")
@@ -133,7 +130,6 @@ def process( app ):
 							os.remove( new_tmp_name )
 							c = app.db.cursor()
 							c.execute( """delete from substitutes where original_id=? and substitute_id=?""", [source_obj.id, new_obj.id] )
-							app.db.commit()
 							results = [x for x in results if x["substitute_id"]!=new_obj.id]
 						except Exception as e:
 							error_list.append( e )

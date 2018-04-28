@@ -42,14 +42,12 @@ class DBObject:
 			c.execute( """insert into objects (type,ctime,mtime) 
 							values(?,?,?)""",
 						[self.media_type, self.ctime, self.mtime] )
-			self.app.db.commit()
 			self.id = c.lastrowid
 			self.index( data=self.media_type, source="type", rank=1 )
 			for pid in parent_id:
 				c.execute( """insert into membership (parent_id, child_id, sequence)
 								values(?,?,?)""",
 							[pid, self.id, sequence] )
-				self.app.db.commit()
 				self.parents.append( pid )
 		else:
 			raise errors.ParameterError( "Cannot create anonymous object without parent" )
@@ -138,7 +136,6 @@ class DBObject:
 			media_type = keyargs["media_type"]
 			if media_type!=self.media_type:
 				c.execute( """update objects set type=? where id=?""", [media_type, self.id] )
-				self.app.db.commit()
 				self.media_type = media_type
 				self.index( data=self.media_type, source="type", rank=1 )
 		parent_id = None
@@ -159,18 +156,15 @@ class DBObject:
 						c.execute( """update membership set sequence=?
 										where parent_id=? and child_id=?""",
 									[sequence, pid, self.id] )
-					self.app.db.commit()
 		if "ctime" in keyargs and keyargs["ctime"]!=None:
 			self.ctime = float( keyargs["ctime"] )
 			c.execute( """update objects set ctime=?
 							where id=?""",
 						[self.ctime, self.id] )
-			self.app.db.commit()
 		self.mtime = time.time()
 		c.execute( """update objects set mtime=?
 						where id=?""",
 					[self.mtime, self.id] )
-		self.app.db.commit()
 		if "title" in keyargs and keyargs["title"]!=None:
 			title = keyargs["title"]
 			# Jedes Objekt darf einen Titel haben
@@ -182,13 +176,11 @@ class DBObject:
 			else:
 				c.execute( """insert into titles (object_id, data) values(?,?)""",
 							[self.id, title] )
-			self.app.db.commit()
 			self.index( data=title, source="title", rank=3 )
 			
 	def index( self, data, source=None, rank=1 ):
 		c = self.app.db.cursor()
 		c.execute( """delete from keywords where object_id=? and scan_source=?""", [self.id, str(source)] )
-		self.app.db.commit()
 		scan_time = int( time.time() )
 		words = lexer.Lexer.scan( data )
 		insert_stmt_start = """insert into keywords (object_id, word, pos, rank, scan_source, scan_time) values"""
@@ -197,7 +189,6 @@ class DBObject:
 		insert_list = []
 		def do_insert():
 			c.execute( insert_stmt_start+insert_tuple_string, insert_list )
-			self.app.db.commit()
 		for pos, word in words:
 			value_tuple = [self.id, word, pos, rank, str(source), scan_time]
 			if len(insert_list)>(999-len(value_tuple)):
@@ -298,15 +289,12 @@ class DBObject:
 			old_mask = result[0]
 			if update_operator=="&" and (old_mask & access_mask)==0 and cleanup_zero:
 				c.execute( """delete from permissions where subject_id=? and object_id=?""" % locals(), [self.id, object_id] )
-				self.app.db.commit()
 			else:
 				c.execute( """update permissions set access_mask=(access_mask%(update_operator)s%(access_mask)d) where subject_id=? and object_id=?""" \
 								% locals(), [self.id, object_id] )
-				self.app.db.commit()
 		else:
 			c.execute( """insert into permissions (subject_id, object_id, access_mask) values (?,?,%(access_mask)d)""" \
 							% locals(), [self.id, object_id] )
-			self.app.db.commit()
 	
 	@classmethod
 	def delete_in_unsafe( cls, app, object_id_list ):
@@ -328,21 +316,15 @@ class DBObject:
 					delete_set_grown = True
 					delete_set.add( row[0] )
 		c.execute( """delete from objects where id in (%(in_list)s)""" % locals() )
-		app.db.commit()
 		c.execute( """delete from membership where child_id in (%(in_list)s) or parent_id in (%(in_list)s)""" % locals() )
-		app.db.commit()
 		c.execute( """delete from permissions where object_id in (%(in_list)s) or subject_id in (%(in_list)s)""" % locals() )
-		app.db.commit()
 		c.execute( """delete from substitutes where original_id in (%(in_list)s) or substitute_id in (%(in_list)s)""" % locals() )
-		app.db.commit()
 		#c.execute( """delete from chess_games where game_id in (%(in_list)s) or player_id in (%(in_list)s)""" % locals() )
-		#app.db.commit()
 		# FIXME: Need an extension registry that can provide information about generic extension tables!
 		# #"applications","contacts","file_transfers",
 		for extension_table in ["users","groups","text","titles",
 								"player_positions","keywords","image_info"]:
 			c.execute( """delete from %(extension_table)s where object_id in (%(in_list)s)""" % locals() )
-			app.db.commit()
 		return list( delete_set )
 	
 	@classmethod
@@ -365,7 +347,6 @@ class DBObject:
 			in_list = ",".join( [str(x) for x in object_id_list] )
 			c = app.db.cursor()
 			c.execute( """delete from membership where child_id in (%(in_list)s) and parent_id=?""" % locals(), [parent_id] )
-			app.db.commit()
 			# ... afterwards we check for zombie children left without any parent and delete unconnected subtrees completely:
 			c.execute( """select id from objects o left join membership m on o.id=m.child_id where o.id in (%(in_list)s) and m.child_id is null""" % locals() )
 			delete_list = []
@@ -419,7 +400,6 @@ class Group( DBObject ):
 				c.execute( """update groups set %(field)s=?
 								where object_id=?""",
 							[keyargs[field], self.id] )
-			self.app.db.commit()
 			self.index( data=keyargs[field], source="group."+field, rank=2 )
 DBObject.register_class( Group )
 
@@ -442,7 +422,6 @@ class Text( DBObject ):
 				c.execute( """update text set data=?
 								where object_id=?""",
 							[keyargs["data"], self.id] )
-			self.app.db.commit()
 			self.index( data=keyargs["data"], source="text", rank=2 )
 	def get_data( self ):
 		c = self.app.db.cursor()
@@ -514,7 +493,6 @@ class UserAttributes( DBObject ):
 		if not result:
 			c.execute( """insert into """+self.table+""" (object_id, user_id) 
 							values(?,?)""", [self.id, self.user.id] )
-		app.db.commit()
 	
 	def flat_copy( self, new_parent_id ):
 		raise NotImplementedError()
@@ -535,7 +513,6 @@ class UserAttributes( DBObject ):
 			update_values.append( self.id )
 			c = self.app.db.cursor()
 			c.execute( stmt, update_values )
-			self.app.db.commit()
 			# FIXME: security issue? UserAttributes are as public as the User itself is...
 			for i in range(len(update_fields)):
 				self.index( data=update_values[i], source="user."+update_fields[i], rank=2 )

@@ -190,7 +190,6 @@ class Session:
 			c.execute( """insert into session_parms (sid,key,value,mtime) 
 							values (?,?,?,?)""",
 						[self.sid,key,self.parms[key],time.time()] )
-		self.app.db.commit()
 	def get_cookies( self ):
 		return { self.app.name+".sid" : self.sid }
 

@@ -44,7 +44,6 @@ class Draft( Entry ):
 		if not result:
 			# Add the draft as a child of the user object if not already the case:
 			c.execute( """insert into membership (parent_id,child_id) values(?,?)""", [self.app.user.id, self.id] )
-			self.app.db.commit()
 		# Remove the draft from any associated entry, is it will become independent now:
 		c.execute( """select p.id from membership
 						inner join objects p on p.id=parent_id
@@ -53,13 +52,11 @@ class Draft( Entry ):
 			if not self.app.user.can_write( row[0] ):
 				raise errors.PrivilegeError( "Cannot remove draft status from draft associated with an entry the user cannot write" )
 			c.execute( """delete from membership where parent_id=? and child_id=?""", [row[0], self.id] )
-			self.app.db.commit()
 		# Finally change the type from draft to entry:
 		self.update( media_type='application/x-obj.entry' )
 		# ... and update creation time to the modification time so the newly 
 		# published entry does not have the initial creation time of the draft:
 		self.update( ctime=self.mtime )
-		self.app.db.commit()
 		return self.id
 		
 	def merge_to_parent( self ):
@@ -84,7 +81,6 @@ class Draft( Entry ):
 		for row in c:
 			c2 = self.app.db.cursor()
 			c2.execute( """insert into membership (parent_id, child_id, sequence) values (?,?,?)""", [parent_id,row[0],row[1]] )
-			self.app.db.commit()
 		db_object.DBObject.delete_in( self.app, object_id_list=[self.id] )
 		parent_entry = Entry( app=self.app, object_id=parent_id )
 		parent_entry.update() # Update parent entries mtime

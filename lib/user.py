@@ -19,7 +19,6 @@ class User( db_object.DBObject ):
 				c.execute( """insert into users (object_id,nick,password,email)
 								values (?,?,?,?)""",
 							[self.id, nick, encrypted_password, email] )
-				self.app.db.commit()
 				self.index( data=nick, source="nick", rank=2 )
 			except sqlite3.IntegrityError as e:
 				raise Exception( "Nick already in use" )
@@ -47,7 +46,6 @@ class User( db_object.DBObject ):
 			email = keyargs["email"]
 			User.check_email( email )
 			c.execute( """update users set email=? where object_id=?""", [email, self.id] )
-			self.app.db.commit()
 		if "new_password" in keyargs:
 			new_password = keyargs["new_password"]
 			User.check_password( new_password )
@@ -61,7 +59,6 @@ class User( db_object.DBObject ):
 				if not password.check( old_password, encrypted_old_password ):
 					raise errors.PrivilegeError( "Invalid old password" )
 			c.execute( """update users set password=? where object_id=?""", [encrypted_new_password, self.id] )
-			self.app.db.commit()
 		if "avatar_id" in keyargs:
 			avatar_id = int( keyargs["avatar_id"] )
 			if self.app.user.can_read( avatar_id ):
@@ -71,7 +68,6 @@ class User( db_object.DBObject ):
 					size_limit = 100*2**10
 					if file_obj.get_size() <= size_limit:
 						c.execute( """update users set avatar_id=? where object_id=?""", [avatar_id, self.id] )
-						self.app.db.commit()
 					else:
 						raise errors.ParameterError( "Avatar object exeeds size limit of %d bytes" % (size_limit) )
 				else:

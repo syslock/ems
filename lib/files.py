@@ -17,7 +17,6 @@ class File( db_object.DBObject ):
 			if self.media_type not in ("text/plain","text/html") and not self.media_type.startswith("application/x-obj."):
 				c = self.app.db.cursor()
 				c.execute( """insert into type_hierarchy (base_type, derived_type) values(?, ?)""", [self.base_type, self.media_type] )
-				self.app.db.commit()
 			else:
 				# Speicherung der oben ausgeklammerten, internen Datentypen als Blobs erlauben:
 				self.media_type = File.base_type
@@ -216,10 +215,8 @@ class Image( File ):
 			update_id = c.fetchone()
 			if update_id != None:
 				c.execute( """update image_info set rotation=? where object_id=?""", [round(float(keyargs["rotation"])), self.id] )
-				self.app.db.commit()
 			else:
 				c.execute( """insert into image_info (object_id,rotation) values (?,?)""", [self.id, round(float(keyargs["rotation"]))] )
-				self.app.db.commit()
 	
 	def get_rotation( self ):
 		c = self.app.db.cursor()

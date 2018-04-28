@@ -23,10 +23,8 @@ def run( ws_server ):
 			state = c.execute( """select object_id, x, y from player_positions where object_id=?""", [ws_server.app.user.id] ).fetchone()
 			if state:
 				c.execute( """update player_positions set x=x+?, y=y+? where object_id=?""", [action[0], action[1], ws_server.app.user.id] )
-				ws_server.app.db.commit()
 			else:
 				c.execute( """insert into player_positions (object_id, x, y) values (?,?,?)""", [ws_server.app.user.id, action[0], action[1]] )
-				ws_server.app.db.commit()
 	else:
 		ws_server.cmd_queue.clear()
 	result = {}

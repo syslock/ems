@@ -23,10 +23,8 @@ for scan_source_definition in scan_sources:
 	for obj_id, data in rows:
 		words = Lexer.scan( data )
 		c.execute( """delete from keywords where object_id=? and scan_source=?""", [obj_id, scan_source] )
-		app.db.commit()
 		for pos, word in words:
 			c.execute( """insert into keywords (object_id, word, pos, rank, scan_source, scan_time)
 					values(?, ?, ?, ?, ?, ?)""", [obj_id, word, pos, rank, scan_source, scan_time] )
-			app.db.commit()
 		
 	

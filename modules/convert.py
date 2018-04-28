@@ -103,6 +103,8 @@ def process( app ):
 														[source_obj.id, new_obj.id, conversion.role, conversion.width] )
 				# Konvertierungsvorgänge für angelegte Objekte durchführen:
 				for new_obj in new_objects:
+					# this may take a long time, so wie have to commit first:
+					app.db.commit()
 					base_type, sub_type = new_obj.media_type.split("/")
 					new_tmp_name = new_obj.storage_path+".tmp."+sub_type
 					if( re.match(r"^video/.*", new_obj.media_type) ):

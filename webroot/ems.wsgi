@@ -46,11 +46,14 @@ def myapp( environ, start_response ):
 		# Session-Cookies aktualisieren:
 		response.cookies.update( app.session.get_cookies() )
 		
-		return response.finalize()
+		result = response.finalize()
+		app.close_db( commit=True ) # also commits pending changes
+		return result
 	except Exception as e:
 		for line in traceback.format_exception( Exception, e, e.__traceback__ ):
 			if app:
 				app.log( line )
+				app.close_db( rollback=True ) # error state -> rollback pending changes
 			else:
 				print( line )
 		raise

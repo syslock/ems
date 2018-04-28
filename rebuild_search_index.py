@@ -26,5 +26,6 @@ for scan_source_definition in scan_sources:
 		for pos, word in words:
 			c.execute( """insert into keywords (object_id, word, pos, rank, scan_source, scan_time)
 					values(?, ?, ?, ?, ?, ?)""", [obj_id, word, pos, rank, scan_source, scan_time] )
+app.close_db( commit=True ) # also commits pending changes
 		
 	

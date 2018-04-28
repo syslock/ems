@@ -27,4 +27,5 @@ class EventMonitor( threading.Thread ):
 			message = str( {'succeeded': True, 'objects': objs} )
 			self.websocket.send( message )
 			time.sleep(30)
+		self.app.close_db( commit=True ) # also commits pending changes
 			

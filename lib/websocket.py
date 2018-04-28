@@ -117,7 +117,8 @@ class WSServer( threading.Thread ):
 				if self.ws.quitting:
 					print( "WebSocket-Shutdown (%s)" % (self.app.query.remote_addr) )
 					self.stop()
-		self.app.open_db() # App-DB für diesen Thread neu öffnen...
+		#self.app.close_db() # cannot touch other threads app.db!
+		self.app.open_db() # Reopen app db for this thread (WSServer thread)
 		self.module.initialize( self )
 		t = threading.Thread( target=read_thread )
 		t.start()
@@ -126,6 +127,7 @@ class WSServer( threading.Thread ):
 			self.module.sleep( self )
 		t.join()
 		self.module.cleanup( self )
+		self.app.close_db( commit=True ) # also commits pending changes
 
 class WebSocket:
 	def __init__( self, app, socket, endpoint=None ):

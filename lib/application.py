@@ -228,9 +228,14 @@ class Application:
 	def open_db( self ):
 		self.db = sqlite3.connect( self.db_path )
 		return self.db
-	def close_db( self ):
-		self.db.close()
-		self.db = None
+	def close_db( self, commit=False, rollback=False ):
+		if self.db:
+			if commit: 
+				self.db.commit()
+			if rollback:
+				self.db.rollback()
+			self.db.close()
+			self.db = None
 	def log( self, message ):
 		message = str(message).rstrip()
 		if self.logfile:

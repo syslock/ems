@@ -10,7 +10,7 @@ class Request:
 	"""Implementiert Parameterübergabe an die Webanwendung"""
 	def __init__( self, environ ):
 		self.environ = environ
-		self.path = os.path.dirname( self.environ["SCRIPT_NAME"] ) or "/"
+		self.path = os.path.dirname( self.environ["SCRIPT_NAME"] ) if "SCRIPT_NAME" in self.environ else "."
 		self.remote_addr = self.environ["REMOTE_ADDR"]
 		self.cookies = {}
 		self.parms = {}

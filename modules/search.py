@@ -24,10 +24,13 @@ def process( app ):
 		if "recursive" in q.parms:
 			children = parents = q.parms["recursive"].lower()=="true"
 		max_phrase_word_dist = int(q.parms["max_phrase_word_dist"]) if "max_phrase_word_dist" in q.parms else 3
+		exact_includes = q.parms["exact_includes"].lower()=="true" if "exact_includes" in q.parms else True
+		exact_excludes = q.parms["exact_excludes"].lower()=="true" if "exact_excludes" in q.parms else True
 		search( app, search_phrase, result_types=result_types, min_weight=min_weight, 
 				order_by=order_by, order_reverse=order_reverse, 
 				range_offset=range_offset, range_limit=range_limit,
-				recursive=(parents,children), max_phrase_word_dist=max_phrase_word_dist )
+				recursive=(parents,children), max_phrase_word_dist=max_phrase_word_dist,
+				exact_includes=exact_includes, exact_excludes=exact_excludes )
 	elif "apropos" in q.parms:
 		prefix = q.parms["apropos"]
 		apropos( app, prefix, result_types=result_types, range_offset=range_offset, range_limit=range_limit )
@@ -54,7 +57,8 @@ search_type_alias = {
 
 time_types = { "ctime", "mtime" }
 
-def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, order_reverse=True, range_offset=0, range_limit=None, recursive=(False,False), max_phrase_word_dist=3 ):
+def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, order_reverse=True, range_offset=0, 
+		   range_limit=None, recursive=(False,False), max_phrase_word_dist=3, exact_includes=True, exact_excludes=True ):
 	q = app.query
 	
 	# 1.) Suchausdruck parsen und Datenstrukturen initialisieren:
@@ -82,24 +86,28 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 			
 	search_words = []
 	for part in phrase_parts:
-		match = re.fullmatch( "([+-]*)((?:[\w]+:)*)(.+)", part, re.DOTALL )
-		_word = match.group(3)
-		phrase_match = re.fullmatch( '"([^"]*)"?(?:\[([0-9]+)\])?', _word )
+		match = re.fullmatch( "([?]?)([+-]*)((?:[\w]+:)*)(.+)", part, re.DOTALL )
+		optional = match.group(1)=="?"
+		weight_prefix = match.group(2)
+		word_weight = sum( [(lambda x: 10 if x=='+' else -10)(c) for c in weight_prefix] ) + (10 if weight_prefix=="" else 0)
+		_word = match.group(4)
+		phrase_match = re.fullmatch( '([?]?)"([^"]*)"?(?:\[([0-9]+)\])?', _word )
 		if not phrase_match:
-			phrase_match = re.fullmatch( "'([^']*)'?(?:\[([0-9]+)\])?", _word )
+			phrase_match = re.fullmatch( "([?]?)'([^']*)'?(?:\[([0-9]+)\])?", _word )
 		if phrase_match:
 			_word = None
-			_phrase = phrase_match.group(1)
+			_phrase = phrase_match.group(2)
 			try:
-				_phrase_max_word_dist = int(phrase_match.group(2))
+				_phrase_max_word_dist = int(phrase_match.group(3))
 			except TypeError:
 				_phrase_max_word_dist = max_phrase_word_dist
 		else:
 			_phrase = None
 			_phrase_max_word_dist = max_phrase_word_dist
 		word = {
-			"weight" : match.group(1),
-			"type" : match.group(2),
+			"optional" : optional,
+			"weight" : word_weight,
+			"type" : match.group(3),
 			"word" : _word,
 			"phrase" : _phrase,
 			"phrase_max_word_dist" : _phrase_max_word_dist,
@@ -116,8 +124,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 	for i, search_word in enumerate(search_words):
 		# optionales Wichtungs-Präfix aus '-' und '+' parsen, wobei ein positiveres Präfix Treffer des Suchwortes
 		# höher bewertet und ein negativeres Präfix Treffer der Ausschlussmenge des Suchwortes höher bewertet:
-		weight_prefix = search_word["weight"]
-		word_weight = sum( [(lambda x: 10 if x=='+' else -10)(c) for c in weight_prefix] ) + (10 if not weight_prefix else 0)
+		word_weight = search_word["weight"]
 		# optionalen Typ-Selektor der Form <[typ1:[typ2:[...]]]wort> parsen:
 		word_types = search_word["type"].split(":")[:-1]
 		type_query = ""
@@ -199,6 +206,7 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 			phrase_words = phrase.split()
 			phrase_joins = []
 			phrase_queries = []
+			result_phrase_field_string = ""
 			for i,phrase_word in enumerate(phrase_words):
 				if i>0:
 					prev_i = i-1
@@ -208,87 +216,137 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 							and k0.scan_source=k%(i)d.scan_source 
 							and abs(k%(i)d.pos-k%(prev_i)d.pos)<=%(phrase_max_word_dist)d""" % locals() )
 					phrase_queries.append( "and k%(i)d.word like ?" % locals() )
+					result_phrase_field_string += "||' '||k%(i)d.word" % locals()
 				else:
 					phrase_queries.append( "k%(i)d.word like ?" % locals() )
+					result_phrase_field_string += "k%(i)d.word" % locals()
 			s_phrase_joins = "\n".join( phrase_joins )
 			s_phrase_queries = "\n".join( phrase_queries )
-			c.execute( """select k0.object_id, '', k0.pos, k0.scan_source, o.type from keywords k0 
+			c.execute( """select k0.object_id, %(result_phrase_field_string)s, k0.pos, k0.scan_source, o.type from keywords k0 
 							inner join objects o on o.id=k0.object_id
 							%(s_phrase_joins)s
 							where %(s_phrase_queries)s %(type_query)s order by k0.object_id, k0.pos""" % locals(), phrase_words+type_names )
 		for row in c:
 			search_word_rows[ search_word["raw_word"] ] += 1
 			object_id, result_word, pos, scan_source, object_type = row
+			if not type(word_weight)==int:
+				raise errors.StateError(type(word_weight))
+			if type(search_word["word"]) not in (str,type(None)):
+				raise errors.StateError(type(search_word["word"]))
+			if type(result_word) not in (str,int):
+				raise errors.StateError(type(result_word))
+			if not type(pos)==int:
+				raise errors.StateError(type(pos))
+			if not type(scan_source)==str:
+				raise errors.StateError(type(scan_source))
+			if not type(search_word["raw_word"])==str:
+				raise errors.StateError(type(search_word["raw_word"]))
 			hit = {
 				"object_id" : object_id,
-				"result_word" : result_word,
-				"pos" : pos,
-				"scan_source" : scan_source,
 				"object_type" : object_type,
-				"search_word" : search_word["raw_word"],
-				"keyword" : word,
-				"weight" : word_weight,
-				"extra_reasons" : { "valid_types" : [], "associated_to" : [] }
+				"reasons" : { (
+					object_id, #"object_id"
+					word_weight, #"weight"
+					search_word["word"], #"keyword"
+					result_word, #"result_word"
+					scan_source, #"scan_source"
+					search_word["raw_word"], #"raw_word"
+				) },
+				"associated_to" : set()
 			}
 			if object_id in raw_results:
-				raw_results[object_id].append( hit )
+				raw_results[object_id]["reasons"] = raw_results[object_id]["reasons"].union( hit["reasons"] )
 			else:
-				raw_results[object_id] = [ hit ]
+				raw_results[object_id] = hit
 	
 	# 3.) Wir machen eine Zugriffsprüfung, filtern die Trefferliste entsprechend und 
 	#     erweitern die Trefferliste ggf. um Eltern- und Kindobjekte mit passendem Typ, sodass z.b.
 	#     Blog-Einträge für auf die Volltextsuche passende plain/text-Objekte oder Beiträge
 	#     von passenden Nutzernamen gefunden werden:
 	filtered_results = {}
-	for result_id in raw_results:
-		for hit in raw_results[result_id]:
-			object_id = hit["object_id"]
-			object_type = hit["object_type"]
-			search_word = hit["search_word"]
-			if app.user.can_read( object_id ):
-				direct_hit = False
-				if object_type in result_types or "file" in result_types and files.File.supports(app, object_type) or not result_types:
-					c = app.db.cursor()
-					# Hier müssen wir zunächst prüfen ob das gefundene Objekt ein Substitute-Objekt ist, denn 
-					# Substitute-Objekte sollten nicht als Treffer zurück geliefert werden.
-					c.execute( """select original_id from substitutes where substitute_id=?""", [object_id] )
-					if c.fetchone()==None:
-						direct_hit = True
-						hit["extra_reasons"]["valid_types"].append( object_type )
-						if object_id in filtered_results:
-							filtered_results[object_id].append( hit )
-						else:
-							filtered_results[object_id] = [ hit ]
-						search_word_hits[search_word] += 1
-				if not direct_hit:
-					obj = db_object.DBObject( app, object_id )
-					matching_associates = obj.resolve_parents( parent_type_set=set(result_types) ) + obj.resolve_children( child_type_set=set(result_types) )
-					for alt_obj_id in matching_associates:
-						if app.user.can_read( alt_obj_id ):
-							c = app.db.cursor()
-							# Hier müssen wir zunächst prüfen ob das gefundene Objekt ein Substitute-Objekt ist, denn 
-							# Substitute-Objekte sollten nicht als Treffer zurück geliefert werden.
-							c.execute( """select original_id from substitutes where substitute_id=?""", [alt_obj_id] )
-							if c.fetchone()==None:
-								hit["extra_reasons"]["associated_to"].append( alt_obj_id )
-								if alt_obj_id in filtered_results:
-									filtered_results[alt_obj_id].append( hit )
-								else:
-									filtered_results[alt_obj_id] = [ hit ]
-								search_word_hits[search_word] += 1
+	for object_id in raw_results:
+		hit = raw_results[ object_id ]
+		object_type = hit["object_type"]
+		if app.user.can_read( object_id ):
+			direct_hit = False
+			if object_type in result_types or "file" in result_types and files.File.supports(app, object_type) or not result_types:
+				c = app.db.cursor()
+				# Hier müssen wir zunächst prüfen ob das gefundene Objekt ein Substitute-Objekt ist, denn 
+				# Substitute-Objekte sollten nicht als Treffer zurück geliefert werden.
+				c.execute( """select original_id from substitutes where substitute_id=?""", [object_id] )
+				if c.fetchone()==None:
+					direct_hit = True
+					if object_id not in filtered_results:
+						filtered_results[object_id] = hit
+					else:
+						# Merge existing results reason set:
+						# this is not going to happen as long as we iterate over raw_results and that is a dictionary, but who knows...
+						filtered_results[object_id]["reasons"] = filtered_results[object_id]["reasons"].union( hit["reasons"] )
+					for reason in hit["reasons"]:
+						object_id, weight, keyword, result_word, scan_source, raw_word = reason
+						search_word_hits[ raw_word ] += 1
+			if not direct_hit:
+				obj = db_object.DBObject( app, object_id )
+				matching_associates = obj.resolve_parents( parent_type_set=set(result_types) ) + obj.resolve_children( child_type_set=set(result_types) )
+				for alt_obj_id in matching_associates:
+					if app.user.can_read( alt_obj_id ):
+						c = app.db.cursor()
+						# Hier müssen wir zunächst prüfen ob das gefundene Objekt ein Substitute-Objekt ist, denn 
+						# Substitute-Objekte sollten nicht als Treffer zurück geliefert werden.
+						c.execute( """select original_id from substitutes where substitute_id=?""", [alt_obj_id] )
+						if c.fetchone()==None:
+							hit["associated_to"].add( object_id )
+							if alt_obj_id not in filtered_results:
+								filtered_results[alt_obj_id] = hit
+							else:
+								# Merge existing results reason set:
+								filtered_results[alt_obj_id]["reasons"] = filtered_results[alt_obj_id]["reasons"].union( hit["reasons"] )
+							for reason in hit["reasons"]:
+								object_id, weight, keyword, result_word, scan_source, raw_word = reason
+								search_word_hits[ raw_word ] += 1
 	
 	# 4.) Treffer sortieren
-	if order_by=="weight" or min_weight!=None:
-		# a) Relevanzsortierung/Relevanzfilterung, wobei:
-		# - Anzahl treffender Suchbegriffe verstärkend wirken: len(filtered_results[x])
-		# - Gesamtzahl der Treffer aller treffenden Suchbegriffe abschwächend wirken: /sum(...)
-		sort_key = lambda x: (1+sum([h["weight"] for h in filtered_results[x]])) * len(filtered_results[x]) / max(1,sum([search_word_hits[sw] for sw in set([h["search_word"] for h in filtered_results[x]])]))
+	if order_by=="weight" or min_weight!=None or exact_includes or exact_excludes:
+		# a) Relevanzsortierung/Relevanzfilterung, wobei die:
+		# - gewichtete Anzahl treffender Suchbegriffe verstärkend wirkt: weighted_reason_sum
+		# - Gesamtzahl der Treffer aller treffenden Suchbegriffe abschwächend wirken: search_word_hit_sum
+		def sort_key( object_id ):
+			hit = filtered_results[ object_id ]
+			weighted_reason_sum = 0
+			search_word_hit_sum = 0
+			all_positive_terms_found = True
+			no_negative_terms_found = True
+			for reason in hit["reasons"]:
+				object_id, weight, keyword, result_word, scan_source, raw_word = reason
+				weighted_reason_sum += 1*weight
+				search_word_hit_sum += search_word_hits[ raw_word ]
+				no_negative_terms_found = no_negative_terms_found and weight>=0
+			if exact_includes:
+				for search_word in search_words:
+					if not search_word["optional"] and search_word["weight"]>=0:
+						positive_term_found = False
+						for reason in hit["reasons"]:
+							object_id, weight, keyword, result_word, scan_source, raw_word = reason
+							if search_word["raw_word"]==raw_word:
+								positive_term_found = True
+								break
+						all_positive_terms_found = all_positive_terms_found and positive_term_found
+						if all_positive_terms_found==False:
+							break
+			hit_weight = weighted_reason_sum / (1+search_word_hit_sum)
+			return (hit_weight, all_positive_terms_found, no_negative_terms_found)
 		hit_weights = [(hit_id,sort_key(hit_id)) for hit_id in filtered_results]
 		if order_by=="weight":
 			hit_weights = sorted( hit_weights, key=lambda x: x[1], reverse=order_reverse )
-		# b) Treffer nach Minimalgewicht filtern, falls definiert:
+		# b) Exclude hits, if below min_weight, when defined:
 		if min_weight!=None:
-			hit_weights = [x for x in hit_weights if x[1]>min_weight]
+			hit_weights = [x for x in hit_weights if x[1][0]>min_weight]
+		# c) Exclude hits not matching all positive search terms if required
+		if exact_includes:
+			hit_weights = [x for x in hit_weights if x[1][1]==True]
+		# d) Exclude hits matching at least one negative search term if required
+		if exact_excludes:
+			hit_weights = [x for x in hit_weights if x[1][2]==True]
 	else:
 		hit_weights = [(hit_id,0) for hit_id in filtered_results]
 	hit_id_list = [x[0] for x in hit_weights]
@@ -306,17 +364,17 @@ def search( app, search_phrase, result_types=[], min_weight=0, order_by=None, or
 	hitlist = []
 	if hit_id_list:
 		hitlist = get.get( app, object_ids=hit_id_list, recursive=recursive, access_errors=False )
+	for hit in hitlist:
+		hit["reasons"] = list( filtered_results[hit["id"]]["reasons"] )
+		#hit["associated_to"] = get.get( app, object_ids=list(filtered_results[hit["id"]]["associated_to"]), recursive=(False,False), access_errors=False )
+		hit["weight"] = [x[1] for x in hit_weights if x[0]==hit["id"]][0]
 	
 	# 9.) Ergebnis JSON-kodieren:
 	result = {
-#		"hit_weights" : hit_weights,
-#		"reasons" : {},
 		"hitlist" : hitlist,
 		"search_word_rows" : search_word_rows,
 		"search_word_hits" : search_word_hits,
 	}
-#	for hit_id,hit_weight in hit_weights:
-#		result["reasons"][hit_id] = filtered_results[hit_id]
 	app.response.output = json.dumps( result )
 
 def apropos( app, prefix, result_types, range_offset=0, range_limit=None ):

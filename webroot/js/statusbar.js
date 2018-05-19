@@ -97,6 +97,11 @@ StatusBar.prototype.add_message = function( parms ) {
 	var source = parms.source ? parms.source : "system";
 	var text = parms.text ? parms.text : "";
 	var timestamp = (new Date()).toLocaleTimeString();
+	if( my.message_template==undefined ) {
+		// Discard messages when statusbar is not yet initialized
+		// FIXME: Workaround for global StatusBar instance that might not be initialized yet
+		return;
+	}
 	var message = my.message_template.clone().removeClass( "message-template").addClass( cls ).css( css );
 	var message_emblem = $( ".message-emblem", message ).css( emblem_css );
 	var message_time = $( ".message-time", message );

@@ -247,7 +247,7 @@ define( ["jquery","item"], function($,BaseItem) {
 				if( range_scroll_loader ) range_scroll_loader.stop();
 				range_scroll_loader = new RangeScrollLoader( {
 					scroll_container : my.tags_search_result_scroll_container_hack,
-					scroll_handler : tag_search.search,
+					scroll_handler : function(parms) { tag_search.search(parms); },
 					scroll_condition : "element_scroll_condition"
 				} );
 			},

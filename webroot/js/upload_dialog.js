@@ -321,7 +321,7 @@ var UploadDialog = function( parms ) {
 					if( my.upload_search_range_scroll_loader ) my.upload_search_range_scroll_loader.stop();
 					my.upload_search_range_scroll_loader = new RangeScrollLoader( {
 						scroll_container : my.recent_uploads_search_result_scroll_container_hack[0],
-						scroll_handler : my.upload_search.search,
+						scroll_handler : function(parms) { my.upload_search.search(parms); },
 						scroll_condition : "element_scroll_condition"
 					} );
 				},

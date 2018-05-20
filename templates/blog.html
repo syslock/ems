@@ -72,7 +72,7 @@
 								if( range_scroll_loader ) range_scroll_loader.stop();
 								range_scroll_loader = new RangeScrollLoader( {
 									scroll_container : window,
-									scroll_handler : global_search.search
+									scroll_handler : function(parms) { global_search.search(parms); }
 								} );
 							},
 							on_ready : function() {
@@ -83,7 +83,8 @@
 									global_search.entry.text( url_query );
 								}
 								global_search.search();
-							}
+							},
+							activity_bar_container : $(".ems-activity")
 						} );
 						
 						// Anzeige von hochgeladenen Mini-Icons in der Titelzeile:
@@ -109,7 +110,7 @@
 								if( user_range_scroll_loader ) user_range_scroll_loader.stop();
 								user_range_scroll_loader = new RangeScrollLoader( {
 									scroll_container : $(".menu-user-list-content")[0],
-									scroll_handler : user_search.search
+									scroll_handler : function(parms) { user_search.search(parms); }
 								} );
 							},
 							on_ready : function() {
@@ -208,6 +209,7 @@
 			</div>
 		</div>
 		<div class="ems-content"></div>
+		<div class="ems-activity"></div>
 		<%include file="/elements/group_template.html" />
 		<%include file="/elements/user_template.html" />
 		<%include file="/elements/text_template.html" />

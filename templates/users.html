@@ -63,7 +63,7 @@
 								if( range_scroll_loader ) range_scroll_loader.stop();
 								range_scroll_loader = new RangeScrollLoader( {
 									scroll_container : window,
-									scroll_handler : global_search.search
+									scroll_handler : function(parms) { global_search.search(parms); }
 								} );
 							},
 							on_ready : function() {

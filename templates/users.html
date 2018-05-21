@@ -69,7 +69,8 @@
 							on_ready : function() {
 								global_search.entry.focus();
 								global_search.search();
-							}
+							},
+							activity_bar_container : $(".ems-activity")
 						} );
 					}
 				});
@@ -90,6 +91,7 @@
 			</div>
 		</div>
 		<div class="ems-content"></div>
+		<div class="ems-activity"></div>
 		<%include file="/elements/group_template.html" />
 		<%include file="/elements/user_template.html" />
 		<%include file="/elements/text_template.html" />

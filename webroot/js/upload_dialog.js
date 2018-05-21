@@ -326,10 +326,13 @@ var UploadDialog = function( parms ) {
 					} );
 				},
 				on_ready : function() {
-					my.upload_search.entry.outerWidth( $(my.recent_uploads_selection).innerWidth()*0.95 );
-					my.upload_search.entry.focus();
-					my.upload_search.search();
-				}
+					var upload_dialog = my; // FIXME: Use backed up this reference for UploadDialog instance
+					var upload_search = this; // Use this for SearchBar instance, because constructor might not have returned yet
+					upload_search.entry.outerWidth( $(upload_dialog.recent_uploads_selection).innerWidth()*0.95 );
+					upload_search.entry.focus();
+					upload_search.search();
+				},
+				activity_bar_container : my.recent_uploads_search_activity_bar
 			} );
 			my.recent_uploads.on( "click", function(event) {
 				var obj = $(event.target).closest(".ems-item").data("obj");
@@ -369,6 +372,7 @@ var UploadDialog = function( parms ) {
 				my.recent_uploads_searchbar = $(".recent-uploads-searchbar", my.recent_uploads);
 				my.recent_uploads_search_result = $(".recent-uploads-search-result", my.recent_uploads);
 				my.recent_uploads_search_result_scroll_container_hack = $(".recent-uploads-search-result-scroll-container-hack", my.recent_uploads);
+				my.recent_uploads_search_activity_bar = $(".recent-uploads-search-activity-bar", my.recent_uploads);
 				my.preview_area = $(".upload-preview", my.upload_dialog );
 				my.preview_area.on( "dragover", function( event ) {
 					return false;

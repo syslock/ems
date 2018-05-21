@@ -252,8 +252,10 @@ define( ["jquery","item"], function($,BaseItem) {
 				} );
 			},
 			on_ready : function() {
-				$(my.tags_selection).show();
-				tag_search.entry.outerWidth( $(my.tags_selection).innerWidth()*0.95 );
+				var entry = my; // FIXME: needing to use this reference backups is a bit creepy
+				var tag_search = this; // Use this reference for tag_search, as the constructor might not yet have returned
+				$(entry.tags_selection).show();
+				tag_search.entry.outerWidth( $(entry.tags_selection).innerWidth()*0.95 );
 				tag_search.entry.focus();
 				tag_search.search();
 			}

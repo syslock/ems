@@ -120,7 +120,8 @@
 								new MutationObserver( function(){
 									$(".menu-user-list-count").text( $(".menu-user-list-content .ems-item").length );
 								}).observe( $(".menu-user-list-content")[0], {childList:true} );
-							}
+							},
+							activity_bar_container : $(".menu-user-list-activity-bar")
 						} );
 					}
 				});

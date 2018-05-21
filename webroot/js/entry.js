@@ -42,6 +42,7 @@ define( ["jquery","item"], function($,BaseItem) {
 			my.tags_searchbar = $(".entry-tags-searchbar", my.entry)[0];
 			my.tags_search_result = $(".entry-tags-search-result", my.entry)[0];
 			my.tags_search_result_scroll_container_hack = $(".entry-tags-search-result-scroll-container-hack", my.entry)[0];
+			my.tags_search_activity_bar = $(".entry-tags-search-activity-bar", my.entry)[0];
 			my.tags_content = $(".entry-tags-content", my.entry)[0];
 			my.button_title_search = $(".entry-title-search-button", my.entry)[0];
 			
@@ -258,7 +259,8 @@ define( ["jquery","item"], function($,BaseItem) {
 				tag_search.entry.outerWidth( $(entry.tags_selection).innerWidth()*0.95 );
 				tag_search.entry.focus();
 				tag_search.search();
-			}
+			},
+			activity_bar_container : my.tags_search_activity_bar
 		} );
 	};
 

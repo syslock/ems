@@ -64,8 +64,8 @@ SearchBar.prototype.init = function( parms ) {
 			my.entry.outerWidth( my.outer_width );
 			my.entry.css( 'min-width', my.entry.css('width') );
 			my.entry.css( 'width', '' );
-			my.entry.on( "keydown", function(evt) { my.handle_keydown_event(evt); } )
-			my.entry.on( "keyup", function(evt) { my.handle_keyup_event(evt); } )
+			my.entry.on( "keydown", function(evt) { return my.handle_keydown_event(evt); } )
+			my.entry.on( "keyup", function(evt) { return my.handle_keyup_event(evt); } )
 			my.buttons = $( ".searchbar-buttons", my.entry_parent );
 			my.button_search = $( ".searchbar-button-search", my.entry_parent );
 			my.button_search.on( 'click', function() { my.search(); } );

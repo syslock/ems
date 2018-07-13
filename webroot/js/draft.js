@@ -47,7 +47,7 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 				get_module( "get", {
 					"args" : {
 						"child_id" : my.obj.id,
-						"recursive" : true
+						"recursive" : false
 					},
 					"done" : function( result ) {
 						result = parse_result( result );
@@ -568,9 +568,20 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 				"done" : function( result ) {
 					result = parse_result( result );
 					if( result && result.succeeded && result.entry && result.entry.id ) {
-						// For a republished/cloned entry a previously existing parent entry should be also reloaded.
 						if( my.parent_entry && publish_method=="publish" ) {
-							new Entry( {obj:my.parent_entry, duplicates:true, dom_parent:my.dom_parent, prepend:true} );
+							// For a republished/cloned entry a previously existing parent entry must also be reloaded:
+							get_module( "get", {
+								"args" : {
+									"id" : my.parent_entry.id,
+									"recursive" : true
+								},
+								"done" : function( result ) {
+									var entry_obj = parse_result( result )[0];
+									if( entry_obj ) {
+										new Entry( {obj:entry_obj, duplicates:true, dom_parent:my.dom_parent, prepend:true} );
+									}
+								}
+							});
 						}
 						new Entry( {obj:result.entry, duplicates:true, dom_parent:my.dom_parent, prepend:true} );
 						$(my.dom_object).remove();

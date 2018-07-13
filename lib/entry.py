@@ -72,6 +72,14 @@ class Draft( Entry ):
 		parent_id = result[0]
 		if not self.app.user.can_write( parent_id ):
 			raise errors.PrivilegeError( "Cannot write parent entry to merge into" )
+		# backup drafts title
+		c.execute( """select data from titles where object_id=?""", [self.id] )
+		result = c.fetchone()
+		if result:
+			draft_title = result[0]
+		else:
+			draft_title = None
+		# replace old childs of main entry object with childs of the draft object:
 		cleanup_ids = set()
 		c.execute( """select child_id from membership where parent_id=? and child_id!=?""", [parent_id, self.id] )
 		for row in c:
@@ -83,6 +91,6 @@ class Draft( Entry ):
 			c2.execute( """insert into membership (parent_id, child_id, sequence) values (?,?,?)""", [parent_id,row[0],row[1]] )
 		db_object.DBObject.delete_in( self.app, object_id_list=[self.id] )
 		parent_entry = Entry( app=self.app, object_id=parent_id )
-		parent_entry.update() # Update parent entries mtime
+		parent_entry.update( title=draft_title ) # save title and update parent entries mtime
 		return parent_id
 db_object.DBObject.register_class( Draft )

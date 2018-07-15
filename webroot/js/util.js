@@ -208,13 +208,18 @@ function prettyprint_time( time ) {
 function prettyprint_date_and_time( timestamp ) {
 	// FIXME: i18n
 	var date = new Date(timestamp*1000);
-	var day = date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear()
+	var day = date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear();
+	var two_char_month = String( date.getMonth()+1 );
+	two_char_month = two_char_month.length==2 ? two_char_month : "0"+two_char_month;
+	var two_char_day = String( date.getDate() );
+	two_char_day = two_char_day.length==2 ? two_char_day : "0"+two_char_day;
+	var day_normalized = date.getFullYear()+"-"+two_char_month+"-"+two_char_day;
 	var hours = date.getHours();
 	hours = (hours<10) ? "0"+String(hours) : String(hours);
 	var minutes = date.getMinutes();
 	minutes = (minutes<10) ? "0"+String(minutes) : String(minutes);
 	var time = hours+":"+minutes;
-	return { "date" : day, "time" : time };
+	return { "date_normalized" : day_normalized, "date" : day, "time" : time };
 }
 
 // https://stackoverflow.com/questions/2897155/get-cursor-position-in-characters-within-a-text-input-field

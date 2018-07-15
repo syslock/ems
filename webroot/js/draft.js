@@ -97,6 +97,16 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 			$(my.button_tab_left).off("click").on( "click", function(){ my.on_keydown( {shiftKey:true, keyCode:9, preventDefault:function(){}} ); } );
 			my.button_toolbar_quote = $( ".keysym-quote", my.dom_object )[0];
 			$(my.button_toolbar_quote).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'e', preventDefault:function(){}} ); } );
+			my.ctime_changer = $( ".entry-ctime-changer", my.dom_object )[0];
+			my.ctime_changer_date = $( ".entry-ctime-date-input", my.dom_object )[0];
+			$(my.ctime_changer_date).off("click").on("click", function(){ $(my.ctime_changer).addClass("active"); } );
+			my.ctime_changer_time = $( ".entry-ctime-time-input", my.dom_object )[0];
+			$(my.ctime_changer_time).off("click").on("click", function(){ $(my.ctime_changer).addClass("active"); } );
+			my.ctime_change_button = $( ".entry-ctime-change-button" )[0];
+			$(my.ctime_change_button).off("click").on("click", function() { $(my.ctime_changer).removeClass("active"); my.save_ctime_change(); } );
+			my.ctime_cancel_button = $( ".entry-ctime-cancel-button" )[0];
+			$(my.ctime_cancel_button).off("click").on("click", function() { $(my.ctime_changer).removeClass("active"); my.reload_ctime_changer(); } );
+			my.reload_ctime_changer();
 			
 			$(my.entry).addClass("draft");
 			
@@ -631,6 +641,36 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 			}
 		});
 	};
+	
+	Draft.prototype.reload_ctime_changer = function() {
+		var my = this;
+		if( my.obj && my.obj.ctime ) {
+			var entry_ctime = prettyprint_date_and_time( my.obj.ctime );
+			$( my.ctime_changer_date ).val( entry_ctime.date_normalized );
+			$( my.ctime_changer_time ).val( entry_ctime.time );
+		}
+	}
+	
+	Draft.prototype.save_ctime_change = function() {
+		var my = this;
+		var iso8601_string = $(my.ctime_changer_date).val() + "T" + $(my.ctime_changer_time).val();
+		var seconds_since_epoch = Date.parse( iso8601_string ) / 1000;
+		my.obj.ctime = seconds_since_epoch;
+		get_module( "store", {
+			"args" : {
+				"id" : my.obj.id,
+				"ctime" : seconds_since_epoch
+			},
+			"done" : function( result ) {
+				var result = parse_result( result );
+				if( result.succeeded ) {
+					my.reload_ctime_changer();
+					// Update primary Draft ctime display:
+					my.update_standard_fields();
+				}
+			}
+		});
+	}
 	
 	return Draft;
 }); //define()

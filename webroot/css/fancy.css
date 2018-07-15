@@ -286,6 +286,57 @@ select {
 .entry-ctime-time {
 	display: block;
 }
+.entry-ctime-changer {
+	display: none;
+	margin-top: -6mm;
+	text-align: left;
+}
+.draft .entry-time:hover .entry-ctime-changer {
+	display: block;
+}
+.entry-ctime-changer.active {
+	display: block;
+}
+.entry-ctime-changer input,
+.entry-ctime-changer button {
+	height: 8mm;
+	vertical-align: bottom;
+}
+.entry-ctime-change-button {
+	width: 16mm;
+}
+.entry-ctime-changer-decorator-top {
+	position: absolute;
+	margin-top: -15px;
+	margin-left: 20px;
+	width: 0px;
+	height: 0px;
+	border-bottom: 15px solid green;
+	border-left: 30px solid transparent;
+	border-right: 30px solid transparent;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
+.entry-ctime-changer-decorator-left {
+	position: absolute;
+	background-color: transparent;
+	/* sollte einen konfortablen Fokus-Schutz-Bereich um die Toolbox herum abdecken, damit sie nicht ungewollte verschwindet */
+	min-width: 450px;
+	min-height: 250px;
+	border-radius: 50%;
+	margin-top: -100px;
+	margin-left: -40px;
+	z-index: 1; /* sollte über anderen standardmäßig sichtbaren Elementen, außer der Toolbox liegen */
+}
+.entry-ctime-changer-content {
+	position: absolute;
+	min-width: 160px;
+	border-radius: 20px;
+	border: 1px solid green;
+	border-top: 3px solid green;
+	padding: 10px;
+	background-color: white;
+	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+}
 
 .entry-content {
 	/* Anklicken des Inhalts beim Editieren vereinfachen, indem er die ganze Breite und eine Mindeshöhe einnimmt: */

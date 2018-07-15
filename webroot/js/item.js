@@ -123,21 +123,9 @@ BaseItem.prototype.display = function() {
 	}
 	if( my.dom_object!=item ) my.dom_object = item;
 	if( my.obj.dom_object!=item ) my.obj.dom_object = item;
-	for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
-		var value = my.obj[ field_name ];
-		if( value!=undefined ) {
-			if( field_name in {"ctime":1, "mtime":1} ) {
-				var date_and_time = prettyprint_date_and_time( value );
-				$( "."+my.short_type+"-"+field_name+"-day", item ).first().text( date_and_time.date );
-				$( "."+my.short_type+"-"+field_name+"-time", item ).first().text( date_and_time.time );
-			} else {
-				$( "."+my.short_type+"-"+field_name, item ).first().text( value );
-			}
-		}
-	}
-	if( my.obj.ctime && my.obj.mtime && Math.round(my.obj.ctime/60)==Math.round(my.obj.mtime/60) ) {
-		$( "."+my.short_type+"-mtime", item ).first().hide();
-	}
+	
+	my.update_standard_fields();
+	
 	for( permission in {"read":1,"write":1,"delete":1,"insert":1} ) {
 		// show/hide child elements depending on permission markers related to the object:
 		if( $.inArray(permission, my.obj.permissions)==-1 ) {
@@ -153,6 +141,25 @@ BaseItem.prototype.display = function() {
 		}
 	}
 	return item;
+}
+
+BaseItem.prototype.update_standard_fields = function() {
+	var my = this;
+	for( field_name in {"title":1, "nick":1, "name":1, "ctime":1, "mtime":1} ) {
+		var value = my.obj[ field_name ];
+		if( value!=undefined ) {
+			if( field_name in {"ctime":1, "mtime":1} ) {
+				var date_and_time = prettyprint_date_and_time( value );
+				$( "."+my.short_type+"-"+field_name+"-day", my.dom_object ).first().text( date_and_time.date );
+				$( "."+my.short_type+"-"+field_name+"-time", my.dom_object ).first().text( date_and_time.time );
+			} else {
+				$( "."+my.short_type+"-"+field_name, my.dom_object ).first().text( value );
+			}
+		}
+	}
+	if( my.obj.ctime && my.obj.mtime && Math.round(my.obj.ctime/60)==Math.round(my.obj.mtime/60) ) {
+		$( "."+my.short_type+"-mtime", my.dom_object ).first().hide();
+	}
 }
 
 return BaseItem;

@@ -70,7 +70,7 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 			$(my.button_discard).off("click").on( "click", function() { my.delete_draft(); } );
 			my.edit_toolbar = $( ".entry-edit-toolbar", my.dom_object )[0];
 			my.button_toggle_toolbar = $(".entry-toggle-toolbar", my.dom_object )[0];
-			$(my.button_toggle_toolbar).off("click").on( "click", function() { $(my.edit_toolbar).toggle(); } );
+			$(my.button_toggle_toolbar).off("click").on( "click", function() { $(my.edit_toolbar).slideToggle(); } );
 			my.button_hyperlink = $( ".keysym-hyperlink", my.dom_object )[0];
 			$(my.button_hyperlink).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'l', preventDefault:function(){}} ); } );
 			my.button_highlight = $( ".keysym-highlight", my.dom_object )[0];

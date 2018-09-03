@@ -1,7 +1,7 @@
 // FIXME: module encapsulation:
 var Draft = null;
 
-define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
+define( ["jquery","entry","link-tool","emoji_selector"], function($,Entry,LinkTool,EmojiSelector) {
 	Draft = function( parms ) {
 		var my = this;
 		parms = parms ? parms : {};
@@ -80,14 +80,16 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 			my.button_italic = $( ".keysym-italic", my.dom_object )[0];
 			$(my.button_italic).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'i', preventDefault:function(){}} ); } );
 			my.button_fixed = $( ".keysym-fixed", my.dom_object )[0];
-			$(my.button_fixed).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'f', preventDefault:function(){}} ); } );
+			$(my.button_fixed).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'m', preventDefault:function(){}} ); } );
 			my.button_underline = $( ".keysym-underline", my.dom_object )[0];
 			$(my.button_underline).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'u', preventDefault:function(){}} ); } );
+			my.button_overline = $( ".keysym-overline", my.dom_object )[0];
+			$(my.button_overline).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'o', preventDefault:function(){}} ); } );
 			my.button_strikethrough = $( ".keysym-strikethrough", my.dom_object )[0];
 			$(my.button_strikethrough).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'s', preventDefault:function(){}} ); } );
-			my.button_large = $( ".keysym-large", my.dom_object )[0];
+			my.button_large = $( ".keysym-larger", my.dom_object )[0];
 			$(my.button_large).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'+', preventDefault:function(){}} ); } );
-			my.button_small = $( ".keysym-small", my.dom_object )[0];
+			my.button_small = $( ".keysym-smaller", my.dom_object )[0];
 			$(my.button_small).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'-', preventDefault:function(){}} ); } );
 			my.button_toolbar_file = $( ".keysym-upload", my.dom_object )[0];
 			$(my.button_toolbar_file).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'d', preventDefault:function(){}} ); } );
@@ -96,7 +98,9 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 			my.button_tab_left = $( ".keysym-tab-left", my.dom_object )[0];
 			$(my.button_tab_left).off("click").on( "click", function(){ my.on_keydown( {shiftKey:true, keyCode:9, preventDefault:function(){}} ); } );
 			my.button_toolbar_quote = $( ".keysym-quote", my.dom_object )[0];
-			$(my.button_toolbar_quote).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'e', preventDefault:function(){}} ); } );
+			$(my.button_toolbar_quote).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'y', preventDefault:function(){}} ); } );
+			my.button_toolbar_emoji = $( ".keysym-emoji", my.dom_object )[0];
+			$(my.button_toolbar_emoji).off("click").on( "click", function(){ my.on_keydown( {ctrlKey:true, key:'e', preventDefault:function(){}} ); } );
 			my.ctime_changer = $( ".entry-ctime-changer", my.dom_object )[0];
 			my.ctime_changer_date = $( ".entry-ctime-date-input", my.dom_object )[0];
 			$(my.ctime_changer_date).off("click").on("click", function(){ $(my.ctime_changer).addClass("active"); } );
@@ -213,7 +217,6 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 			'h' : 'text-marking',
 			'b' : 'text-bold',
 			'i' : 'text-italic',
-			'f' : 'text-fixed',
 			'm' : 'text-fixed',
 			'u' : 'text-underline',
 			's' : 'text-strikethrough',
@@ -222,9 +225,56 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 			'-' : 'text-smaller',
 			'l' : 'link',
 			'd' : 'upload',
-			'e' : 'block-quote'
+			'y' : 'block-quote',
+			'e' : 'emoji'
 		}
-		if( event.keyCode==9 ) {
+		if( event.keyCode==8 ) {
+			var range = get_element_cursor_range();
+			// allow deletion of frozen elements with backspace:
+			if( range && range.collapsed ) {
+				var deletion_element = null;
+				if( range.startContainer.nodeName=="#text" && range.startOffset==0 && range.startContainer.previousSibling ) {
+					deletion_element = range.startContainer.previousSibling;
+				} else if( range.startContainer.nodeName=="#text" && range.startOffset==0 && range.startContainer.parentNode.previousSibling ) {
+					deletion_element = range.startContainer.parentNode.previousSibling;
+				} else if( range.startContainer.nodeName!="#text" && range.startContainer.childNodes.length>=range.startOffset && range.startContainer.childNodes.length>1 ) {
+					deletion_element = range.startContainer.childNodes[range.startOffset-1];
+				} else if( range.startContainer.nodeName=="#text" ) {
+					deletion_element = range.startContainer.parentNode;
+				} else {
+					deletion_element = range.startContainer;
+				}
+				if( deletion_element && (deletion_element.nodeName=="BR" || $(deletion_element).attr("contenteditable")=="false") ) {
+					range.selectNode( deletion_element );
+					range.extractContents();
+					range.collapse();
+					event.preventDefault();
+				}
+			}
+		} else if( event.keyCode==46 ) {
+			var range = get_element_cursor_range();
+			// allow deletion of frozen elements with backspace:
+			if( range && range.collapsed ) {
+				var deletion_element = null;
+				if( range.startContainer.nodeName=="#text" && range.startOffset==range.startContainer.length && range.startContainer.nextSibling ) {
+					deletion_element = range.startContainer.nextSibling;
+				} else if( range.startContainer.nodeName=="#text" && range.startOffset==range.startContainer.length && range.startContainer.parentNode.nextSibling ) {
+					deletion_element = range.startContainer.parentNode.nextSibling;
+				} else if( range.startContainer.nodeName!="#text" && range.startContainer.childNodes.length>(range.startOffset+1) && range.startContainer.childNodes.length>1 ) {
+					deletion_element = range.startContainer.childNodes[range.startOffset+1];
+				} else if( range.startContainer.nodeName=="#text" ) {
+					deletion_element = range.startContainer.parentNode;
+				} else {
+					deletion_element = range.startContainer;
+				}
+				if( deletion_element && (deletion_element.nodeName=="BR" || $(deletion_element).attr("contenteditable")=="false") ) {
+					range.selectNode( deletion_element );
+					range.extractContents();
+					range.collapse();
+					event.preventDefault();
+				}
+			}
+		}else if( event.keyCode==9 ) {
 			var range = get_element_cursor_range();
 			if( range ) {
 				var list_item = range.startContainer.nodeName=='LI' ? range.startContainer : $(range.startContainer).closest('li')[0];
@@ -311,12 +361,31 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 				event.preventDefault();
 			} else if( format=='upload' ) {
 				new UploadDialog( {dom_parent: my.content, wrap: true} );
+				range.collapse();
 				event.preventDefault();
 			} else if( format=="block-quote" ) {
 				// markierten Content in neuen Zitierungsblock verschieben:
 				var contents = range.extractContents();
 				var new_block = $('<div></div>').addClass("block-quote").append(contents)[0];
 				range.insertNode( new_block );
+				range.collapse();
+				event.preventDefault();
+			} else if( format=='emoji' ) {
+				if( !my.emoji_selector ) {
+					my.emoji_selector = new EmojiSelector( {
+						dom_parent: my.edit_toolbar, 
+						emoji_select_callback: function( emoji_text ) {
+							var range = get_element_cursor_range();
+							range.collapse();
+							// FIXME: freeze emoji spans (contendEditable="false"), to prevent insertion of non-emoji content:
+							var emoji_node = $("<span></span>").text( emoji_text ).addClass("emoji").attr({"contentEditable":"false"})[0];
+							range.insertNode( emoji_node );
+							range.collapse();
+						}
+					} );
+				} else {
+					$(my.emoji_selector.dom_object).slideToggle();
+				}
 				event.preventDefault();
 			} else if( !range.collapsed ) {
 				var contents = range.extractContents();
@@ -349,6 +418,8 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 				}
 				event.preventDefault();
 			}
+		} else {
+			// standard keyboard events
 		}
 	};
 

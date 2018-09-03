@@ -422,6 +422,10 @@ select {
 	background-color: transparent;
 }
 
+.objref.inline {
+	display: inline-block;
+}
+
 .entry-media {
 	display: inline-block;
 	max-width: 100%;
@@ -630,13 +634,17 @@ select {
 .text-smaller {
 	font-size: smaller;
 }
-.block-quote {
+.block-quote, .block-code {
 	padding: 2mm;
 	padding-left: 5mm;
 	padding-right: 5mm;
+	margin-top: 2mm;
 	background-color: #f8f5f1;
 	border: 1px dashed black;
 	border-radius: 2mm;
+}
+.block-code {
+	font-family: monospace;
 }
 
 .link-tool {
@@ -688,6 +696,19 @@ select {
 	margin-top: 1em;
 }
 
+.emoji-button, .emoji {
+	font-family: emoji;
+	font-size: 6mm;
+	display: inline-block;
+}
+.emoji-button {
+	background-color: white;
+}
+.emoji-list {
+	height: 300px;
+	overflow-y: scroll;
+}
+
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */
 /* ------------------------------------------------------------------------- */
@@ -718,18 +739,43 @@ select {
 .entry-edit-range-tools {
 	display: inline-block;
 }
-.entry-edit-range-tools-symbols img {
-	height: 3em;
+.keysym {
+	background-color: white;
+	height: 2em;
+	min-width: 2em;
+	margin-right: 1mm;
+	margin-top: 1mm;
+	margin-bottom: 1mm;
 }
-.entry-edit-range-tools-symbols .keysym-ctrl {
-	opacity: 0.5;
+.keysym-hyperlink {
+	color: blue;
+	text-decoration: underline;
+	font-weight: bold;
+}
+.keysym-highlight {
+	background-color: yellow;
+}
+.keysym-bold {
+	font-weight: bold;
+}
+.keysym-italic {
+	font-style: italic;
+}
+.keysym-fixed {
+	font-family: monospace;
+}
+.keysym-underline {
+	text-decoration: underline;
+}
+.keysym-overline {
+	text-decoration: overline;
+}
+.keysym-strikethrough {
+	text-decoration: line-through;
 }
 .entry-edit-list-tools {
 	display: inline-block;
 	margin-left: 1em;
-}
-.entry-edit-list-tools-symbols img {
-	height: 3em;
 }
 .draft .entry-tools {
 	display: inline-block;

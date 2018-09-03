@@ -55,35 +55,38 @@
 			</div>
 		</div>
 		<div class="entry-content"></div>
-				<div class="entry-edit-toolbar">
-					<div class="entry-edit-range-tools">
-						<div class="entry-edit-range-tools-description">
-							${_("Markierter Text bzw. Eingabeposition:")}
-						</div>
-						<div class="entry-edit-range-tools-symbols">
-							<img class="keysym-ctrl" src="images/${_('key_strg_plus.svg')}" title="${_("Strg+...")}" />
-							<img class="keysym-hyperlink" src="images/key_l_hyperlink.svg" title="${_("L: Verlinkung")}" />
-							<img class="keysym-highlight" src="images/key_h_highlight.svg" title="${_("H: Hervorhebung")}" />
-							<img class="keysym-bold" src="images/key_b_bold.svg" title="${_("B: fett")}" />
-							<img class="keysym-italic" src="images/key_i_italic.svg" title="${_("I: schräg")}" />
-							<img class="keysym-fixed" src="images/key_f_fixed.svg" title="${_("F: feste Breite")}" />
-							<img class="keysym-underline" src="images/key_u_underline.svg" title="${_("U: Unterstreichung")}" />
-							<img class="keysym-strikethrough" src="images/key_s_strikethrough.svg" title="${_("S: Durchstreichung")}" />
-							<img class="keysym-large" src="images/key_plus_large.svg" title="${_("+: groß")}" />
-							<img class="keysym-small" src="images/key_minus_small.svg" title="${_("-: klein")}" />
-							<img class="keysym-upload" src="images/key_d_upload.svg" title="${_("D: Datei einfügen")}" />
-						</div>
-					</div>
-					<div class="entry-edit-list-tools">
-						<div class="entry-edit-list-tools-description">
-							${_("Listenfunktionen:")}
-						</div>
-						<div class="entry-edit-list-tools-symbols">
-							<img class="keysym-tab-right" src="images/key_tab_right.svg" title="${_("Tab: Einrückung erhöhen")}" />
-							<img class="keysym-tab-left" src="images/key_tab_left.svg" title="${_("Umschalt+Tab: Einrückung verringern")}" />
-						</div>
-					</div>
+		<div class="entry-edit-toolbar">
+			<div class="entry-edit-range-tools">
+				<div class="entry-edit-range-tools-description">
+					${_("Formatierung:")}
 				</div>
+				<div class="entry-edit-range-tools-symbols">
+					<button class="keysym keysym-ctrl" title="${_("Strg+...")}" disabled >${_("Strg+...")}</button>
+					<button class="keysym keysym-emoji" title="${_("E: Emoji-Liste")}">E</button>
+					<button class="keysym keysym-upload" title="${_("D: Dateianhang")}">D</button>
+					<button class="keysym keysym-hyperlink" title="${_("L: Verlinkung")}">L</button>
+					<button class="keysym keysym-quote" title="${_("Y: Zitierung")}">Y</button>
+					<button class="keysym keysym-highlight" title="${_("H: Hervorhebung")}">H</button>
+					<button class="keysym keysym-bold" title="${_("B: fett")}">B</button>
+					<button class="keysym keysym-italic" title="${_("I: schräg")}">I</button>
+					<button class="keysym keysym-fixed" title="${_("M: feste Breite")}">M</button>
+					<button class="keysym keysym-underline" title="${_("U: Unterstreichung")}">U</button>
+					<button class="keysym keysym-overline" title="${_("O: Überstreichung")}">O</button>
+					<button class="keysym keysym-strikethrough" title="${_("S: Durchstreichung")}">S</button>
+					<button class="keysym keysym-larger" title="${_("+: größer")}">+</button>
+					<button class="keysym keysym-smaller" title="${_("-: kleiner")}">-</button>
+				</div>
+			</div>
+			<div class="entry-edit-list-tools">
+				<div class="entry-edit-list-tools-description">
+					${_("Einrückung:")}
+				</div>
+				<div class="entry-edit-list-tools-symbols">
+					<button class="keysym keysym-tab-right" title="${_("Tab: Einrückung erhöhen")}">Tab</button>
+					<button class="keysym keysym-tab-left" title="${_("Umschalt+Tab: Einrückung verringern")}">Shift + Tab</button>
+				</div>
+			</div>
+		</div>
 	</div>
 	<div class="entry-tools">
 		<div class="entry-tools-decorator-left"></div>

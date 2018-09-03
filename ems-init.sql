@@ -104,3 +104,8 @@ INSERT INTO objects (id,type) VALUES(5,'application/x-obj.group');
 INSERT INTO groups (object_id,name,description) VALUES(5,'tags','Tags');
 INSERT INTO membership (parent_id,child_id) VALUES(1,5);
 INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(4,3,5); -- public darf tags lesen/schreiben
+
+INSERT INTO objects (id,type) VALUES(6,'application/x-obj.group');
+INSERT INTO groups (object_id,name,description) VALUES(6,'protected','Geschützte Gruppe, deren Mitglieder ihre Beiträge untereinander sehen dürfen');
+INSERT INTO membership (parent_id,child_id) VALUES(1,6);
+INSERT INTO permissions (subject_id,access_mask,object_id) VALUES(6,1,6); -- protected darf protected lesen

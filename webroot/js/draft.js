@@ -347,7 +347,6 @@ define( ["jquery","entry","link-tool"], function($,Entry,LinkTool) {
 				} else {
 					range.insertNode( contents );
 				}
-				range.collapse();
 				event.preventDefault();
 			}
 		}

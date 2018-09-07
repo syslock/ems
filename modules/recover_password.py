@@ -12,11 +12,9 @@ def process( app ):
 	session = app.session
 	if "msid" in query.parms:
 		confirmation_session = application.Session( app, query.parms["msid"] )
-		if "password_recovery_sid" in confirmation_session.parms \
-		and "password_recovery_user_id" in confirmation_session.parms:
+		if "password_recovery_user_id" in confirmation_session.parms:
 			user_id = int( confirmation_session.parms["password_recovery_user_id"] )
-			if "nick" in query.parms and "new_password" in query.parms \
-			and confirmation_session.parms["password_recovery_sid"] == session.sid:
+			if "nick" in query.parms and "new_password" in query.parms:
 				# Asking the user requesting password recovery for his own nick might add a thin line
 				# of additional security against the registered email account being controlled by an attacker,
 				# as long as the nick is not disclosed in the recovery request confirmation mail.

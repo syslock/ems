@@ -117,35 +117,37 @@
 			
 			<div class="login-forms">
 				<div class="login-form">
-					<div class="login-form-entries">
-						<div class="login-nick">
-							<div class="login-nick-label">
-								${_("Benutzername:")}
+					<form action="javascript:function(){ return false; }">
+						<div class="login-form-entries">
+							<div class="login-nick">
+								<div class="login-nick-label">
+									${_("Benutzername:")}
+								</div>
+								<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
 							</div>
-							<input type="text" class="login-nick" onkeypress="onenter(event,login)"/>
-						</div>
-						<div class="login-password">
-							<div class="login-password-label">
-								${_("Passwort:")}
+							<div class="login-password">
+								<div class="login-password-label">
+									${_("Passwort:")}
+								</div>
+								<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
 							</div>
-							<input type="password" class="login-password" onkeypress="onenter(event,login)"/>
 						</div>
-					</div>
-					<div class="login-form-buttons">
-						<div class="login-form-primary-buttons">
-							<button class="login-submit" onclick="login()">
-								${_("Anmelden")}
-							</button>
+						<div class="login-form-buttons">
+							<div class="login-form-primary-buttons">
+								<button class="login-submit" onclick="login()">
+									${_("Anmelden")}
+								</button>
+							</div>
+							<div class="login-form-secondary-buttons">
+								<button class="login-register" onclick="show_register()">
+									${_("Noch nicht registriert?")}
+								</button>
+								<button class="login-recover-password" onclick="show_password_recovery_request()">
+									${_("Passwort vergessen?")}
+								</button>
+							</div>
 						</div>
-						<div class="login-form-secondary-buttons">
-							<button class="login-register" onclick="show_register()">
-								${_("Noch nicht registriert?")}
-							</button>
-							<button class="login-recover-password" onclick="show_password_recovery_request()">
-								${_("Passwort vergessen?")}
-							</button>
-						</div>
-					</div>
+					</form>
 				</div>
 				<div class="password-recovery-request-form" style="display:none">
 					<div class="password-recovery-request-entries">

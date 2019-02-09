@@ -4,7 +4,7 @@ require( [	"jquery", "jquery.cookie",
 			"request", "util", "confirm", "login", "item", "entry", "tag",
 			"localization", "user", "minions", "player", "searchbar",
 			"range_scroll_loader", "upload_dialog", "image", "statusbar",
-			"chat", "draft"
+			"chat", "draft", "video"
  		], 
 	function($) {
 		$(document).ready( function(){

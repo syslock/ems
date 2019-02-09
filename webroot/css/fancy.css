@@ -467,7 +467,7 @@ select {
 .video-variants {
 	display: none;
 }
-.entry-media:hover .video-variants {
+.video-box:hover .video-variants {
 	position: absolute;
 	display: block;
 	width: 100%;
@@ -504,6 +504,18 @@ select {
 	font-size: medium;
 	font-weight: bold;
 	color: white;
+}
+.video-variant .video-type-label {
+	display: inline;
+}
+.video-variant .video-dimensions-label {
+	display: inline;
+}
+.video-variant .video-rate-label {
+	display: inline;
+}
+.video-variant .video-download {
+	display: inline;
 }
 .video-variant .download-link {
 	padding: 0px;

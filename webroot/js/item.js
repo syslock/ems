@@ -12,7 +12,7 @@ BaseItem = function( parms ) {
 	my.update = parms.update;
 	my.duplicates = parms.duplicates;
 	my.prepend = parms.prepend;
-	my.ready = parms.ready ? parms.ready : function(item){};
+	my.item_ready = parms.item_ready ? parms.item_ready : function(item){};
 	my.parent = parms.parent;
 	my.virtual = parms.virtual ? parms.virtual : false;
 	my.custom_class = parms.custom_class;
@@ -43,10 +43,10 @@ BaseItem.prototype.init = function( parms ) {
 	} else if( !my.dom_object ) {
 		// Neues Element im Browser anlegen:
 		my.display();
-		my.ready( my );
+		my.item_ready( my );
 	} else {
 		$(my.dom_object).data( {obj: my.obj} );
-		my.ready( my );
+		my.item_ready( my );
 	}
 	if( my.obj && my.dom_object && my.custom_class ) {
 		$(my.dom_object).addClass( my.custom_class );
@@ -212,14 +212,15 @@ function show_object( parms ){
 						var merged_obj = {}
 						for( key in obj ) merged_obj[key] = obj[key];
 						for( key in result[i] ) merged_obj[key] = result[i][key];
-						show_object( {obj:merged_obj, dom_parent:(dom_parent ? dom_parent : (!dom_child) ? $(".ems-content")[0] : undefined), dom_child:dom_child, duplicates:duplicates, limit:limit, prepend:prepend, update:update} )
+						show_object( {obj:merged_obj, dom_parent:(dom_parent ? dom_parent : (!dom_child) ? $(".ems-content")[0] : undefined), dom_child:dom_child, duplicates:duplicates, limit:limit, prepend:prepend, update:update, item_ready:item_ready} )
 					}
 				}
 			}
 		});
 	} else if( obj.type == "application/x-obj.group" ) {
-		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, ready: function(item) {
+		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, item_ready: function(item) {
 			item.parent = parent;
+			if( parms.item_ready ) { parms.item_ready(item); };
 			if( dom_parent ) {
 				for( var i in obj.children ) {
 					show_object( {obj:obj.children[i], dom_parent:$("."+item.get_short_type()+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
@@ -227,9 +228,10 @@ function show_object( parms ){
 			}
 		}});
 	} else if( obj.type == "application/x-obj.minion" ) {
-		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, ready: function(item) {
+		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, item_ready: function(item) {
 			var minion = new Minion( {dom_object: item.dom_object, obj:obj} );
 			minion.parent = parent;
+			if( parms.item_ready ) { parms.item_ready(item); };
 			if( dom_parent ) {
 				for( var i in obj.children ) {
 					show_object( {obj:obj.children[i], dom_parent:$("."+item.get_short_type()+"-content",item.dom_object)[0], limit:limit, update:update, parent:item} )
@@ -237,8 +239,9 @@ function show_object( parms ){
 			}
 		}});
 	} else if( obj.type == "application/x-obj.user" ) {
-		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, ready: function(item) {
+		new BaseItem( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, item_ready: function(item) {
 			item.parent = parent;
+			if( parms.item_ready ) { parms.item_ready(item); };
 			if( obj.avatar_id ) {
 				replace_user_image( item.dom_object, obj.avatar_id );
 			}
@@ -249,7 +252,7 @@ function show_object( parms ){
 			}
 		}});
 	} else if( obj.type == "application/x-obj.entry" ) {
-		new Entry( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} );
+		new Entry( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, item_ready:parms.item_ready} );
 	} else if( obj.type && obj.type == "application/x-obj.draft" ) {
 		var parent_entry = null;
 		var parent_user = null;
@@ -261,7 +264,7 @@ function show_object( parms ){
 		if( !parent && !parent_entry ) {
 			// Display owned drafts not belonging to entries as standalone objects:
 			if( $.inArray("write",obj.permissions) != -1 ) {
-				new Draft( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update} );
+				new Draft( {obj:obj, dom_parent:dom_parent, dom_child:dom_child, duplicates:duplicates, prepend:prepend, update:update, item_ready:parms.item_ready} );
 			}
 		} else if( parent ) {
 			// Display draft availability notification for drafts belonging to entries:
@@ -282,6 +285,7 @@ function show_object( parms ){
 							$(obj.dom_object).attr( {"title" : parent_obj.nick+" "+$(obj.dom_object).attr("title")} );
 						}
 					}
+					if( parms.item_ready ) { parms.item_ready(item); };
 				}
 			});
 		}
@@ -291,12 +295,14 @@ function show_object( parms ){
 			$(obj.dom_object).text( obj.data );
 			$(obj.dom_object).data( {obj: obj} );
 			$(dom_parent).append( obj.dom_object );
+			if( parms.item_ready ) { parms.item_ready(item); };
 		}
 	} else if( obj.type == "text/html" ) {
 		if( dom_parent && obj.data ) {
 			obj.dom_object = $( "<div></div>" ).attr( {'class':'entry-html'} ).html( obj.data )[0];
 			$(obj.dom_object).data( {obj: obj} );
 			$(dom_parent).append( obj.dom_object );
+			if( parms.item_ready ) { parms.item_ready(item); };
 			for( var i in obj.children ) {
 				var child = obj.children[i];
 				var objref = $( '.objref[oid='+String(child.id)+']', obj.dom_object )[0];
@@ -306,15 +312,15 @@ function show_object( parms ){
 		}
 	} else if( obj.type && obj.type.match(/^image\//) && obj.id ) {
 		if( dom_parent ) {
-			new ImageItem( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent} );
+			new ImageItem( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent, item_ready:parms.item_ready} );
 		}
 	} else if( obj.type && obj.type.match(/^video\//) && obj.id ) {
 		if( dom_parent ) {
-			new VideoItem( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent} );
+			new VideoItem( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent, item_ready:parms.item_ready} );
 		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
 		if( dom_parent && obj.title ) {
-			new EntryTag( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent} );
+			new EntryTag( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent, item_ready: parms.item_ready} );
 		}
 	} else if ( obj.type && obj.type=="application/x-obj.publication" ) {
 		if( parent ) {
@@ -331,10 +337,12 @@ function show_object( parms ){
 				return false;
 			});
 			$(parent.dom_object).find('.entry-link-button').hide();
+			if( parms.item_ready ) { parms.item_ready(item); };
 		}
 	} else if( dom_parent && obj.id ) {
 		var download_link = create_download( obj );
 		$(dom_parent).append( download_link );
+		if( parms.item_ready ) { parms.item_ready(item); };
 	}
 }
 

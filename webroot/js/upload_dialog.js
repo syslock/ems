@@ -89,40 +89,41 @@ var UploadDialog = function( parms ) {
 						}
 						if( meta.size ) $('.upload-size', my.upload_dialog).text( prettyprint_size(meta.size) );
 						my.preview_area.empty(); // FIXME: Don't remove elements being accessed by other code!
-						show_object( {obj: meta, dom_parent: my.preview_area[0]} );
-						if( meta.dom_object ) {
-							var video = $("video",meta.dom_object)[0];
-							if (video)
-							{
-								video.contentEditable = true; // FIXME: Firefox Workaround: https://bugzilla.mozilla.org/show_bug.cgi?id=1381620
+						show_object( {obj: meta, dom_parent: my.preview_area[0], item_ready: function(item) {
+							if( meta.dom_object ) {
+								var video = $("video",meta.dom_object)[0];
+								if (video)
+								{
+									video.contentEditable = true; // FIXME: Firefox Workaround: https://bugzilla.mozilla.org/show_bug.cgi?id=1381620
+								}
+								my.preview_object = meta.dom_object;
+								$(meta.dom_object).addClass('upload-object');
+								$(meta.dom_object).addClass('upload-preview-content');
+								if( meta.type.match("^video/") ) {
+									my.poster_dialog = new UploadDialog( {
+										dom_parent: $('.upload-poster', my.upload_dialog)[0],
+										accepted_types: ['^image/'],
+										custom_class: 'poster',
+										custom_callback: my.store_poster,
+										on_ready: function( poster_dialog ) {
+											poster_dialog.confirm_upload = poster_dialog.close_upload_dialog;
+											poster_dialog.upload_save_button.hide();
+											poster_dialog.upload_cancel_button.hide();
+											poster_dialog.upload_recent_button.hide();
+											my.upload_poster.show();
+										}
+									} );
+									$(my.preview_object).data( {"poster_callback" : 
+										function( poster ) {
+											my.poster_dialog.replace_upload_preview( poster.id );
+										}
+									} );
+								}
 							}
-							my.preview_object = meta.dom_object;
-							$(meta.dom_object).addClass('upload-object');
-							$(meta.dom_object).addClass('upload-preview-content');
-							if( meta.type.match("^video/") ) {
-								my.poster_dialog = new UploadDialog( {
-									dom_parent: $('.upload-poster', my.upload_dialog)[0],
-									accepted_types: ['^image/'],
-									custom_class: 'poster',
-									custom_callback: my.store_poster,
-									on_ready: function( poster_dialog ) {
-										poster_dialog.confirm_upload = poster_dialog.close_upload_dialog;
-										poster_dialog.upload_save_button.hide();
-										poster_dialog.upload_cancel_button.hide();
-										poster_dialog.upload_recent_button.hide();
-										my.upload_poster.show();
-									}
-								} );
-								$(my.preview_object).data( {"poster_callback" : 
-									function( poster ) {
-										my.poster_dialog.replace_upload_preview( poster.id );
-									}
-								} );
+							if( my.custom_callback ) {
+								my.custom_callback( {obj: meta, source_obj: source_obj} );
 							}
-						}
-						if( my.custom_callback ) {
-							my.custom_callback( {obj: meta, source_obj: source_obj} );
-						}
+						}} );
 					}
 				}
 			}

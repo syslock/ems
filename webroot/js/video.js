@@ -61,8 +61,14 @@ define(["jquery","item","video_variant"], function($,BaseItem,VideoVariant) {
 			this.variant_items.splice([]);
 			for( var i=0; i < result.objects.length; i++ ) {
 				var obj = result.objects[i];
-				var variant_item = new VideoVariant( {obj:obj, dom_parent:this.variants_element, duplicates:true, parent:this} );
-				this.variant_items.push( variant_item );
+				var variant_item = new VideoVariant( {obj:obj, dom_parent:this.variants_element, duplicates:true, parent:this, 
+					item_ready: function(item) {
+						this.variant_items.push( item );
+						if( this.selected_variant ) {
+							this.select_variant( this.selected_variant );
+						}
+					}.bind(this)
+				});
 			}
 		}
 	};

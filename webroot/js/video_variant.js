@@ -28,6 +28,9 @@ define(["jquery","item"], function($,BaseItem) {
 			});
 			GlobalRequestQueue.process();
 		} else {
+			// delay item readiness callback:
+			var delayed_item_ready = this.item_ready;
+			this.item_ready = function() {};
 			BaseItem.prototype.init.call( this );
 			this.variant_box = $( ".video-variant", this.dom_object );
 			this.type_label = $( ".video-type-label", this.dom_object );
@@ -51,6 +54,7 @@ define(["jquery","item"], function($,BaseItem) {
 			this.rate = Number(this.obj.size) / Number(this.obj.mplayer.id.length);
 			this.rate_label.text( prettyprint_size(this.rate)+"/s" );
 			this.download.append( create_download(this.obj) );
+			delayed_item_ready( this );
 		}
 	};
 	

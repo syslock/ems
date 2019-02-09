@@ -39,7 +39,7 @@ var UploadDialog = function( parms ) {
 	
 	my.store_poster = function( parms ) {
 		if( my.preview_object ) {
-			var parent_obj = my.preview_object.data("obj");
+			var parent_obj = $(my.preview_object).data("obj");
 			if( parent_obj && parent_obj.id ) {
 				var args = { id: parent_obj.id };
 				if( parms.obj && parms.obj.id ) {

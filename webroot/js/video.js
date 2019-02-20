@@ -1,7 +1,7 @@
 // FIXME: module encapsulation:
 var VideoItem = null;
 
-define(["jquery","item","video_variant"], function($,BaseItem,MediaVariant) {
+define(["jquery","item","media_variant"], function($,BaseItem,MediaVariant) {
 	
 	VideoItem = function( parms ) {
 		parms = parms ? parms : {};

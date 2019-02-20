@@ -17,7 +17,7 @@ define(["jquery","item"], function($,BaseItem) {
 			//        e.g. at initial page load.
 			GlobalRequestQueue.add({
 				module : "render",
-				args : {tpl : "elements/video_variant.html"},
+				args : {tpl : "elements/media_variant.html"},
 				done : function(result) {
 					MediaVariant.prototype.template = result;
 					this.init();

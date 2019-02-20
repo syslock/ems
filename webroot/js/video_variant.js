@@ -57,8 +57,8 @@ define(["jquery","item"], function($,BaseItem) {
 					this.dimensions_label.text( String(this.obj.mplayer.id.video.width)+"x"+String(this.obj.mplayer.id.video.height) )
 				}
 				if( this.obj.mplayer.id.length ) {
-					this.rate = Number(this.obj.size) / Number(this.obj.mplayer.id.length);
-					this.rate_label.text( prettyprint_size(this.rate)+"/s" );
+					this.rate = Number(this.obj.size)*8 / Number(this.obj.mplayer.id.length);
+					this.rate_label.text( prettyprint_size(this.rate,/*bit=*/true)+"/s" );
 				}
 			}
 			this.download.append( create_download(this.obj) );

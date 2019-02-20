@@ -187,15 +187,25 @@ function onenter( event, dostuff, arg )
 	if( event.keyCode==13 ) dostuff(arg);
 }
 
-function prettyprint_size( size ) {
+function prettyprint_size( size, bit ) {
 	if( size==Infinity ) return "∞";
-	var value = size;
-	var two_powers = 0;
-	while( value>1000 ) {
-		value /= 1024;
-		two_powers += 10;
+	if( !bit ) {
+		var byte_value = size;
+		var two_powers = 0;
+		while( byte_value > 1024 ) {
+			byte_value /= 1024;
+			two_powers += 10;
+		}
+		return String(byte_value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+' '+({0:"Byte", 10:"KiB", 20:"MiB", 30:"GiB", 40:"TiB"})[two_powers];
+	} else {
+		var bit_value = size;
+		var ten_powers = 0;
+		while( bit_value > 1000 ) {
+			bit_value /= 1000;
+			ten_powers += 3;
+		}
+		return String(bit_value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+' '+({0:"bit", 3:"Kbit", 6:"Mbit", 9:"Gbit", 12:"Tbit"})[ten_powers];
 	}
-	return String(value).match(/[0-9]*(:?\.[0-9]{0,2})?/)[0]+' '+({0:"Byte", 10:"KiB", 20:"MiB", 30:"GiB", 40:"TiB"})[two_powers];
 }
 
 function prettyprint_time( time ) {

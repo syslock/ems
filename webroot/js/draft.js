@@ -32,7 +32,7 @@ define( ["jquery","entry","link-tool","emoji_selector"], function($,Entry,LinkTo
 					my.init( parms );
 				}, 
 				fail : function(result) {
-					show_error( result )
+					parse_result( result );
 				}
 			});
 			GlobalRequestQueue.process();

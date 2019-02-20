@@ -23,7 +23,7 @@ define( ["jquery"], function($) {
 					my.init();
 				}, 
 				fail : function(result) {
-					show_error( result );
+					parse_result( result );
 				}
 			});
 			GlobalRequestQueue.process();

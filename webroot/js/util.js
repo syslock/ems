@@ -64,7 +64,10 @@ function reload_page() {
 function parse_result( result ) {
 	if( typeof(result)=="object" ) {
 		var xhr = result;
-		result = xhr.responseText;
+		if( xhr.status && xhr.statusText ) {
+			show_error( "HTTP "+String(xhr.status)+": "+String(xhr.statusText) );
+			result = xhr.responseText;
+		}
 	}
 	if( typeof(result)=="string" ) {
 		try {
@@ -105,7 +108,7 @@ function show_message( text )
 
 function show_error( text )
 {
-	if( GlobalStatusBar ) { 
+	if( GlobalStatusBar ) {
 		GlobalStatusBar.add_message( {text: text, class: "error"} );
 		GlobalStatusBar.show();
 	}

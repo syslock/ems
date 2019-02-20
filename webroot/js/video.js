@@ -23,7 +23,7 @@ define(["jquery","item","video_variant"], function($,BaseItem,MediaVariant) {
 					this.init();
 				}.bind(this),
 				fail : function(result) {
-					show_error( result );
+					parse_result( result );
 				}.bind(this)
 			});
 			GlobalRequestQueue.process();

@@ -26,7 +26,7 @@ define( ["jquery","item"], function($,BaseItem) {
 					my.init( parms );
 				}, 
 				fail : function(result) {
-					show_error( result )
+					parse_result( result );
 				}
 			});
 			GlobalRequestQueue.process();

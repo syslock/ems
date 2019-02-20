@@ -15,7 +15,7 @@ define( ["jquery",], function($) {
 					this.init( parms );
 				}.bind(this),
 				fail : function(result) {
-					show_error( result )
+					parse_result( result );
 				}
 			});
 			GlobalRequestQueue.process();

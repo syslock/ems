@@ -464,7 +464,7 @@ var UploadDialog = function( parms ) {
 				}
 			}, 
 			fail : function(result) {
-				show_error( result )
+				parse_result( result );
 			}
 		} );
 	} else {

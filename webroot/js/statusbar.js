@@ -23,7 +23,7 @@ StatusBar.prototype.init = function( parms ) {
 				my.init( parms );
 			}, 
 			fail : function(result) {
-				show_error( result )
+				parse_result( result );
 			}
 		});
 		GlobalRequestQueue.process();

@@ -72,7 +72,7 @@ def process( app ):
 					conversion = ConversionDescription( role=substitute["type"], width=substitute["size"], media_type=substitute_obj.media_type )
 					if conversion in missing_conversions:
 						if substitute["type"]=="poster" and (new_poster_offset or new_poster_obj):
-							# bestehendes Poster-Substitute entfernen, da es neu definiete werden soll:
+							# bestehendes Poster-Substitute entfernen, da es neu definiert werden soll:
 							del_c = app.db.cursor()
 							del_c.execute( """delete from substitutes where original_id=? and substitute_id=?""", [source_obj.id,substitute_obj.id] )
 						else:
@@ -153,7 +153,10 @@ def process( app ):
 				response.output = json.dumps( {"succeeded": True,
 										"substitutes": results} )
 		elif re.match( r"^audio/.*", source_obj.media_type ):
-			raise NotImplementedError( "unsupported media type: "+source_obj.media_type )
+			# TODO: add safe conversions
+			results = []
+			response.output = json.dumps( {"succeeded": True,
+									"substitutes": results} )
 		else:
 			raise NotImplementedError( "unsupported media type: "+source_obj.media_type )
 	else:

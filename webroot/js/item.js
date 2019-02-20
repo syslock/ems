@@ -318,6 +318,10 @@ function show_object( parms ){
 		if( dom_parent ) {
 			new VideoItem( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent, item_ready:parms.item_ready} );
 		}
+	} else if( obj.type && obj.type.match(/^audio\//) && obj.id ) {
+		if( dom_parent ) {
+			new AudioItem( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent, item_ready:parms.item_ready} );
+		}
 	} else if( obj.type && obj.type=="application/x-obj.tag" ) {
 		if( dom_parent && obj.title ) {
 			new EntryTag( {obj:obj, dom_parent:dom_parent, duplicates:true, parent:parent, item_ready: parms.item_ready} );

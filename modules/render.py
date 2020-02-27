@@ -18,12 +18,13 @@ def process( app ):
 	response = app.response
 	if not "tpl" in query.parms:
 		raise errors.ParameterError( "Missing template identifier" )
-	tpl = os.path.join( app.path, "templates", query.parms["tpl"] )
-	if "../" in tpl or not os.stat(tpl):
+	tpl = query.parms["tpl"]
+	absolute_template_path = os.path.join( app.path, "templates", query.parms["tpl"] )
+	if tpl.startswith("/") or "../" in tpl or not os.path.isfile(absolute_template_path):
 		raise errors.ParameterError( "Invalid template identifier" )
 	template_lookup = TemplateLookup( directories=[os.path.join(app.path,"templates")], input_encoding="utf-8" )
 	try:
-		response.output = Template( filename=tpl, input_encoding="utf-8", lookup=template_lookup ).render( app=app )
+		response.output = Template( filename=absolute_template_path, input_encoding="utf-8", lookup=template_lookup ).render( app=app )
 		tpl_ext = tpl.split(".")[-1]
 		response.media_type = default_response_type
 		# TODO: Kontrolle des media_types aus Template heraus zulassen

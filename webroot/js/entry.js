@@ -223,7 +223,7 @@ define( ["jquery","item"], function($,BaseItem) {
 					//   Zusatzwerkzeuge beinhalten zu können. Diese würden sonst beschnitten, da
 					//   CSS derzeit nicht erlaubt overflow-y: scroll und overflow-X: visible zu
 					//   kombinieren. Letzterer Wert wird zu auto (hidden oder scroll) geändert.
-					$(my.tags_search_result).width( $(my.tags_search_result).width() );
+					//$(my.tags_search_result).width( $(my.tags_search_result).width() );
 					$(my.tags_search_result).css( {position : 'relative', left : '300px'} );
 					$(my.tags_search_result_scroll_container_hack).css( {
 						'overflow-y' : 'scroll', 

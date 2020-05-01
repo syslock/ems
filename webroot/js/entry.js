@@ -231,7 +231,7 @@ define( ["jquery","item"], function($,BaseItem) {
 						'margin-left' : '-300px',
 						'margin-right' : '-20px'
 					} );
-					$(my.tags_search_result_scroll_container_hack).height( Math.max(100,$(my.tags_search_result).height()*0.9) );
+					$(my.tags_search_result_scroll_container_hack).height( Math.max(200,$(my.tags_search_result).height()*0.9) );
 					range_scroll_loader.range_start = result.hitlist.length;
 					range_scroll_loader.scroll_handler_parms = { search_count : tag_search.search_count };
 					range_scroll_loader.start();

@@ -94,7 +94,12 @@
 		<div class="entry-tools-content">
 			<div class="entry-tags">
 				<div class="entry-tags-label">${_("Thema:")}</div>
-				<button class="entry-tags-show-selection-button require-permission-write-entry" title="${_('Weiteres Thema anfügen')}">${_("...")}</button>
+				<div class="entry-tags-content"></div>
+				<div class="entry-tags-additional-content">
+					<button class="entry-tags-show-selection-button require-permission-write-entry" title="${_('Weiteres Thema anfügen')}">
+						${_("...")}
+					</button>
+				</div>
 				<div class="entry-tags-selection" style="display:none" >
 					<div class="entry-tags-close-selection-button" title="${_('Auswahl ausblenden')}"></div>
 					<div class="entry-tags-searchbar" ></div>
@@ -103,7 +108,6 @@
 					</div>
 					<div class="entry-tags-search-activity-bar" ></div>
 				</div>
-				<div class="entry-tags-content"></div>
 			</div>
 			<button class="entry-title-search-button entry-button" title="${_('Nur Beiträge mit diesem Titel darstellen')}" >
 				<img class="entry-tools-button-symbol" src="tango-scalable/actions/system-search.svg" />

@@ -3,23 +3,26 @@
 		<div class="entry-tag-tools-decorator-left"></div>
 		<div class="entry-tag-tools-decorator-top"></div>
 		<div class="entry-tag-tools-content">
-			<div class="entry-tag-tool entry-tag-tool-filter-for" title="${_('Nur Beiträge mit diesem Thema darstellen')}" >
-				<button class="entry-tag-tool-button entry-tag-tool-button-search">
-					<img class="entry-tag-tool-button-symbol entry-tag-tool-search-symbol" src="tango-scalable/actions/system-search.svg" />
-					${_("Thema suchen")}
-				</button>
-			</div>
-			<div class="entry-tag-tool entry-tag-tool-filter-exclude" title="${_('Beiträge mit diesem Thema ausblenden')}" >
-				<button class="entry-tag-tool-button entry-tag-tool-button-exclude">
-					<img class="entry-tag-tool-button-symbol entry-tag-tool-exclude-symbol" src="tango-scalable/actions/system-search-minus.svg" />
-					${_("Thema ausblenden")}
-				</button>
-			</div>
+			<button class="entry-tag-tool-button entry-tag-tool-button-add" title="${_('Thema hinzufügen')}">
+				<img class="entry-tag-tool-button-symbol entry-tag-tool-add-symbol" src="tango-scalable/actions/add.svg" />
+				<div class="entry-tag-tool-button-label">${_("Thema hinzufügen")}</div>
+			</button>
+			<button class="entry-tag-tool-button entry-tag-tool-button-remove" title="${_('Thema entfernen')}">
+				<img class="entry-tag-tool-button-symbol entry-tag-tool-remove-symbol" src="tango-scalable/actions/remove.svg" />
+				<div class="entry-tag-tool-button-label">${_("Thema entfernen")}</div>
+			</button>
+			
+			<button class="entry-tag-tool-button entry-tag-tool-button-search" title="${_('Nur Beiträge mit diesem Thema darstellen')}">
+				<img class="entry-tag-tool-button-symbol entry-tag-tool-search-symbol" src="tango-scalable/actions/system-search.svg" />
+				<div class="entry-tag-tool-button-label">${_("Thema suchen")}</div>
+			</button>
+			<button class="entry-tag-tool-button entry-tag-tool-button-exclude" title="${_('Beiträge mit diesem Thema ausblenden')}">
+				<img class="entry-tag-tool-button-symbol entry-tag-tool-exclude-symbol" src="tango-scalable/actions/system-search-minus.svg" />
+				<div class="entry-tag-tool-button-label">${_("Thema ausblenden")}</div>
+			</button>
 		</div>
 		<div class="entry-tag-tools-decorator-bottom"></div>
 		<div class="entry-tag-tools-decorator-right"></div>
 	</div>
 	<div class="entry-tag-label"></div>
-	<button class="entry-tag-button entry-tag-add" style="display:none">${_("+")}</button>
-	<button class="entry-tag-button entry-tag-remove" style="display:none">${_("-")}</button>
 </div>

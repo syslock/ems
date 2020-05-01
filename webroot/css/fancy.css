@@ -1,10 +1,17 @@
 body {
 	background-color: #f0f0f0;
 	font-family: sans-serif;
-	font-size: 10.5pt;
+	font-size: 100%;
+}
+@media (max-width: 80em) {
+	body {
+		margin: 1em;
+		font-size: 160%;
+	}
 }
 
 button, select {
+	font-size: 100%;
 	border: 1px solid grey;
 	border-radius: 3px;
 	background-color: #dfdfdf;
@@ -12,6 +19,11 @@ button, select {
 }
 button:hover, select:hover {
 	background-color: #f0f0f0;
+}
+@media (max-width: 80em) {
+	button, select {
+		min-height: 2em;
+	}
 }
 
 select {
@@ -51,7 +63,7 @@ select {
 	display: inline-block;
 	top: 0;
 	right: 0;
-	font-size: small;
+	font-size: smaller;
 	line-height: 3em;
 	text-align: right;
 	padding: 2mm;
@@ -157,48 +169,73 @@ select {
 /* ------------------------------------------------------------------------- */
 .ems-entry {
 	display: block;
+	margin-bottom: 1em;
 }
-.entry-metadata {
-	width: 110px;
-	display: inline-block;
-	text-align: center;
+@media (min-width: 80em) {
+	.entry-metadata {
+		width: 110px;
+		display: inline-block;
+		text-align: center;
+	}
+}
+@media (max-width: 80em) {
+	.ems-entry {
+		border: 1px solid gray;
+		border-radius: 3px;
+	}
+	.entry-metadata {
+		display: block;
+		padding-bottom: 0.5em;
+	}
 }
 .entry-author {
 	display: inline-block;
 }
-.entry-decorator-left {
-	position: absolute;
-	margin-top: 30px;
-	margin-left: 90px;
-	width: 35px;
-	height: 52px;
-	background:url(../images/speech-connector.svg) no-repeat 0 0;
+@media (min-width: 80em) {
+	.entry-decorator-left {
+		position: absolute;
+		margin-top: 30px;
+		margin-left: 80px;
+		width: 35px;
+		height: 52px;
+		background:url(../images/speech-connector.svg) no-repeat 0 0;
+	}
 }
 .entry-bubble {
-	display: inline-block;
 	vertical-align: top;
-	margin-left: 9px;
-	margin-bottom: 10px;
-	border-radius: 20px;
-	border: 2px solid lightblue;
 	background-color: white;
-	padding: 10px;
 	min-height: 110px;
-	width: calc( 100% - 380px );
 }
-.entry-title-label {
-	display: none;
+@media (min-width: 80em) {
+	.entry-bubble {
+		display: inline-block;
+		padding: 1em;
+		border: 2px solid lightblue;
+		border-radius: 20px;
+		width: calc( 100% - 380px );
+	}
+}
+@media (max-width: 80em) {
+	.entry-bubble {
+		display: block;
+	}
+	.entry-title-line {
+		display: block;
+		margin-left: 3.5em;
+		margin-top: 1px;
+	}
 }
 .entry-title-line {
 	display: block;
+}
+.entry-title-label {
+	display: none;
 }
 .entry-title {
 	display: inline; /* Elemente der Titelzeile sollen nebeneinander angeordnet sein */
 	font-weight: bold;
 	text-decoration: underline;
-	margin-bottom: 10px;
-	padding: 2px;
-	border: 2px solid transparent;
+	margin-bottom: 1em;
 }
 .draft .entry-title {
 	display: block; /* erleichtert das anklicken des Titels beim Editieren, da er die ganze Breite einnimmt */
@@ -240,6 +277,11 @@ select {
 	width: 1.5em;
 	height: 1.5em;
 }
+@media (max-width: 80em) {
+	.entry-draft-notification .user-image {
+		position: static;
+	}
+}
 .entry-draft-notification .user-image-content {
 	vertical-align: bottom;
 }
@@ -249,42 +291,89 @@ select {
 }
 .entry-time {
 	display: inline-block;
-	margin-top: 2px;
-	margin-left: -14px;
 }
 .entry-mtime {
-	display: block;
 	padding-left: 20px;
-	padding-bottom: 4px;
-	background:url(../silk_icons/date_edit.png) no-repeat 0 0;
-	font-size: 0.8em;
+	background:url(../silk_icons/date_edit.png) no-repeat 0 0.1em;
+	font-size: smaller;
 	text-align: center;
 }
 .entry-mtime-label {
 	display: none;
 }
 .entry-mtime-day {
-	display: block;
 }
 .entry-mtime-time {
-	display: block;
 }
 .entry-ctime {
-	display: block;
 	padding-left: 20px;
-	padding-bottom: 4px;
-	background:url(../silk_icons/date.png) no-repeat 0 0;
-	font-size: 0.8em;
+	background:url(../silk_icons/date.png) no-repeat 0 0.1em;
+	font-size: smaller;
 	text-align: center;
 }
 .entry-ctime-label {
 	display: none;
 }
 .entry-ctime-day {
-	display: block;
 }
 .entry-ctime-time {
-	display: block;
+}
+@media (min-width: 80em) {
+	.entry-time {
+		margin-top: 2px;
+		margin-left: -14px;
+	}
+	.entry-mtime {
+		display: block;
+		padding-bottom: 4px;
+	}
+	.entry-mtime-label {
+	}
+	.entry-mtime-day {
+		display: block;
+	}
+	.entry-mtime-time {
+		display: block;
+	}
+	.entry-ctime {
+		display: block;
+		padding-bottom: 4px;
+	}
+	.entry-ctime-label {
+	}
+	.entry-ctime-day {
+		display: block;
+	}
+	.entry-ctime-time {
+		display: block;
+	}
+}
+@media (max-width: 80em) {
+	.entry-time {
+		vertical-align: bottom;
+	}
+	.entry-mtime {
+		display: inline-block;
+	}
+	.entry-mtime-label {
+	}
+	.entry-mtime-day {
+		display: inline-block;
+	}
+	.entry-mtime-time {
+		display: inline-block;
+	}
+	.entry-ctime {
+		display: inline-block;
+	}
+	.entry-ctime-label {
+	}
+	.entry-ctime-day {
+		display: inline-block;
+	}
+	.entry-ctime-time {
+		display: inline-block;
+	}
 }
 .entry-ctime-changer {
 	display: none;
@@ -353,73 +442,99 @@ select {
 	padding: 2px;
 	border: 2px solid orange;
 }
-.entry-tools {
-	display: none;
-	position: absolute;
-	margin-left: 10px;
+@media (min-width: 80em) {
+	.entry-tools {
+		display: none;
+		position: absolute;
+		margin-left: 10px;
+	}
+	.ems-entry:hover .entry-tools {
+		display: inline-block;
+	}
+	.ems-entry:hover .entry-tools.fixed {
+		position: fixed;
+		top: 100px;
+	}
+	.entry-tools-decorator-left {
+		position: absolute;
+		margin-top: 13px;
+		margin-left: -29px;
+		width: 0px;
+		height: 0px;
+		border-right: 30px solid orange;
+		border-top: 60px solid transparent;
+		border-bottom: 60px solid transparent;
+	}
+	.entry-tools-decorator-right {
+		/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
+		position: absolute;
+		margin-left: -30px;
+		margin-top: -40px;
+		width: 250px;
+		height: 230px;
+		background-color: transparent;
+	}
+	.entry-tools-content {
+		position: absolute;
+		min-height: 10em;
+		min-width: 14em;
+		border-radius: 20px;
+		border: 1px solid orange;
+		border-left: 3px solid orange;
+		background-color: white;
+		padding: 10px;
+		z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
+	}
+	.entry-response-button {
+		font-size: larger;
+	}
+	.entry-button, .draft-button {
+		position: relative;
+		width: 100%;
+		margin-top: 0.3em;
+		margin-bottom: 0.3em;
+		padding-left: 1em;
+	}
+	.entry-tools-button-symbol {
+		position: absolute;
+		height: 90%;
+		left: 1mm;
+		bottom: 1px;
+	}
+	.entry-delete-button {
+		width: 50%;
+		font-size: smaller;
+		padding-left: 2em;
+		margin-left: 50%;
+	}
 }
-.ems-entry:hover .entry-tools {
-	display: inline-block;
-}
-.ems-entry:hover .entry-tools.fixed {
-	position: fixed;
-	top: 100px;
-}
-.entry-tools-decorator-left {
-	position: absolute;
-	margin-top: 13px;
-	margin-left: -29px;
-	width: 0px;
-	height: 0px;
-	border-right: 30px solid orange;
-	border-top: 60px solid transparent;
-	border-bottom: 60px solid transparent;
-}
-.entry-tools-content {
-	position: absolute;
-	min-height: 126px;
-	min-width: 180px;
-	border-radius: 20px;
-	border: 1px solid orange;
-	border-left: 3px solid orange;
-	background-color: white;
-	padding: 10px;
-	z-index: 1; /* stellt Anzeige über transparentem Usability-Block sicher */
-}
-.entry-button, .draft-button {
-	display: block;
-	position: relative;
-	width: 100%;
-	margin-top: 2px;
-	margin-bottom: 2px;
-	padding-left: 1em;
-}
-.entry-tools-button-symbol {
-    position: absolute;
-	height: 90%;
-	left: 1mm;
-	bottom: 1px;
-}
-.entry-response-button {
-	font-size: larger;
-}
-.entry-delete-button {
-	width: 50%;
-	margin-left: 50%;
-	font-size: smaller;
-	padding-left: 2em;
+@media (max-width: 80em) {
+	.entry-tools {
+		display: block;
+	}
+	.entry-tools-content {
+	}
+	.entry-button, .draft-button {
+		position: relative;
+		left: -1px;
+		bottom: -1px;
+	}
+	.entry-tools-button-symbol {
+		height: 1.1em;
+		position: relative;
+		top: 2px;
+	}
+	.entry-tools-button-label {
+		display: inline-block;
+	}
+	.entry-delete-button {
+		float: right;
+		position: relative;
+		left: 1px;
+	}
 }
 .draft-button {
 	display: none;
-}
-.entry-tools-decorator-right {
-	/* unsichtbarer Usability-Block; verhindert allzu schnelles Ausblenden der Toolbox */
-	position: absolute;
-	margin-left: -30px;
-	margin-top: -40px;
-	width: 250px;
-	height: 230px;
-	background-color: transparent;
 }
 
 .objref.inline {
@@ -476,23 +591,40 @@ select {
 	display: block;
 	color: yellow;
 }
-.media-variants {
-	display: none;
+@media (min-width: 80em) and ((hover: hover) or (pointer: fine)) {
+	.media-variants {
+		display: none;
+	}
+	.entry-media:hover .media-variants {
+		position: absolute;
+		display: block;
+		width: 100%;
+		border: none;
+		margin-top: -5px;
+		background-color: rgba(0,0,0,0.85);
+		border-radius: 10px;
+		border-top-left-radius: 0px;
+		border-top-right-radius: 0px;
+		text-align: center;
+		font-family: sans;
+		font-size: smaller;
+		z-index: 1; /* render above subsequent elements */
+	}
 }
-.entry-media:hover .media-variants {
-	position: absolute;
-	display: block;
-	width: 100%;
-	border: none;
-	margin-top: -5px;
-	background-color: rgba(0,0,0,0.85);
-	border-radius: 10px;
-	border-top-left-radius: 0px;
-	border-top-right-radius: 0px;
-	text-align: center;
-	font-family: sans;
-	font-size: small;
-	z-index: 1; /* render above subsequent elements */
+@media (max-width: 80em) or (hover: none) or (pointer: coarse) {
+	.entry-media .media-variants {
+		display: block;
+		width: 100%;
+		border: none;
+		margin-top: -5px;
+		background-color: rgba(0,0,0,0.85);
+		border-radius: 10px;
+		border-top-left-radius: 0px;
+		border-top-right-radius: 0px;
+		text-align: center;
+		font-family: sans;
+		font-size: smaller;
+	}
 }
 .media-variant {
 	border-radius: 10px;
@@ -516,7 +648,6 @@ select {
 	color: darkred;
 }
 .media-variant.selected {
-	font-size: medium;
 	font-weight: bold;
 	color: white;
 }
@@ -557,7 +688,7 @@ select {
 	display: inline;
 	margin-left: -3px;
 	font-weight: normal;
-	font-size: x-small;
+	font-size: smaller;
 }
 
 .image-expander {
@@ -570,7 +701,7 @@ select {
 	opacity: 0;
 	transition: opacity 0.2s ease-in-out;
 	position: absolute;
-	font-size: 64px;
+	font-size: larger;
 	left: 5px;
 	top: 40%;
 }
@@ -726,7 +857,7 @@ select {
 
 .emoji-button, .emoji {
 	font-family: emoji;
-	font-size: 6mm;
+	font-size: larger;
 	display: inline-block;
 }
 .emoji-button {
@@ -743,7 +874,7 @@ select {
 .draft .entry-decorator-left {
 	position: absolute;
 	margin-top: 30px;
-	margin-left: 90px;
+	margin-left: 80px;
 	width: 20px;
 	height: 20px;
 	background-color: white;
@@ -860,43 +991,75 @@ select {
 /* ------------------------------------------------------------------------- */
 .entry-tags {
 	display: block;
-	border-left: 1px solid #bfbfbf;
-	border-bottom: 1px solid #bfbfbf;
-	border-radius: 10px;
 	padding: 5px;
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
+@media (min-width: 80em) {
+	.entry-tags {
+		border-left: 1px solid #bfbfbf;
+		border-bottom: 1px solid #bfbfbf;
+		border-radius: 10px;
+	}
+	.entry-tags-label {
+		display: inline;
+		font-size: smaller;
+	}
+}
+@media (max-width: 80em) {
+	.entry-tags {
+	}
+	.entry-tags-label {
+		display: none;
+	}
+}
+.entry-tags-additional-content {
+	text-align: right;
+}
 .entry-tags-show-selection-button,.entry-tag-button {
 	width: 3em;
 }
-.entry-tags-label {
-	display: inline;
-	font-size: small;
-}
 .entry-tags-show-selection-button {
 	display: inline-block;
-	font-size: small;
+	font-size: smaller;
+	margin-top: 0.4em;
+	margin-bottom: 0.1em;
+	position: relative;
+	left: -2px;
 }
 .entry-tags-content {
 	display: block;
 	padding: 3px;
 }
 .entry-tag {
-	display: block;
 	position: relative;
 	vertical-align: bottom;
 	font-weight: bold;
 	background-color: #efefef;
 	border: 1px solid #bfbfbf;
 	border-radius: 8px;
-	padding: 5px;
-	margin-top: 5px;
-	min-width: 150px;
+	padding-left: 0.2em;
+	padding-right: 0.2em;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
 }
 .entry-tag:hover {
 	background-color: #ffff8f;
 	cursor: default;
+}
+@media (min-width: 80em) {
+	.entry-tag {
+		display: block;
+		margin-top: 0.6em;
+		width: 12.5em;
+		text-align: center;
+		text-overflow: elllipsis;
+	}
+}
+@media (max-width: 80em) {
+	.entry-tag {
+		display: inline-block;
+	}
 }
 input.entry-tag {
 }
@@ -905,10 +1068,9 @@ input.entry-tag {
 }
 .entry-tag-button {
 	display: inline-block;
-	position: absolute;
 	top: 0px;
 	right: 2px;
-	font-size: small;
+	font-size: smaller;
 }
 .entry-tag-add {
 }
@@ -961,7 +1123,7 @@ input.entry-tag {
 }
 .entry-tags-selection-item {
 	font-weight: normal;
-	font-size: small;
+	font-size: smaller;
 }
 .entry-tags-selection-item:hover {
 }
@@ -969,19 +1131,19 @@ input.entry-tag {
 .entry-tag-tools {
 	display: none;
 	position: absolute;
-	margin-top: -20px;
-	left: -222px;
+	margin-top: -2em;
+	left: -16em;
 }
 .entry-tag:hover .entry-tag-tools {
 	display: inline-block;
 }
 .entry-tag-tools-decorator-right {
 	position: absolute;
-	margin-top: 6px;
-	margin-left: 212px; /* FIXME: macht statische Toolbreite notwendig */
+	margin-top: 1em;
+	margin-left: calc(15em + 0px); /* FIXME: macht statische Toolbreite notwendig */
 	width: 0px;
 	height: 0px;
-	border-left: 12px solid darkblue;
+	border-left: 15px solid darkblue;
 	border-top: 20px solid transparent;
 	border-bottom: 20px solid transparent;
 }
@@ -991,9 +1153,9 @@ input.entry-tag {
 	background-color: white;
 	border: 1px solid darkblue;
 	border-right: 3px solid darkblue;
-	border-radius: 10px;
-	width: 200px;
-	padding: 5px;
+	border-radius: 20px;
+	min-width: 14em;
+	padding: 0.5em;
 	z-index: 1;
 }
 .entry-tag-tools-decorator-left {
@@ -1010,11 +1172,10 @@ input.entry-tag {
 	padding-bottom: 5px;
 }
 .entry-tag-tool-button {
-	display: block;
 	position: relative;
 	width: 100%;
-	margin-top: 2px;
-	margin-bottom: 2px;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
 	padding-left: 1em;
 }
 .entry-tag-tool-button-symbol {
@@ -1031,22 +1192,51 @@ input.entry-tag {
 	display: inline-block;
 }
 .user-image {
-	display: block;
-	width: 100px;
-	height: 100px;
 	background-color: white;
 	border: 1px solid green;
-	border-radius: 10%;
-	margin-bottom: 3px;
 }
 .user-image-content {
-	width: 100px;
-	height: 100px;
-	border-radius: 10%;
 }
 .user-heading {
 	display: inline-block;
 	vertical-align: top;
+}
+@media (min-width: 80em) {
+	.user-image {
+		display: block;
+		width: 8em;
+		height: 8em;
+		margin-bottom: 3px;
+		border-radius: 10%;
+	}
+	.user-image-content {
+		width: 8em;
+		height: 8em;
+		border-radius: 10%;
+	}
+	.user-nick {
+		display: block;
+	}
+}
+@media (max-width: 80em) {
+	.user-image {
+		position:absolute;
+		display: inline-block;
+		width: 3em;
+		height: 3em;
+		margin: -1px;
+		border-radius: 3px;
+	}
+	.user-image-content {
+		width: 3em;
+		height: 3em;
+		border-radius: 3px;
+	}
+	.user-nick {
+		display: inline-block;
+		margin-left: 3.5em;
+		margin-right: 1em;
+	}
 }
 .user-nick-label {
 	display: none;
@@ -1057,54 +1247,102 @@ input.entry-tag {
 .user-content {
 	display: inline;
 }
-.user-tools {
-	display: none;
-	position: absolute;
-	margin-top: +12px;
+@media (min-width: 80em) {
+	.user-tools {
+		display: none;
+		position: absolute;
+		margin-top: +12px;
+	}
+	.user-heading:hover+.user-tools {
+		display: block;
+	}
+	.user-tools:hover {
+		display: block;
+	}
+	.user-tools-decorator-top {
+		position: absolute;
+		margin-top: -14px;
+		margin-left: 20px;
+		width: 0px;
+		height: 0px;
+		border-bottom: 15px solid green;
+		border-left: 30px solid transparent;
+		border-right: 30px solid transparent;
+		z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+	}
+	.user-tools-decorator-left {
+		position: absolute;
+		background-color: transparent;
+		/* sollte einen konfortablen Fokus-Schutz-Bereich um die Toolbox herum abdecken, damit sie nicht ungewollte verschwindet */
+		min-width: 250px;
+		min-height: 200px;
+		border-radius: 50%;
+		margin-top: -100px;
+		margin-left: -40px;
+		z-index: 1; /* sollte über anderen standardmäßig sichtbaren Elementen, außer der Toolbox liegen */
+	}
+	.user-tools-content {
+		position: absolute;
+		min-width: 12em;
+		border-radius: 20px;
+		border: 1px solid green;
+		border-top: 3px solid green;
+		padding: 10px;
+		background-color: white;
+		z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+	}
 }
-.user-heading:hover+.user-tools {
-	display: block;
-}
-.user-tools:hover {
-	display: block;
-}
-.user-tools-decorator-top {
-	position: absolute;
-	margin-top: -15px;
-	margin-left: 20px;
-	width: 0px;
-	height: 0px;
-	border-bottom: 15px solid green;
-	border-left: 30px solid transparent;
-	border-right: 30px solid transparent;
-	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
-}
-.user-tools-decorator-left {
-	position: absolute;
-	background-color: transparent;
-	/* sollte einen konfortablen Fokus-Schutz-Bereich um die Toolbox herum abdecken, damit sie nicht ungewollte verschwindet */
-	min-width: 250px;
-	min-height: 200px;
-	border-radius: 50%;
-	margin-top: -100px;
-	margin-left: -40px;
-	z-index: 1; /* sollte über anderen standardmäßig sichtbaren Elementen, außer der Toolbox liegen */
-}
-.user-tools-content {
-	position: absolute;
-	min-width: 160px;
-	border-radius: 20px;
-	border: 1px solid green;
-	border-top: 3px solid green;
-	padding: 10px;
-	background-color: white;
-	z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+@media (max-width: 80em) {
+	.user-tools {
+		display: none;
+		position: absolute;
+		margin-top: 2em;
+	}
+	.user-tools-decorator-left {
+		position: absolute;
+		background-color: transparent;
+		/* sollte einen konfortablen Fokus-Schutz-Bereich um die Toolbox herum abdecken, damit sie nicht ungewollte verschwindet */
+		min-width: 6em;
+		min-height: 6em;
+		border-radius: 50%;
+		margin-top: -5.5em;
+		margin-left: -1.5em;
+		z-index: 1; /* sollte über anderen standardmäßig sichtbaren Elementen, außer der Toolbox liegen */
+	}
+	.user-heading:hover+.user-tools {
+		display: block;
+	}
+	.user-tools:hover {
+		display: block;
+	}
+	.user-tools-decorator-top {
+		position: absolute;
+		margin-top: -14px;
+		margin-left: 18px;
+		width: 0px;
+		height: 0px;
+		border-bottom: 15px solid green;
+		border-left: 12px solid transparent;
+		border-right: 30px solid transparent;
+		z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+	}
+	.user-tools-content {
+		position: absolute;
+		min-width: 12em;
+		border-radius: 20px;
+		border: 1px solid green;
+		border-top: 3px solid green;
+		padding: 10px;
+		background-color: white;
+		z-index: 2; /* stellt Anzeige über transparentem Usability-Block sicher */
+	}
 }
 .user-tools-content button {
 	position: relative;
 	width: 100%;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
 }
-
 .user-password-dialog {
 	display: inline-block;
 	position: absolute;
@@ -1166,7 +1404,7 @@ input.entry-tag {
 }
 .user-image-type {
 	display: inline;
-	font-size: small;
+	font-size: smaller;
 }
 .user-image-size {
 	display: inline;
@@ -1234,7 +1472,7 @@ div.user-groups-selection {
 	display: block;
 	position: relative;
 	vertical-align: bottom;
-	font-size: small;
+	font-size: smaller;
 	background-color: #efefef;
 	border: 1px solid #bfbfbf;
 	border-radius: 8px;
@@ -1435,12 +1673,12 @@ div.user-groups-selection {
 	width: 0%;
 	background-color: lightblue;
 	color: darkgrey;
-	font-size: 40pt;
+	font-size: larger;
 	text-align: left;
 }
 .mini.upload-dialog .upload-progress {
 	min-height: 50px;
-	font-size: 8pt;
+	font-size: smaller;
 	color: black;
 }
 .upload-preview-over {
@@ -1515,7 +1753,7 @@ div.user-groups-selection {
 }
 .upload-type {
 	display: inline;
-	font-size: small;
+	font-size: smaller;
 }
 .upload-size {
 	display: inline;
@@ -1528,7 +1766,6 @@ div.user-groups-selection {
 }
 .upload-poster-manual {
 	display: inline-block;
-	font-size: 13pt;
 	margin-top: 1em;
 	margin-right: 1em;
 }
@@ -1653,7 +1890,7 @@ div.user-groups-selection {
 }
 .download-size {
 	display: inline-block;
-	font-size: small;
+	font-size: smaller;
 	padding-left: 10px;
 }
 
@@ -1848,7 +2085,7 @@ button.minion-filter-include {
 	display: inline-block;
 }
 .minion-delete {
-	font-size: small;
+	font-size: smaller;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2003,7 +2240,6 @@ div.searchbar-interface {
 	background-color: rgba(223,223,223,0.9);
 	border: 1px solid rgba(223,223,223,1);
 	border-radius: 4px;
-	padding: 2px;
 	border-right: 0;
 	border-top-right-radius: 0;
 	border-bottom-right-radius: 0;
@@ -2017,12 +2253,15 @@ div.searchbar-entry {
 	border-radius: 4px;
 	background-color: white;
 	color: black;
-	padding: 2px;
 	padding-left: 8px;
 	padding-right: 8px;
-	font-size: 10pt;
 	font-family: sans-serif;
 	outline: 0px solid transparent;
+}
+@media (max-width: 80em) {
+	div.searchbar-entry {
+		height: 2em;
+	}
 }
 div.searchbar-buttons {
 	display: inline-block;
@@ -2042,15 +2281,20 @@ button.searchbar-button {
 	padding-top: 1mm;
 	height: 1.5em;
 }
+@media (max-width: 80em) {
+	button.searchbar-button {
+		height: 2em;
+	}
+}
 img.searchbar-button-symbol {
-	height: 1em;
+	height: 1.1em;
+	vertical-align: top;
 }
 /* Font and left offsets of apropos-spacer needs to be similar to input.searchbar, to
  * achieve current words hint to be displayed under the current word! */
 .apropos-spacer {
 	display: inline-block;
 	visibility: hidden;
-	font-size: 10pt;
 	font-family: sans-serif;
 	white-space: pre; 
 	border: 0px;
@@ -2075,7 +2319,6 @@ img.searchbar-button-symbol {
 }
 .apropos-hint {
 	display: block;
-	font-size: 10pt;
 	font-family: sans-serif;
 }
 

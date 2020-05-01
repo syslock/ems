@@ -32,10 +32,10 @@ EntryTag.prototype.init = function() {
 		BaseItem.prototype.init.call( this );
 		my.label = $( ".entry-tag-label", my.dom_object )[0];
 		my.tools = $( ".entry-tag-tools", my.dom_object )[0];
-		my.button_search = $( ".entry-tag-tool-filter-for", my.dom_object )[0];
-		my.button_exclude = $( ".entry-tag-tool-filter-exclude", my.dom_object )[0];
-		my.button_add = $( ".entry-tag-add", my.dom_object )[0];
-		my.button_remove = $( ".entry-tag-remove", my.dom_object )[0];
+		my.button_add = $( ".entry-tag-tool-button-add", my.dom_object )[0];
+		my.button_remove = $( ".entry-tag-tool-button-remove", my.dom_object )[0];
+		my.button_search = $( ".entry-tag-tool-button-search", my.dom_object )[0];
+		my.button_exclude = $( ".entry-tag-tool-button-exclude", my.dom_object )[0];
 		
 		$(my.dom_object).attr( {title: my.obj.title} );
 		var label_limit = 30;
@@ -74,10 +74,8 @@ EntryTag.prototype.init = function() {
 			}
 		}
 		
-		my.button_add_tag = $(".entry-tag-add", my.dom_object)[0];
-		$(my.button_add_tag).on( "click", function() { my.add_tag(); } );
-		my.button_remove_tag = $(".entry-tag-remove", my.dom_object)[0];
-		$(my.button_remove_tag).on( "click", function() { my.remove_tag(); } );
+		$(my.button_add).on( "click", function() { my.add_tag(); } );
+		$(my.button_remove).on( "click", function() { my.remove_tag(); } );
 	}
 };
 

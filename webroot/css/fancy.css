@@ -35,6 +35,10 @@ select {
 	background-size: 4mm;
 }
 
+.decorator {
+	position: absolute;
+}
+
 .page-menu {
 	position: absolute;
 	display: block;
@@ -173,7 +177,7 @@ select {
 }
 @media (min-width: 80em) {
 	.entry-metadata {
-		width: 110px;
+		width: 8.7em;
 		display: inline-block;
 		text-align: center;
 	}
@@ -192,11 +196,10 @@ select {
 	display: inline-block;
 }
 @media (min-width: 80em) {
-	.entry-decorator-left {
+	.entry-bubble-decorator-left {
 		position: absolute;
-		margin-top: 30px;
-		margin-left: 80px;
-		width: 35px;
+		margin-left: calc( -1em - 34px );
+		width: 34px;
 		height: 52px;
 		background:url(../images/speech-connector.svg) no-repeat 0 0;
 	}
@@ -204,7 +207,7 @@ select {
 .entry-bubble {
 	vertical-align: top;
 	background-color: white;
-	min-height: 110px;
+	min-height: 10em;
 }
 @media (min-width: 80em) {
 	.entry-bubble {
@@ -212,7 +215,7 @@ select {
 		padding: 1em;
 		border: 2px solid lightblue;
 		border-radius: 20px;
-		width: calc( 100% - 380px );
+		width: calc( 100% - 28em );
 	}
 }
 @media (max-width: 80em) {
@@ -545,6 +548,7 @@ select {
 	display: inline-block;
 	max-width: 100%;
 	position: relative;
+	line-height: 0;
 }
 .audio, .video {
 	max-width: 100%;
@@ -591,7 +595,7 @@ select {
 	display: block;
 	color: yellow;
 }
-@media (min-width: 80em) and ((hover: hover) or (pointer: fine)) {
+@media (min-width: 80em) {
 	.media-variants {
 		display: none;
 	}
@@ -600,7 +604,6 @@ select {
 		display: block;
 		width: 100%;
 		border: none;
-		margin-top: -5px;
 		background-color: rgba(0,0,0,0.85);
 		border-radius: 10px;
 		border-top-left-radius: 0px;
@@ -611,12 +614,11 @@ select {
 		z-index: 1; /* render above subsequent elements */
 	}
 }
-@media (max-width: 80em) or (hover: none) or (pointer: coarse) {
+@media (max-width: 80em) {
 	.entry-media .media-variants {
 		display: block;
 		width: 100%;
 		border: none;
-		margin-top: -5px;
 		background-color: rgba(0,0,0,0.85);
 		border-radius: 10px;
 		border-top-left-radius: 0px;
@@ -871,10 +873,9 @@ select {
 /* ------------------------------------------------------------------------- */
 /* ------------------------------- New Entries ----------------------------- */
 /* ------------------------------------------------------------------------- */
-.draft .entry-decorator-left {
+.draft .entry-bubble-decorator-left {
 	position: absolute;
-	margin-top: 30px;
-	margin-left: 80px;
+	margin-left: calc( -1em - 34px );
 	width: 20px;
 	height: 20px;
 	background-color: white;
@@ -1191,7 +1192,7 @@ input.entry-tag {
 	}
 	.entry-tag-tools-decorator-top {
 		position: absolute;
-		margin-top: -0.7em;
+		margin-top: -14px;
 		margin-left: 1em;
 		width: 0px;
 		height: 0px;

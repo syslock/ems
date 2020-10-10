@@ -457,7 +457,7 @@ select {
 	border: 2px solid orange;
 }
 .entry-html {
-	overflow-x: scroll;
+	overflow-x: auto;
 }
 @media (min-width: 80em) {
 	.entry-tools {

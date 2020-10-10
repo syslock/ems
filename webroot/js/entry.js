@@ -178,6 +178,7 @@ define( ["jquery","item"], function($,BaseItem) {
 
 	Entry.prototype.show_tag_selection = function() {
 		var my = this;
+		$(my.entry).addClass( "active" );
 		$(my.button_show_tag_selection).hide();
 		
 		// Suchtool für Tags initialisieren:
@@ -256,7 +257,6 @@ define( ["jquery","item"], function($,BaseItem) {
 				var entry = my; // FIXME: needing to use this reference backups is a bit creepy
 				var tag_search = this; // Use this reference for tag_search, as the constructor might not yet have returned
 				$(entry.tags_selection).show();
-				tag_search.entry.outerWidth( $(entry.tags_selection).innerWidth()*0.95 );
 				tag_search.entry.focus();
 				tag_search.search();
 			},
@@ -270,6 +270,7 @@ define( ["jquery","item"], function($,BaseItem) {
 		$(my.tags_selection).hide();
 		$(my.tags_search_result_scroll_container_hack).hide();
 		$(my.tags_search_result).empty();
+		$(my.entry).removeClass( "active" );
 	};
 
 	Entry.prototype.link_external = function( recursive ) {

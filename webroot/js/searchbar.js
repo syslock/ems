@@ -61,9 +61,11 @@ SearchBar.prototype.init = function( parms ) {
 			my.interface = $( ".searchbar-interface", my.entry_parent );
 			my.entry = $( ".searchbar-entry", my.entry_parent );
 			my.entry[0].contentEditable = true;
-			my.entry.outerWidth( my.outer_width );
-			my.entry.css( 'min-width', my.entry.css('width') );
-			my.entry.css( 'width', '' );
+			if( my.outer_width != undefined ) {
+				my.entry.outerWidth( my.outer_width );
+				my.entry.css( 'min-width', my.entry.css('width') );
+				my.entry.css( 'width', '' );
+			}
 			my.entry.on( "keydown", function(evt) { return my.handle_keydown_event(evt); } )
 			my.entry.on( "keyup", function(evt) { return my.handle_keyup_event(evt); } )
 			my.buttons = $( ".searchbar-buttons", my.entry_parent );

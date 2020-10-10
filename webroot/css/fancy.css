@@ -200,11 +200,11 @@ select {
 	}
 	.entry-metadata {
 		display: block;
-		padding-bottom: 0.5em;
 	}
 }
 .entry-author {
 	display: inline-block;
+	vertical-align: top;
 }
 @media (min-width: 80em) {
 	.entry-bubble-decorator-left {
@@ -235,8 +235,11 @@ select {
 	}
 	.entry-title-line {
 		display: block;
+	}
+	.entry-heading {
 		margin-left: 3.5em;
-		margin-top: 1px;
+		padding-top: 0.3em;
+		padding-bottom: 0.2em;
 	}
 }
 .entry-title-line {
@@ -305,6 +308,7 @@ select {
 }
 .entry-time {
 	display: inline-block;
+	vertical-align: top;
 }
 .entry-mtime {
 	padding-left: 20px;
@@ -364,7 +368,6 @@ select {
 }
 @media (max-width: 80em) {
 	.entry-time {
-		vertical-align: bottom;
 	}
 	.entry-mtime {
 		display: inline-block;
